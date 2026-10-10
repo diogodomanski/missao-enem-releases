@@ -1,0 +1,1381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Comparação de Negócios Internacionais, Relações Internacionais e Administração na PUCPR, com roteiro para pesquisar qualquer outro curso.">
+<title>Escolha de curso — NI, RI ou Administração</title>
+<style>
+  /* build:tokens largura="720px" corpo="16px" campo="16px" primaria="var(--blue)" */
+  /* Paleta e medidas do shell. Fonte única: este arquivo é injetado nos três HTMLs pelo build.
+     Não edite o bloco gerado dentro do HTML — edite aqui e rode `python3 scripts/build.py`. */
+  :root{
+    /* `only` nos dois temas: é ele que impede o "tema escuro para sites" do Chrome no Android de
+       inverter a pintura por cima da nossa (o painel Hoje sumia no fundo, ouro e verde viravam cinza).
+       `light` sozinho não opta por sair — testado. O tema escuro não é uma inversão do navegador:
+       é a segunda coluna de cada token, logo abaixo. */
+    color-scheme:only light;
+    --bg:#F3F5F9; --surface:#FFFFFF; --ink:#12213F; --muted:#626D88;
+    --line:#DDE2EC; --field-line:#8790A6; --blue:#1F5EFF; --blue-ink:#1B52E0; --blue-soft:#E4ECFF;
+    --gold:#D69B0A; --gold-soft:#FFF4D6; --gold-ink:#7A5600;
+    --green:#167A4C; --green-soft:#E1F5EA; --red:#B3261E; --red-soft:#FBE7E5;
+  }
+  /* Par escuro de cada token, na mesma linha do claro: os dois nunca saem de sincronia e não existe
+     um segundo bloco de paleta para esquecer. Navegador sem light-dark() ignora estas linhas e fica
+     no claro — e o boot lá embaixo não oferece o seletor onde ele não funcionaria.
+     Escuro é marinho dessaturado, não cinza: a página continua sendo papel azulado, à noite. */
+  :root{
+    --bg:light-dark(#F3F5F9,#0E1626);           /* papel */
+    --surface:light-dark(#FFFFFF,#172032);      /* ficha sobre o papel, e a barra do topo */
+    --ink:light-dark(#12213F,#E9EDF6);          /* 13,9:1 sobre a ficha */
+    --muted:light-dark(#626D88,#9AA7C2);        /* 6,7:1 — o mais escuro que ainda lê como secundário */
+    --line:light-dark(#DDE2EC,#2C3750);
+    --field-line:light-dark(#8790A6,#7987A8);   /* 4,5:1 sobre a ficha (SC 1.4.11 pede 3) */
+    --blue:light-dark(#1F5EFF,#6D97FF);         /* azul elétrico não sobrevive ao escuro: sobe dois degraus */
+    --blue-ink:light-dark(#1B52E0,#A9C4FF);
+    --blue-soft:light-dark(#E4ECFF,#1C2A4B);
+    --gold:light-dark(#D69B0A,#D9A62A);
+    --gold-soft:light-dark(#FFF4D6,#3A2D0B);
+    --gold-ink:light-dark(#7A5600,#EFC35E);     /* no escuro o par vira o claro: 8,1:1 sobre ouro suave */
+    --green:light-dark(#167A4C,#4FC894);
+    --green-soft:light-dark(#E1F5EA,#10301F);
+    --red:light-dark(#B3261E,#FF8C82);
+    --red-soft:light-dark(#FBE7E5,#3B1A17);
+    /* sombra e backdrop: marinho com alfa no claro, um marinho quase apagado no escuro — nunca #000 */
+    --shadow:light-dark(rgba(18,33,63,.25),rgba(5,9,18,.6));
+    --scrim:light-dark(rgba(18,33,63,.45),rgba(5,9,18,.72));
+  }
+  /* Painel Hoje. No claro ele é a única superfície escura da tela; no escuro a tela inteira é escura,
+     então ele passa a ser a única superfície *saturada*: azul-comando, 1,7:1 acima do papel. A tinta
+     dele é branca nos dois temas — por isso os alfas de branco do painel continuam valendo. */
+  :root{
+    --hoje:light-dark(#12213F,#1B3A86);
+    --hoje-ink:#FFFFFF;
+    --hoje-line:light-dark(rgba(255,255,255,.45),rgba(255,255,255,.55)); /* 3:1 sobre o painel e sobre a pílula de 8% */
+    /* opacidades da linha do tempo: o azul-comando é mais claro que o marinho, então branco a 70%/55%
+       cairia para 4,1:1 nele. 85%/66% devolve o mesmo degrau visual com 6,6:1 e 4,8:1. */
+    --tl:light-dark(.7,.85);
+    --dim:light-dark(.55,.66);
+    /* Medidas do shell. --shell é a altura da barra fixa: entra no padding do body e no
+       scroll-margin-top das âncoras, então mudar aqui move tudo junto. --wide é a largura útil
+       desta tela, e a barra usa a mesma do <main> para os dois alinharem. */
+    --shell:52px;
+    /* --footer é a altura total da barra fixa de baixo, fio de 1px incluído, e serve ao mesmo
+       propósito: entra no padding do body e no quanto o toast sobe para não pousar sobre ela. */
+    --footer:28px;
+    --wide:720px;
+    /* Medidas que mudam de tela para tela. Antes eram divergências que só quem já conhecia o código
+       sabia de cor (campo de 16px no aluno e de 15px no orientador); agora cada arquivo as declara
+       no próprio marcador do build, e o CSS compartilhado lê a variável. */
+    --corpo:16px;        /* corpo de texto da tela */
+    --campo:16px;        /* campo de formulário: nunca herda os 12px do rótulo .f */
+    --primaria:var(--blue);  /* fundo do botão primário: azul elétrico no aluno, marinho no orientador */
+    /* A segunda família tipográfica, e a única outra: a da folha de redação. A largura da folha é um
+       número de caracteres, e só em fonte monoespaçada caractere vira largura na tela — a margem direita
+       é uma linha, a linha cheia parece cheia e o recuo ocupa o que conta. Só pilha de sistema, sem
+       webfont (ADR-009 de folha-de-redacao-e-noticias). A contagem nunca depende dela: num aparelho
+       cujo monospace não seja de passo fixo, só a margem desenhada sai torta. */
+    --mono:ui-monospace,"Cascadia Mono","Segoe UI Mono",Consolas,"DejaVu Sans Mono",Menlo,monospace;
+  }
+  /* Celular deitado: 52px de barra comeriam um oitavo da altura. As duas continuam fixas, mais baixas. */
+  @media (max-height:480px){:root{--shell:44px;--footer:24px}}
+  :root[data-tema="escuro"]{color-scheme:only dark}
+  /* Papel é branco: imprimir no escuro sairia tinta clara sobre nada. */
+  @media print{:root,:root[data-tema="escuro"]{color-scheme:only light}}
+  /* /build:tokens */
+  /* build:base */
+  /* Camada de design system: o que o DESIGN.md declara obrigatoriamente igual nas três telas.
+     Fonte única — editar aqui muda os três arquivos. O CSS de cada tela (o painel Hoje e o herói do
+     aluno, a grade do orientador, a prosa do Escolha) continua morando junto do markup dela, porque
+     58% das regras são exclusivas de uma tela e ali estar perto do HTML é qualidade, não defeito. */
+  *{box-sizing:border-box}
+  [hidden]{display:none !important}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif;font-size:var(--corpo);line-height:1.45}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+  p{margin:0}
+  a{color:var(--blue);text-underline-offset:2px}
+  .muted{color:var(--muted);font-size:13px}
+  .mt{margin-top:10px}
+  .f{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+
+  button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 12px}
+  /* um acento forte por card: o primário do aluno é azul elétrico, o do orientador é marinho tinta */
+  button.primary{background:var(--primaria);color:var(--surface);border-color:var(--primaria)}
+  button.quiet{background:transparent;border-color:transparent;color:var(--muted)}
+  /* desabilitado: a base não declarava o estado, então o botão inerte saía idêntico ao ativo — o mesmo
+     azul cheio, opacidade 1 e o cursor de mão, que é a metade enganosa: ele promete clique e nada
+     acontece (o "Continuar" antes de escolher o personagem, na Olimpíadas). O grupo inteiro a 50%
+     apaga fundo, texto e borda de uma vez, nas duas missões, nos dois temas e em toda variante, sem
+     nenhuma cor nova; a regra vem depois de .primary e .quiet porque é estado, não variante. Campo e
+     caixa não entram: o navegador já lhes troca o cursor, e o rótulo da seção diz o que falta. */
+  button:disabled{opacity:.5;cursor:default}
+  button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible,h2:focus-visible,h3:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+  /* campo nunca herda os 12px do rótulo .f, e --campo nunca desce de 16px onde há iPhone: abaixo disso ele dá zoom */
+  /* campo vazio só se enxerga pela borda: --field-line dá 3:1 sobre branco (SC 1.4.11). Card e botão
+     continuam em --line: lá o rótulo e a superfície já identificam o elemento. */
+  input,textarea,select{font:inherit;font-size:var(--campo);padding:8px;border:1px solid var(--field-line);border-radius:8px;width:100%;background:var(--surface);color:var(--ink);caret-color:var(--blue)}
+  textarea{resize:vertical}
+  /* textarea com teto rola por dentro: a barra é do sistema, como o caret (--field-line dá 3:1 sobre branco) */
+  textarea{scrollbar-width:thin;scrollbar-color:var(--field-line) transparent}
+  /* textareas que crescem com o texto não têm alça: a alça brigaria com o crescimento automático */
+  textarea[data-grow]{resize:none}
+  textarea.code{font-size:13px;min-height:120px;overflow-wrap:anywhere}
+  /* o cinza de placeholder do navegador não é o nosso: --muted é o mais claro que ainda dá 4,5:1 */
+  ::placeholder{color:var(--muted);opacity:1}
+  ::selection{background:var(--blue-soft);color:var(--ink)}
+
+  /* Fila que rola de lado (navegação e abas). Enquanto sobrar item fora da tela, a borda esmaece e
+     uma seta "›" fica sobre a parte já limpa da máscara: o esmaecido diz que há mais, a seta diz para onde. */
+  .fila{position:relative}
+  .fila::after{content:"\203A";position:absolute;right:0;top:0;bottom:0;width:26px;display:none;align-items:center;justify-content:flex-end;font-size:22px;line-height:1;color:var(--muted);pointer-events:none}
+  .fila.more::after{display:flex}
+  /* as abas têm padding em cima e embaixo: a seta acompanha para ficar no meio das pílulas */
+  .fila.abas::after{top:4px;bottom:8px}
+
+  /* Diálogo e toast: os únicos elementos que flutuam, e por isso os únicos com sombra. No escuro a
+     sombra não desenha nada sobre fundo escuro, e o recorte volta a ser o fio de 1px de todo card. */
+  dialog{border:1px solid light-dark(transparent,var(--line));border-radius:14px;padding:0;max-width:560px;width:calc(100% - 32px);max-height:calc(100vh - 32px);overflow:auto;background:var(--surface);color:var(--ink);box-shadow:0 20px 60px var(--shadow)}
+  @supports (height:1dvh){dialog{max-height:calc(100dvh - 32px)}}
+  dialog::backdrop{background:var(--scrim)}
+  dialog .dh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px 8px}
+  dialog .dh h2{margin:0;font-size:17px}
+  dialog .db{padding:0 18px 18px;font-size:14px;line-height:1.55}
+  dialog .db p{margin:8px 0}
+  dialog .db ul{margin:6px 0;padding-left:18px}
+  dialog .db li{margin:4px 0}
+  dialog .db code{background:var(--bg);padding:1px 6px;border-radius:6px;font-size:13px}
+
+  /* O toast pousa acima da barra de baixo, não sobre ela: --footer já é a altura toda dela. */
+  .toast{position:fixed;left:0;right:0;bottom:calc(var(--footer) + 16px + env(safe-area-inset-bottom));width:max-content;max-width:calc(100vw - 32px);margin:0 auto;background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:99px;font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:3}
+  .toast.show{opacity:1}
+  .toast b{font-weight:700}
+  @media (prefers-reduced-motion:reduce){.toast{transition:none}}
+  /* toast com Desfazer: só depois de apagar (zerar, apagar repertório); some em 8 s */
+  .toast.act{pointer-events:auto}
+  .toast button{margin-left:10px;padding:4px 10px;font-size:13px;font-weight:700;background:var(--surface);color:var(--ink);border-color:var(--surface);border-radius:99px}
+  /* toque: o Desfazer desenha 37px (a linha de 13px tem 18,85, mais 8px de padding e a borda) e acerta 44
+     pela área invisível, que cresce para cima e para baixo dentro dos 10px de padding da pílula — o
+     desenho não muda. O `padding:8px 12px` sozinho, copiado à mão nos dois apps, dava 37,8: padding é
+     conta de métrica de fonte, e a área se mede do tamanho, como a do `?`. */
+  @media (pointer:coarse){.toast button{position:relative;padding:8px 12px}.toast button::after{content:"";position:absolute;inset:calc((100% - 44px)/2) 0;border-radius:99px}}
+
+  .help{width:26px;height:26px;padding:0;border-radius:99px;font-size:14px;font-weight:700;color:var(--blue-ink);border-color:var(--blue-soft);background:var(--blue-soft);flex:0 0 auto;line-height:1}
+  @media (hover:hover){.help:hover{background:var(--blue);color:var(--surface)}}
+  /* toque: o `?` desenha 26px (22 no subtítulo) e acerta 44 pela área invisível. O ::after se mede da
+     caixa de PADDING, que não tem a borda de 1px do botão, e por isso o recuo sai do tamanho e não de
+     um número fixo: o `inset:-9px` de antes, copiado à mão nos dois apps, dava 42 no de 26 e 38 no de 22. */
+  @media (pointer:coarse){.help{position:relative}.help::after{content:"";position:absolute;inset:calc((100% - 44px)/2);border-radius:99px}}
+  /* vermelho só para erro e alerta, nunca em botão */
+  .err{color:var(--red);font-size:13px;margin:8px 0 0}
+  .alert{background:var(--red-soft);color:var(--red);border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.4}
+
+  /* A faixa de atualização (#updateBanner). As regras moram aqui porque a peça é obrigatoriamente
+     idêntica nos dois apps — e até 18/09/2026 elas existiam em TRIPLICATA, copiadas à mão nos três
+     arquivos, inclusive no Escolha, que não tem faixa nenhuma.
+
+     Azul e não vermelho: versão nova não é falha, e vermelho ali leria como "alguma coisa quebrou".
+     Mas azul suave sobre o papel azulado dá 1,1:1. Dentro de um card o mesmo recurso funciona — é o
+     que .promo e .flag fazem, sobre branco —; na PÁGINA ele desaparece, e a faixa lia como mais um
+     card num quadro cheio de cards. Quem separa é o fio de 1px em azul elétrico: é o único bloco da
+     tela com contorno de acento, e um fio basta. Filete grosso à esquerda seria o carimbo genérico de
+     "callout", que é o oposto de uma decisão — e o ouro do .flag já ocupa esse gesto no orientador. */
+  .alert.info{background:var(--blue-soft);color:var(--blue-ink);border:1px solid var(--blue)}
+  #updateBanner{margin:0 0 12px}
+  #updateBanner p{margin:0}
+  #updateBanner .actions{margin-top:8px;align-items:center}
+  /* Os dois botões são `quiet`, que nasce em --muted: cinza-neblina sobre azul suave é cinza fora do
+     tom da superfície, e no escuro chega perto de parecer desabilitado. Sobre superfície colorida o
+     secundário se tinge da própria cor, nunca de cinza — e --blue-ink é o par escuro que a paleta já
+     reserva para pousar sobre --blue-soft. O `quiet` continua `quiet`: sem fundo, sem fio, sem acento.
+     Nenhuma das duas saídas é a certa, e a Regra do Um Acento continua valendo aqui. */
+  #updateBanner button.quiet{color:var(--blue-ink)}
+  /* A barra do download. O trilho não pode ser --blue-soft, que aqui é o fundo da própria faixa: usa
+     --surface, que no claro sobe (branco sobre azul suave) e no escuro afunda (#172032 sobre #1C2A4B)
+     — nos dois casos lê como sulco. `appearance:none` é o que tira o desenho do sistema operacional,
+     que não conhece a nossa paleta e ignora o tema. */
+  #updateProg{display:block;width:100%;height:6px;margin-top:8px;border:0;border-radius:99px;background:var(--surface);appearance:none;-webkit-appearance:none}
+  #updateProg::-webkit-progress-bar{background:transparent;border-radius:99px}
+  #updateProg::-webkit-progress-value{background:var(--blue);border-radius:99px}
+  #updateProg::-moz-progress-bar{background:var(--blue);border-radius:99px}
+  /* O link herda a cor da faixa: azul tinta sobre azul suave já é o contraste da peça, e um segundo
+     azul ali brigaria com ele. */
+  #updateBanner a{color:inherit;font-size:14px;text-underline-offset:2px}
+  /* Ela aparece NO MEIO da sessão, quando o download termina, e é aí que a atenção importa: a entrada
+     é o aviso. Um momento só, com a mesma curva da promoção de patente — o outro anúncio do sistema
+     que aparece sozinho. De cima para baixo porque ela empurra a página, e não surge por baixo dela. */
+  @media (prefers-reduced-motion:no-preference){
+    #updateBanner:not([hidden]){animation:faixa .45s cubic-bezier(.16,1,.3,1) both}
+    @keyframes faixa{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+  }
+  /* Em alto contraste o fundo e o fio somem: sem isto a faixa vira texto solto no meio da página. */
+  @media (forced-colors:active){.alert.info{outline:2px solid CanvasText}}
+  /* Aviso de tela: some no papel. Uma folha impressa hoje não tem como reiniciar app nenhum, e a
+     linha sobreviveria ao arquivo. */
+  @media print{#updateBanner{display:none}}
+  /* A folha de redação (.sheet): linhas numeradas e pautadas, desenhadas por folhaHTML() a partir de
+     folhaLinhas() — a mesma lista que dá a contagem, então a folha e o número não discordam. Mora aqui
+     porque é o mesmo componente nos dois apps (o rascunho dele, a referência do passar a limpo, a folha
+     no painel do pai). --cols é a largura dele, posta inline no <ol>; a coluna do texto mede
+     exatamente --cols caracteres e a margem é o fio à direita dela. Pauta em --line, como todo fio de
+     card; a margem em --field-line, porque ela é o exercício e precisa se ver. Nenhum estado é
+     vermelho: a folha nunca julga o que ele escreveu.
+     Linhas: .out (depois da 30ª, abaixo do corte "fora da folha"), .past (passou da largura dele, numa
+     semana em que a folha segue o papel: aviso neutro, pontilhado) e .full (a linha do passar a limpo
+     que chegou ao máximo: a margem escurece, e é só isso que a recusa silenciosa mostra).
+     A folha não encolhe para caber: em tela estreita o .sheet-wrap rola de lado por dentro e a página
+     não. Encolher foi medido e recusado (para 68 colunas caberem num celular de 375 px a letra iria a
+     6,8 px). Enquanto sobra linha à direita, o .sheet-wrap leva .more: a borda some em degradê, como
+     na .fila, e não corta a palavra a seco. Com toque, a .sheet-hint acima da folha diz o que fazer —
+     deitado, 55 e 68 colunas cabem inteiras em todo celular medido. Sem toque ela não aparece: numa
+     janela estreita de computador "deite o celular" seria instrução para outro aparelho.
+     A largura do <ol> é a conta das colunas (número, intervalo, texto) e não max-content, e cada linha
+     leva content-visibility:auto: o rascunho é redesenhado a cada tecla, e com um texto várias vezes
+     maior que a folha medir a linha mais larga obrigava o navegador a diagramar todas — numa redação de
+     20.000 palavras eram 2.500 linhas e mais de 100 ms por tecla. Assim só as linhas visíveis custam. */
+  .sheet-wrap{max-width:100%;overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--field-line) transparent}
+  /* impeccable-disable-next-line design-system-color: #000 aqui é canal de máscara (alfa), não cor visível */
+  .sheet-wrap.more{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 32px),transparent)}
+  .sheet-hint{display:none;margin:10px 0 4px;font-size:12px;color:var(--muted)}
+  .sheet-hint + *{margin-top:10px}
+  @media (pointer:coarse){.sheet-hint:not([hidden]){display:block}.sheet-hint:not([hidden]) + *{margin-top:0}}
+  .sheet{list-style:none;margin:0;padding:0;width:calc((var(--cols) + 4.5) * 1ch);min-width:100%;background:var(--surface);color:var(--ink);font-family:var(--mono);font-size:13px;line-height:24px}
+  .sheet li{display:grid;grid-template-columns:3ch calc(var(--cols) * 1ch);column-gap:1.5ch;min-height:25px;border-bottom:1px solid var(--line);content-visibility:auto;contain-intrinsic-block-size:auto 25px}
+  .sheet .sheet-n{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;user-select:none}
+  .sheet .sheet-t{min-width:0;white-space:pre;border-right:1px solid var(--field-line)}
+  .sheet input.sheet-t{font:inherit;line-height:inherit;height:24px;padding:0;border:0;border-right:1px solid var(--field-line);border-radius:0;background:transparent;width:auto}
+  .sheet .full .sheet-t{border-right-color:var(--ink)}
+  .sheet .past .sheet-t{text-decoration:underline dotted var(--field-line);text-underline-offset:5px}
+  /* "passou da sua largura" é para leitor de tela: o pontilhado é desenho e não se lê. O aluno não tem
+     .vh, e a folha não depende do CSS de tela nenhuma. */
+  .sheet .sheet-vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+  .sheet .out{background:var(--bg);color:var(--muted)}
+  .sheet li:not(.out) + .out::before{content:"fora da folha";grid-column:1 / -1;font-family:"Avenir Next","Segoe UI",Helvetica,Arial,sans-serif;font-size:12px;color:var(--muted);border-top:2px dashed var(--field-line);padding-left:4.5ch}
+  /* Carimbo do build: mora na barra fixa de baixo (.shell-footer, em shell.css), pequeno e fora do
+     caminho, mas legível de qualquer ponto da página quando o pai pergunta "que versão aparece aí
+     embaixo?". Sai também no papel — folha impressa sem versão não dá para conferir depois. */
+  .versao{margin:0;font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  /* /build:base */
+  .actions{margin-top:12px}
+  main{max-width:var(--wide);margin:0 auto;
+    padding:20px max(16px,env(safe-area-inset-right)) calc(56px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+    overflow-wrap:break-word}
+  h2{font-size:17px;margin:0;font-weight:700}
+  h3{font-size:14px;margin:14px 0 6px;font-weight:700;color:var(--muted)}
+  h3.sep{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+  b,strong{font-weight:700}
+  button:focus-visible,a:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+  .prose{font-size:15px;line-height:1.6}
+  .prose + .prose{margin-top:10px}
+  .cap{font-size:13px;color:var(--muted);margin-top:10px}
+
+  /* ---- seções: ficha branca sobre papel azulado, sem sombra ---- */
+  .sec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:22px;scroll-margin-top:12px}
+  .sec > header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .sec > header .n{font-size:12px;color:var(--muted)}
+  /* A fila de âncoras é um índice: rola com a página. Quem não rola é a barra do topo. */
+  .nav{display:flex;gap:6px;padding:8px 0;overflow-x:auto;scrollbar-width:none}
+  .nav::-webkit-scrollbar{display:none}
+  /* impeccable-disable-next-line design-system-color: #000 aqui é canal de máscara (alfa), não cor visível */
+  .nav.more{mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent calc(100% - 14px));
+    -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent calc(100% - 14px))}
+  .nav a{flex:0 0 auto;font-size:13px;color:var(--muted);text-decoration:none;padding:6px 10px;
+    border-radius:99px;border:1px solid var(--line);background:var(--surface)}
+
+  .pagehead{margin:10px 0 8px}
+
+  /* ---- a única superfície marinho da página ---- */
+  .today{background:var(--hoje);color:var(--hoje-ink);border-radius:14px;padding:18px;scroll-margin-top:12px}
+  .today h2{color:var(--hoje-ink);font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.75}
+  .today .big{font-size:22px;font-weight:800;line-height:1.15;margin:8px 0 12px;letter-spacing:-.01em;text-wrap:balance}
+  .today .big small{display:block;font-size:14px;font-weight:500;opacity:.8;margin-top:6px;line-height:1.45}
+  .today .list{margin-top:12px;display:flex;flex-direction:column;gap:6px}
+  .today .item{font-size:14px;padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.08)}
+
+  /* ---- mini-blocos dentro do card: papel azulado, sem borda ---- */
+  .fichas{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px}
+  .ficha{background:var(--bg);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px;min-width:0}
+  /* 1.3 é o Title do DESIGN.md: em 480px, com duas colunas, dois dos nomes quebram em duas linhas */
+  .ficha b.nome{font-size:16px;line-height:1.3}
+  .ficha .what{font-size:13px;color:var(--muted);line-height:1.45}
+  .ficha dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:4px 8px;align-items:baseline;font-size:13px}
+  .ficha dt{color:var(--muted);font-size:12px;white-space:nowrap}
+  /* Todo valor é uma linha só. A coluna do valor é medida pelo rótulo mais longo ("Mensalidade"), não
+     pelo da linha: perto dos 200px mínimos da ficha ela tem 103px, e "1ª turma em 2026" pede 105,
+     "MEC 5 · Estadão 4", 110. Alinhado pelo fim, o dd cresce para a esquerda, sobre o vão até o próprio
+     rótulo, e não para dentro da margem da ficha. O que sobra de vão é conferido pela suíte. */
+  .ficha dd{margin:0;text-align:right;min-width:0;white-space:nowrap;justify-self:end}
+  .ficha dd.big{font-size:16px;font-weight:700}
+  .ficha .terms{border-top:1px solid var(--line);padding-top:8px;margin-top:auto;font-size:12px;color:var(--muted);line-height:1.5}
+  .tag{display:inline-block;font-size:11px;padding:3px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);background:var(--surface);white-space:nowrap}
+
+  /* ---- gráficos: o mesmo par trilho/preenchimento da barra de XP ---- */
+  .chart{position:relative;margin-top:10px}
+  .crow + .crow{margin-top:12px}
+  .cline{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:14px;min-width:0}
+  .cline > span{min-width:0;overflow-wrap:anywhere}
+  .cline small{color:var(--muted);font-size:12px;display:block}
+  .cline b{flex:0 0 auto;font-size:14px;font-variant-numeric:tabular-nums}
+  .cbar{height:12px;background:var(--blue-soft);border-radius:99px;margin:6px 0 0;overflow:hidden;position:relative}
+  .cbar > i{display:block;height:100%;background:var(--blue);border-radius:99px;margin-left:var(--a,0);width:var(--w)}
+  .cbar > i.dot{width:12px;margin-left:calc(var(--a) - 6px)}
+  .cax{position:relative;height:18px;margin-top:10px}
+  .cax span{position:absolute;top:0;font-size:12px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+  .cax span:first-child{transform:none}
+  .cax span:last-child{transform:translateX(-100%)}
+  .refline{position:absolute;top:0;bottom:18px;border-left:1px dashed var(--muted);pointer-events:none}
+  .reflabel{font-size:12px;color:var(--muted);margin-top:2px}
+
+  /* ---- tabela ---- */
+  .tablewrap{overflow-x:auto;scrollbar-width:thin;scrollbar-color:var(--field-line) transparent;margin-top:10px}
+  table.comp{width:100%;border-collapse:collapse;font-size:13px;min-width:520px}
+  table.comp th,table.comp td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  table.comp thead th{background:var(--bg);font-weight:600;color:var(--muted);font-size:12px}
+  table.comp tbody th{font-weight:600;background:var(--surface)}
+  table.comp td{color:var(--muted)}
+  table.comp td.y{color:var(--ink)}
+
+  /* ---- prós e contras ---- */
+  .lados{background:var(--bg);border-radius:10px;padding:12px}
+  .lados + .lados{margin-top:8px}
+  /* o nome do curso é o h3 entre o h2 da seção e os h4 de A favor/Contra; desenhado como antes, não como rótulo */
+  .lados > h3{margin:0;font-size:16px;color:var(--ink)}
+  .lados > h3 span{font-weight:400;font-size:12px;color:var(--muted)}
+  .colunas{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:10px}
+  @media (max-width:560px){.colunas{grid-template-columns:1fr}}
+  .col h4{margin:0 0 6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+  .col ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+  .col li{position:relative;padding-left:18px;font-size:14px;line-height:1.45}
+  .col li::before{position:absolute;left:0;top:0;color:var(--muted);font-weight:700}
+  .col.pro li::before{content:"+"}
+  .col.con li::before{content:"\2013"}
+
+  /* ---- duelo, fatos e passos ---- */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media (max-width:560px){.duo{grid-template-columns:1fr}}
+  .duo > div{background:var(--bg);border-radius:10px;padding:12px}
+  .duo h3{margin:0 0 6px;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+  .duo p{font-size:14px;line-height:1.5}
+  .duo p + p{margin-top:8px}
+
+  .lista{display:flex;flex-direction:column;gap:8px}
+  .lista > div{background:var(--bg);border-radius:10px;padding:12px}
+  .lista b{display:block;font-size:15px;margin-bottom:4px}
+  .lista p{font-size:14px;color:var(--muted);line-height:1.5}
+
+  ol.passos{margin:0;padding:0;list-style:none;counter-reset:p;display:flex;flex-direction:column;gap:8px}
+  ol.passos li{counter-increment:p;background:var(--bg);border-radius:10px;padding:12px;display:grid;
+    grid-template-columns:22px 1fr;gap:4px 10px;align-items:baseline}
+  ol.passos li::before{content:counter(p);font-size:13px;font-weight:700;color:var(--muted)}
+  ol.passos b{grid-column:2;font-size:15px}
+  ol.passos p{grid-column:2;font-size:14px;color:var(--muted);line-height:1.5}
+  ol.passos .perg{grid-column:2;margin-top:6px;display:flex;flex-direction:column;gap:4px;font-size:13px}
+
+  /* ---- roteiro de pesquisa ---- */
+  .bloco{margin-top:14px}
+  .bloco > b{display:block;font-size:14px;margin-bottom:6px}
+  ul.itens{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+  ul.itens li{position:relative;padding-left:16px;font-size:14px;line-height:1.45}
+  ul.itens li::before{content:"";position:absolute;left:4px;top:8px;width:4px;height:4px;border-radius:99px;background:var(--muted)}
+  ul.itens li small{display:block;color:var(--muted);font-size:13px;line-height:1.45}
+
+  /* ---- ficha em branco para imprimir ---- */
+  .campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px 16px;margin-top:10px}
+  .campo{display:flex;flex-direction:column;gap:4px;min-width:0}
+  .campo span{font-size:12px;color:var(--muted)}
+  .campo i{display:block;height:22px;border-bottom:1px solid var(--field-line)}
+  .grupo{margin-top:14px}
+  .grupo > b{display:block;font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;font-weight:700}
+
+  .fontes{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:6px 16px}
+  .fontes li{font-size:13px;line-height:1.4;min-width:0;overflow-wrap:anywhere}
+
+  .foot{margin-top:22px;text-align:center}
+  dialog textarea{font:inherit;font-size:14px;width:100%;min-height:220px;padding:8px;margin-top:8px;
+    border:1px solid var(--field-line);border-radius:8px;background:var(--surface);color:var(--ink);
+    resize:vertical;caret-color:var(--blue);scrollbar-width:thin;scrollbar-color:var(--field-line) transparent}
+  dialog textarea:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+  /* toque: 44px em todo alvo, e campo em 16px para o iPhone não dar zoom */
+  @media (pointer:coarse){
+    button{padding:11px 14px}
+    /* 12 e não 10, como no aluno: a linha de 13px mede 18,85, e com 10 a pílula parava em 41,8 */
+    .nav a{padding:12px 14px}
+    /* Cada linha das fontes é só o link, e o passo da lista (linha de 18 + vão de 6) não comporta área
+       invisível de 44 sem cobrir o vizinho: no toque a linha inteira vira o alvo, e o vão sai. */
+    .fontes{row-gap:0}
+    .fontes li > a{display:flex;align-items:center;min-height:44px}
+    dialog textarea{font-size:16px}
+  }
+
+  @media print{
+    body{background:var(--surface);font-size:12px}
+    main{max-width:none;padding:0}
+    .navwrap,.nav,.fila,.today,button,.foot,.noprint,.toast,dialog{display:none !important}
+    .sec{border:0;padding:0;margin:0 0 18px;break-inside:avoid}
+    .ficha,.lados,.duo > div,.lista > div,ol.passos li{background:var(--surface);padding:0}
+    body[data-print="ficha"] .sec:not(#ficha){display:none}
+    body[data-print="ficha"] .campo i{border-bottom:1px solid var(--muted)}
+  }
+
+  /* O aviso de mudança dos arquivos avulsos (etapa 2): a faixa azul de sempre, com a lista dos passos. */
+  #mudou{margin:0 0 12px}
+  #mudou p,#mudou ol{margin:0}
+  #mudou ol{margin-top:6px;padding-left:22px}
+  #mudou li+li{margin-top:2px}
+  #mudou a{color:inherit;text-underline-offset:2px;overflow-wrap:anywhere}
+  @media print{#mudou{display:none}}
+  /* No toque o link do endereço é alvo de 44px, como os links de linha de texto do app: a faixa vertical
+     invisível passa por cima das linhas de texto vizinhas, que não são controle. */
+  @media (pointer:coarse){#mudou a{display:inline-block;padding:12px 0;margin:-12px 0}}
+  /* build:shell-css */
+  /* Barra do topo: a casca comum aos três arquivos. Fixa — o conteúdo passa por baixo dela, e é por
+     isso que o <body> ganha padding-top e o <html> o scroll-padding (nunca em pixels soltos).
+     Chrome é superfície, não papel: fundo --surface e um fio de 1px embaixo. Aqui a sombra da barra
+     fixa não serve, porque no tema escuro sombra escura sobre fundo escuro não desenha nada. */
+  .shell{position:fixed;top:0;left:0;right:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top)}
+  .shell .in{display:flex;align-items:center;gap:10px;height:calc(var(--shell) - 1px);max-width:var(--wide);margin:0 auto;padding:0 max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
+  /* O nome da tela é o item que encolhe: numa tela estreita ele abrevia, e os botões da direita não —
+     quem chega na barra já sabe em que tela está, e os controles precisam continuar clicáveis inteiros. */
+  .shell .telas{flex:1 1 auto;min-width:0}
+  .shell h1{margin:0;font-size:15px;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* O user menu entra aqui dentro, depois do tema. Não crie div vazia para reservar o lugar. */
+  .shell .acts{display:flex;align-items:center;gap:10px;flex:0 0 auto}
+
+  /* Menus da barra: o nome da tela abre a lista de telas, o nome do tema abre a lista de temas.
+     Um componente só, usado duas vezes. O tema era um toggle de três pílulas e comia 176px dos 358
+     que sobram em 390px — quase metade da barra para uma preferência que se ajusta uma vez. Como
+     dropdown ele mostra a escolha atual em ~78px, e o nome da tela deixa de ser espremido.
+     <details> e não a Popover API: o popover traria fechar-ao-clicar-fora e Esc de graça, mas onde
+     ele não existe o menu simplesmente não abre — e aqui isso seria perder o caminho entre os dois
+     arquivos do Arthur. As poucas linhas de JS são o preço de funcionar em todo lugar. */
+  .menu{position:relative;min-width:0}
+  .telas .menu{margin-left:-8px}  /* o texto do título volta a alinhar com o conteúdo da página */
+  .acts .menu{margin-right:-8px}
+  .menu > summary{display:flex;align-items:center;gap:5px;min-width:0;padding:4px 8px;border-radius:8px;cursor:pointer;list-style:none}
+  .menu > summary::-webkit-details-marker{display:none}
+  .menu > summary > span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .menu > summary::after{content:"\25BE";font-size:11px;line-height:1;color:var(--muted);flex:0 0 auto;transition:transform .15s}
+  .menu[open] > summary::after{transform:rotate(180deg)}
+  @media (prefers-reduced-motion:reduce){.menu > summary::after{transition:none}}
+  .menu > summary:focus-visible{outline:3px solid var(--blue);outline-offset:1px}
+  @media (hover:hover){.menu > summary:hover{background:var(--bg)}}
+  .tema > summary{font-size:13px;color:var(--muted)}
+  .menu .pop{position:absolute;top:calc(100% + 7px);left:0;z-index:1;min-width:190px;display:flex;flex-direction:column;gap:2px;padding:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px var(--shadow)}
+  .acts .menu .pop{left:auto;right:0}  /* encostado na direita: é lá que o botão está */
+  .menu .pop > a,.menu .pop > span,.menu .pop > label,.menu .pop > button{display:block;padding:9px 10px;border-radius:8px;font-size:14px;color:var(--ink);text-decoration:none;white-space:nowrap;cursor:pointer}
+  /* o botão do user menu é um item de lista, não um botão: sem fio, sem fundo, largura inteira e o
+     texto alinhado com os vizinhos. Sem isto ele herdaria a borda e o padding de base.css e ficaria
+     uma pílula dentro da lista, do lado de itens que não têm nenhuma. */
+  .menu .pop > button{width:100%;text-align:left;background:transparent;border:0;font:inherit}
+  /* o item marcado usa a linguagem do chip marcado: a tela onde você está, o tema que está valendo */
+  .menu .pop > [aria-current],.menu .pop > label:has(input:checked){background:var(--blue-soft);color:var(--blue-ink);font-weight:700}
+  @media (hover:hover){.menu .pop > a:hover,.menu .pop > label:hover,.menu .pop > button:hover{background:var(--bg)}}
+  .menu .pop > a:focus-visible,.menu .pop > button:focus-visible,.menu .pop > label:has(input:focus-visible){outline:3px solid var(--blue);outline-offset:-1px}
+  .menu .pop input{position:absolute;opacity:0;width:1px;height:1px}
+  @media (pointer:coarse){
+    .menu > summary{min-height:44px;padding:4px 8px}
+    .menu .pop > a,.menu .pop > span,.menu .pop > label,.menu .pop > button{min-height:44px;display:flex;align-items:center;padding:0 10px}
+    .menu .pop input{padding:0}
+  }
+  @media (forced-colors:active){
+    .menu .pop input{position:static;opacity:1;width:16px;height:16px}
+    .menu .pop > label{display:flex;align-items:center;gap:6px}
+    .menu .pop > [aria-current],.menu .pop > label:has(input:checked){outline:2px solid CanvasText}
+  }
+  /* o seletor só existe onde light-dark() existe: quem aplica o data-escolha é o boot no <head> */
+  .shell .tema{display:none}
+  :root[data-escolha] .shell .tema{display:block}
+
+  /* Barra de baixo: a outra ponta da mesma casca. Existe para hospedar o carimbo do build, que
+     antes ficava no fim do <main> — e no fim do <main> só se lê depois de rolar o app inteiro, que é
+     justamente o que não dá para pedir por telefone ("que versão aparece aí embaixo?"). Fixa, ela
+     responde na hora, de qualquer ponto da página.
+     Mesmo desenho da barra do topo, espelhado: superfície, fio de 1px em cima (não sombra — no tema
+     escuro sombra escura sobre fundo escuro não desenha nada) e o mesmo --wide, para o conteúdo dela
+     alinhar com o do <main>. O carimbo fica à direita, que é onde se procura número de versão; a
+     esquerda fica vazia de propósito, para o que o rodapé vier a hospedar.
+     28px e não 44: aqui não há alvo de toque, é texto de 11px que se lê e não se clica. */
+  .shell-footer{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+  .shell-footer .in{display:flex;align-items:center;justify-content:flex-end;gap:10px;height:calc(var(--footer) - 1px);max-width:var(--wide);margin:0 auto;padding:0 max(16px,env(safe-area-inset-right)) 0 max(16px,env(safe-area-inset-left))}
+
+  /* Faixa informativa: o mesmo componente do .alert de base.css (vermelho, que é erro) em azul.
+     O aviso de versão nova não é falha nenhuma — vermelho ali leria como "alguma coisa quebrou". */
+  .alert.info{background:var(--blue-soft);color:var(--blue-ink)}
+
+  /* A faixa da atualização (#updateBanner) tem o mesmo markup nos dois apps, então o layout dela mora
+     aqui e não no CSS de cada tela: duas cópias de uma peça só é exatamente o que este arquivo existe
+     para evitar. O link herda a cor da faixa — azul tinta sobre azul suave já é o contraste da peça,
+     e um segundo azul ali brigaria com ele. */
+  #updateBanner{margin:0 0 12px}
+  #updateBanner p{margin:0}
+  #updateBanner .actions{margin-top:8px;align-items:center}
+  #updateBanner a{color:inherit;font-size:14px;text-underline-offset:2px}
+
+  /* As duas barras são fixas: o conteúdo começa abaixo de uma e termina acima da outra. --shell e
+     --footer são as alturas totais, fio de 1px incluído. */
+  body{padding-top:calc(var(--shell) + env(safe-area-inset-top));padding-bottom:calc(var(--footer) + env(safe-area-inset-bottom))}
+  /* E o navegador precisa saber delas: ao levar o foco do teclado a um controle fora da tela, ele o encosta na
+     borda da janela — que é onde as barras pintam por cima. O scroll-padding desconta as duas de toda rolagem
+     até um elemento (foco, âncora, scrollIntoView). Por isso o scroll-margin-top de quem quer folga diz só a
+     folga (12px), sem --shell: com a barra nos dois, ela contaria duas vezes. */
+  html{scroll-padding:calc(var(--shell) + env(safe-area-inset-top)) 0 calc(var(--footer) + env(safe-area-inset-bottom))}
+  @media print{
+    /* A faixa da atualização é aviso de tela e some no papel: uma folha impressa hoje não tem como
+       reiniciar app nenhum, e a linha sobreviveria ao arquivo. */
+    #updateBanner{display:none}
+    .menu > summary::after,.menu .pop{display:none}
+    .shell{position:static;background:none;border:0;padding:0}
+    .shell .in{height:auto;max-width:none;padding:0;margin-bottom:10px}
+    .shell .acts{display:none}
+    /* no papel o rodapé volta a ser o que era: uma linha no fim do documento. Folha sem versão não
+       dá para conferir depois, então ele imprime — só deixa de ser barra. */
+    .shell-footer{position:static;background:none;border:0;padding:0}
+    .shell-footer .in{height:auto;max-width:none;padding:0;margin-top:10px}
+    body{padding-top:0;padding-bottom:0}
+  }
+
+  /* Sobrou aqui, quando o seletor de tema deixou de ser uma cápsula de três pílulas e virou um .menu,
+     o CSS da cápsula. Ele não era decorativo: `.tema{border;border-radius:99px;padding:2px}` ainda casava
+     com o <details> e deixava o botão de tema como a única peça da barra desenhada como pílula com fio,
+     enquanto o menu de telas ao lado não tem nenhum; e `.tema label::after{inset:-10px 0}` em ponteiro
+     grosso dava aos itens do menu um alvo invisível que passava 10px por cima do vizinho — o dedo que
+     mira "Escuro" caindo em "Sistema". Quem desenha o controle agora é .menu / .menu .pop, acima.
+     As regras vivas do tema são `.tema > summary` e o par `.shell .tema` de display. */
+  /* /build:shell-css */
+</style>
+<!-- build:boot -->
+<script>
+/* Tema, antes da primeira pintura: qualquer coisa mais tarde pisca claro e só depois escurece.
+   Mora numa chave própria, fora do estado de cada tela e fora do código de backup — é preferência
+   deste aparelho. A chave é a mesma nos três arquivos: no mesmo navegador, todos abrem igual. */
+(function(){
+  var K = "missao-enem-tema", r = document.documentElement;
+  // Sem light-dark() a paleta escura não existe: fica tudo claro e o seletor nem aparece.
+  if(!(window.CSS && CSS.supports && CSS.supports("color","light-dark(#fff,#000)"))) return;
+  var mq = window.matchMedia("(prefers-color-scheme: dark)");
+  function lido(){ try{ var v = localStorage.getItem(K); return (v==="claro"||v==="escuro") ? v : "sistema"; }catch(e){ return "sistema"; } }
+  function aplica(escolha){
+    r.dataset.escolha = escolha;
+    r.dataset.tema = escolha==="sistema" ? (mq.matches ? "escuro" : "claro") : escolha;
+  }
+  aplica(lido());
+  // O aparelho virou o tema durante a noite, ou outra aba trocou a escolha: os dois seguem.
+  function segue(){ aplica(lido()); window.dispatchEvent(new Event("tema")); }
+  mq.addEventListener ? mq.addEventListener("change", segue) : mq.addListener(segue);
+  window.addEventListener("storage", function(e){ if(e.key===K) segue(); });
+  window.setTema = function(v){ try{ localStorage.setItem(K, v); }catch(e){} aplica(v); };
+})();
+</script>
+<!-- /build:boot -->
+<link rel="manifest" href="../aluno.webmanifest">
+<script src="../online.js" data-role="escolha"></script>
+<body>
+<!-- build:bar telaid="escolha" tela="Escolha de curso" -->
+<header class="shell" data-tela="escolha">
+  <div class="in">
+    <div class="telas"><h1>Escolha de curso</h1></div>
+    <div class="acts">
+      <details class="menu tema" id="tema">
+        <summary id="temaSum"><span id="temaAtual">Sistema</span></summary>
+        <div class="pop" role="radiogroup" aria-label="Tema">
+          <label><input type="radio" name="tema" value="claro"><span>Claro</span></label>
+          <label><input type="radio" name="tema" value="escuro"><span>Escuro</span></label>
+          <label><input type="radio" name="tema" value="sistema"><span>Sistema</span></label>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+<!-- /build:bar -->
+<main>
+  <!-- A versão final dos arquivos avulsos (etapa 2, BR-45, US-033): o produto mudou de casa, e este
+       arquivo diz para onde e como levar o que está aqui. Nasce `hidden`; só aparece aberto do disco
+       (`file:`) — no app (`APP`) e na versão hospedada (`https:`) ele não tem o que dizer. Os passos
+       mandam BAIXAR o arquivo, nunca copiar o código: o arquivo leva tudo, e a mensagem do WhatsApp
+       tem limite (US-033 EC-2). -->
+  <div class="alert info" id="mudou" hidden>
+    <p><b>A Missão ENEM e esta Escolha de curso agora moram num endereço e no aplicativo.</b> Este arquivo não guarda nada, e continua abrindo. Para levar a sua missão:</p>
+    <ol>
+      <li>No arquivo da Missão ENEM, em <b>Resumo → Backup</b>, toque em <b>Baixar arquivo de backup</b> e guarde o arquivo .txt.</li>
+      <li>Abra <a href="https://diogodomanski.github.io/missao-enem-releases/aluno/">diogodomanski.github.io/missao-enem-releases/aluno</a> — ou o aplicativo de desktop, se você já usa.</li>
+      <li>Lá, em <b>Resumo → Backup → Restaurar backup</b>, escolha o arquivo. É uma vez só.</li>
+    </ol>
+  </div>
+  <div class="navwrap fila">
+    <nav class="nav" aria-label="Seções">
+      <a href="#tres">Os três</a>
+      <a href="#custo">Custo</a>
+      <a href="#mercado">Mercado</a>
+      <a href="#salarios">Salários</a>
+      <a href="#lados">Prós e contras</a>
+      <a href="#degrau">Degrau</a>
+      <a href="#todos">Vale para os três</a>
+      <a href="#miuda">Letra miúda</a>
+      <a href="#instituicao">A instituição</a>
+      <a href="#antes">Antes de assinar</a>
+      <a href="#roteiro">Pesquisar outro</a>
+      <a href="#ficha">Ficha em branco</a>
+    </nav>
+  </div>
+
+  <p class="pagehead muted">setembro de 2026 · para <span data-nome></span></p>
+
+  <section class="today">
+    <h2>Como ler isto</h2>
+    <p class="big">Três cursos, nenhuma recomendação.
+      <small>O orientador pediu a pesquisa. O que está aqui é o que dá para saber antes de decidir — a decisão continua sendo sua.</small></p>
+    <div class="list">
+      <div class="item">Cada curso recebe <b>três argumentos a favor e três contra</b>, com o mesmo espaço, de propósito.</div>
+      <div class="item">Onde as fontes divergem (e nos salários elas divergem), as duas aparecem.</div>
+      <div class="item">Os três são da PUCPR porque comparar na mesma instituição isola a variável que importa: o curso. Para somar outra faculdade à lista, o roteiro está no fim.</div>
+      <div class="item">Preços, notas e vagas são de setembro de 2026 e mudam. Confira antes de assinar qualquer coisa.</div>
+    </div>
+  </section>
+
+  <section class="sec" id="tres">
+    <header><h2>Os três, lado a lado</h2><span class="n">01</span></header>
+    <p class="prose">Todos no câmpus Curitiba, na mesma Escola de Negócios, que tem acreditação internacional AACSB, algo que só cinco universidades brasileiras têm. Essa parte é igual para os três. O que muda vem abaixo.</p>
+
+    <div class="fichas" style="margin-top:12px">
+      <div class="ficha">
+        <b class="nome">Negócios Internacionais</b>
+        <p class="what">Forma para operar a importação e a exportação: a mercadoria, o documento, o imposto, o transporte, a negociação com o fornecedor lá fora.</p>
+        <dl>
+          <dt>Duração</dt><dd>3 anos</dd>
+          <dt>Mensalidade</dt><dd class="big">R$ 2.321</dd>
+          <dt>Custo est.</dt><dd>R$ 83,6 mil</dd>
+          <dt>Turno</dt><dd>manhã ou noite</dd>
+          <dt>Avaliação</dt><dd>MEC 5 · Estadão 4</dd>
+          <dt>Situação</dt><dd><span class="tag">consolidado</span></dd>
+        </dl>
+        <p class="terms">Incoterms · NCM · Siscomex · desembaraço aduaneiro · drawback · câmbio · modais de transporte</p>
+      </div>
+      <div class="ficha">
+        <b class="nome">Relações Internacionais</b>
+        <p class="what">Forma para entender por que os países agem como agem: política externa, direito internacional, economia política, risco geopolítico.</p>
+        <dl>
+          <dt>Duração</dt><dd>3 anos</dd>
+          <dt>Mensalidade</dt><dd class="big">R$ 2.900</dd>
+          <dt>Custo est.</dt><dd>R$ 104,4 mil</dd>
+          <dt>Turno</dt><dd>manhã ou noite</dd>
+          <dt>Avaliação</dt><dd>não publicada</dd>
+          <dt>Situação</dt><dd><span class="tag">1ª turma em 2026</span></dd>
+        </dl>
+        <p class="terms">política externa · blocos econômicos · tratados · organismos multilaterais · risco-país · sanções</p>
+      </div>
+      <div class="ficha">
+        <b class="nome">Administração</b>
+        <p class="what">Forma para tocar uma empresa por dentro: dinheiro, pessoas, produto, operação, estratégia — em qualquer setor, inclusive comércio exterior.</p>
+        <dl>
+          <dt>Duração</dt><dd>4 anos</dd>
+          <dt>Mensalidade</dt><dd class="big">R$ 2.401</dd>
+          <dt>Custo est.</dt><dd>R$ 115,3 mil</dd>
+          <dt>Turno</dt><dd>manhã ou noite</dd>
+          <dt>Avaliação</dt><dd>MEC 4 (2018)</dd>
+          <dt>Situação</dt><dd><span class="tag">consolidado</span></dd>
+        </dl>
+        <p class="terms">fluxo de caixa · margem · CAC · cadeia de suprimentos · P&amp;L · people analytics · plano de negócio</p>
+      </div>
+    </div>
+    <p class="cap">Custo estimado = mensalidade de 2026 × 12 meses × a duração do curso, <b>sem reajuste e sem bolsa</b>. Reajustes anuais acrescentam algo entre 5% e 10% ao total. Com ProUni integral, os três custam R$ 0.</p>
+  </section>
+
+  <section class="sec" id="custo">
+    <header><h2>O que você paga até se formar</h2><span class="n">02</span></header>
+    <p class="muted">Estimativa em reais de 2026, sem reajuste e sem bolsa</p>
+    <div class="chart">
+      <div class="crow">
+        <div class="cline"><span>Negócios Internacionais <small>36 mensalidades</small></span><b>R$ 83.562</b></div>
+        <div class="cbar"><i style="--w:69.6%"></i></div>
+      </div>
+      <div class="crow">
+        <div class="cline"><span>Relações Internacionais <small>36 mensalidades</small></span><b>R$ 104.400</b></div>
+        <div class="cbar"><i style="--w:87%"></i></div>
+      </div>
+      <div class="crow">
+        <div class="cline"><span>Administração <small>48 mensalidades</small></span><b>R$ 115.253</b></div>
+        <div class="cbar"><i style="--w:96%"></i></div>
+      </div>
+      <div class="cax">
+        <span style="left:0%">R$ 0</span><span style="left:25%">30 mil</span><span style="left:50%">60 mil</span>
+        <span style="left:75%">90 mil</span><span style="left:100%">120 mil</span>
+      </div>
+    </div>
+    <p class="cap">A diferença entre o mais barato e o mais caro é de R$ 31,7 mil, perto de um ano e meio de mensalidade. Mas os R$ 115 mil de Administração incluem um quarto ano em que quem fez os outros dois já estaria recebendo salário: some aí uns R$ 42 mil que deixam de entrar. A conta cheia da diferença entre 3 e 4 anos fica em torno de R$ 74 mil.</p>
+  </section>
+
+  <section class="sec" id="mercado">
+    <header><h2>O que o mercado pede</h2><span class="n">03</span></header>
+    <p class="prose">Um anúncio real de analista de comércio exterior em Paranaguá, de maio de 2026, pede: “ensino superior em comércio exterior, relações internacionais ou áreas correlacionadas”. Essa frase, ou uma parecida, aparece na maior parte das vagas da área, e vale para os três cursos. A diferença está no que <b>mais</b> cada diploma alcança.</p>
+    <div class="tablewrap fila">
+      <table class="comp">
+        <thead><tr><th scope="col">Porta</th><th scope="col">Neg. Intern.</th><th scope="col">Rel. Intern.</th><th scope="col">Administração</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Analista de comércio exterior</th><td class="y">aceita</td><td class="y">aceita</td><td class="y">aceita</td></tr>
+          <tr><th scope="row">Trainee de banco, indústria, consultoria</th><td>raramente na lista</td><td>raramente na lista</td><td class="y">na lista padrão</td></tr>
+          <tr><th scope="row">Financeiro, marketing, operações, RH</th><td>fora do perfil</td><td>fora do perfil</td><td class="y">é o perfil</td></tr>
+          <tr><th scope="row">Risco-país, organismos internacionais, ONGs</th><td>possível</td><td class="y">é o perfil</td><td>possível</td></tr>
+          <tr><th scope="row">Concurso de diplomata (CACD)</th><td class="y">aceita</td><td class="y">aceita</td><td class="y">aceita</td></tr>
+          <tr><th scope="row">Abrir a própria operação de importação</th><td class="y">técnica pronta</td><td>falta a técnica</td><td>falta a técnica</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="cap">Esta tabela é uma leitura de anúncios de vaga e de descrições de curso, não uma regra oficial. Ninguém é proibido de se candidatar a nada: o que ela mostra é onde seu currículo passa pelo primeiro filtro sem esforço extra, e onde ele vai precisar de um argumento.</p>
+  </section>
+
+  <section class="sec" id="salarios">
+    <header><h2>A escada salarial do comércio exterior</h2><span class="n">04</span></header>
+    <p class="muted">Faixas mensais reportadas em 2026, o mesmo caminho para quem entra por qualquer um dos três</p>
+    <div class="chart">
+      <div class="refline" style="left:19.71%"></div>
+      <div class="crow">
+        <div class="cline"><span>Trainee</span><b>2.334 – 3.034</b></div>
+        <div class="cbar"><i style="--a:11.67%;--w:3.5%"></i></div>
+      </div>
+      <div class="crow">
+        <div class="cline"><span>Analista júnior</span><b>2.918 – 3.793</b></div>
+        <div class="cbar"><i style="--a:14.59%;--w:4.38%"></i></div>
+      </div>
+      <div class="crow">
+        <div class="cline"><span>Analista sênior</span><b>média 5.926</b></div>
+        <div class="cbar"><i class="dot" style="--a:29.63%"></i></div>
+      </div>
+      <div class="crow">
+        <div class="cline"><span>Coordenador</span><b>5.500 – 7.500</b></div>
+        <div class="cbar"><i style="--a:27.5%;--w:10%"></i></div>
+      </div>
+      <div class="crow">
+        <div class="cline"><span>Gerente</span><b>9.100 – 18.600</b></div>
+        <div class="cbar"><i style="--a:45.5%;--w:47.5%"></i></div>
+      </div>
+      <div class="cax">
+        <span style="left:0%">R$ 0</span><span style="left:25%">5 mil</span><span style="left:50%">10 mil</span>
+        <span style="left:75%">15 mil</span><span style="left:100%">20 mil</span>
+      </div>
+    </div>
+    <p class="reflabel">Linha tracejada: R$ 3.942, a média de analista de comércio exterior em Curitiba, 9% abaixo da média nacional.</p>
+    <p class="cap">Ponto isolado = média reportada sem faixa publicada. As fontes divergem no nível júnior: uma pesquisa de mercado aponta R$ 2.918–3.793, o Glassdoor aponta R$ 3.546–5.272 para a mesma função no país. Nos extremos: uma vaga real de entrada em Paranaguá, em maio de 2026, pagava <b>R$ 2.018</b>; coordenadores em empresas de grande porte chegam a R$ 10 mil e gerentes em multinacionais passam de R$ 25 mil. Fora dessa escada, o CACD 2026 abriu 60 vagas de terceiro-secretário com inicial de <b>R$ 22.558</b>.</p>
+  </section>
+
+  <section class="sec" id="lados">
+    <header><h2>Três a favor, três contra — para os três</h2><span class="n">05</span></header>
+    <p class="prose">Mesmo número de argumentos, mesmo espaço. Se um deles parecer mais convincente, é porque ele é, não porque ganhou mais linhas.</p>
+
+    <div class="lados" style="margin-top:12px">
+      <h3>Negócios Internacionais <span>· 3 anos · R$ 83,6 mil</span></h3>
+      <div class="colunas">
+        <div class="col pro">
+          <h4>A favor</h4>
+          <ul>
+            <li><b>É o caminho mais curto até o trabalho em si.</b> Desembaraço, classificação fiscal, câmbio, logística e negociação entram como disciplina, não como eletiva. Nota 5 do MEC, a máxima.</li>
+            <li><b>O mercado está na sua cidade.</b> Paranaguá é um dos maiores portos do país, o Paraná exporta muito e Curitiba tem montadoras. O Glassdoor listava cerca de 102 vagas de comércio exterior em Curitiba.</li>
+            <li><b>Três anos.</b> Você entra no mercado um ano antes e paga R$ 31,7 mil a menos que em Administração, com um ano a mais de salário e de experiência aos 22.</li>
+          </ul>
+        </div>
+        <div class="col con">
+          <h4>Contra</h4>
+          <ul>
+            <li><b>A troca não é simétrica.</b> Vagas de comex aceitam administrador; vagas de trainee, financeiro ou consultoria raramente listam Negócios Internacionais. Você entra na área deles, eles não entram na sua com a mesma facilidade.</li>
+            <li><b>A camada de entrada é a que mais está sendo automatizada.</b> Conferência documental e liberação de carga já caíram 40% em tempo com IA numa trading brasileira. O emprego não acaba, mas quem fica só operando sistema fica espremido.</li>
+            <li><b>É uma aposta feita antes de ver a área por dentro.</b> A escolha viria de folheto e curiosidade, não de experiência. Pode acertar. Mas é uma aposta, e ela custa R$ 83,6 mil.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="lados">
+      <h3>Relações Internacionais <span>· 3 anos · R$ 104,4 mil</span></h3>
+      <div class="colunas">
+        <div class="col pro">
+          <h4>A favor</h4>
+          <ul>
+            <li><b>É a formação mais ampla das três em assunto internacional.</b> Serve a diplomacia, análise de risco-país, organismos multilaterais, terceiro setor, mercado financeiro e também comércio exterior.</li>
+            <li><b>Encaixa no que você já está estudando.</b> Geopolítica, atualidade e argumentação são o mesmo material da redação do ENEM. O repertório que você está montando agora não seria descartado no primeiro semestre.</li>
+            <li><b>Três anos, como NI.</b> Mesma velocidade de entrada no mercado, sem o quarto ano de mensalidade.</li>
+          </ul>
+        </div>
+        <div class="col con">
+          <h4>Contra</h4>
+          <ul>
+            <li><b>A primeira turma é a de 2026.</b> Não há egresso, rede de ex-alunos, histórico de estágio nem nota do MEC ou do ENADE para consultar. Seria comprar um curso que ainda não foi testado por ninguém.</li>
+            <li><b>É o mais caro por ano.</b> R$ 2.900 contra R$ 2.321 de NI: R$ 21 mil a mais no total, por três anos e sem o quarto ano que justifica a diferença de Administração.</li>
+            <li><b>O destino real costuma ser o mesmo de NI.</b> Sem profissão regulamentada, boa parte dos formados em RI vai parar em comércio exterior, consultoria, comercial ou concurso: os mesmos lugares, com menos técnica de aduana e câmbio.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="lados">
+      <h3>Administração <span>· 4 anos · R$ 115,3 mil</span></h3>
+      <div class="colunas">
+        <div class="col pro">
+          <h4>A favor</h4>
+          <ul>
+            <li><b>É a porta mais larga.</b> Comex, finanças, marketing, operações, pessoas, consultoria, trainee, negócio próprio. Dá para chegar aos destinos de NI e de RI a partir dela; o contrário é mais difícil.</li>
+            <li><b>Custa quase o mesmo por mês.</b> R$ 2.401 contra R$ 2.321 de NI: R$ 80 de diferença. O custo extra é o quarto ano, não a mensalidade.</li>
+            <li><b>Sobrevive a você mudar de ideia.</b> Entre os 18 e os 22 a maioria das pessoas muda o que quer fazer pelo menos uma vez. É o diploma que continua servindo depois da mudança.</li>
+          </ul>
+        </div>
+        <div class="col con">
+          <h4>Contra</h4>
+          <ul>
+            <li><b>Um ano inteiro a mais.</b> Somando a mensalidade extra e o salário que você não recebe nesse ano, a diferença para NI fica em torno de R$ 74 mil. Não é pouco, e não volta.</li>
+            <li><b>Nada de comex vem garantido.</b> Aduana, Incoterms, câmbio e logística internacional podem aparecer só como eletiva, estágio ou pós. Se o destino é comércio exterior, você paga mais e chega com menos técnica.</li>
+            <li><b>É o mais genérico dos três.</b> Sem estágio escolhido de propósito, seu currículo no terceiro ano será parecido com o de milhares de outros. A diferenciação fica por sua conta, não pelo curso.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="degrau">
+    <header><h2>Administração como degrau</h2><span class="n">06</span></header>
+    <p class="prose">Este é o argumento mais forte contra a sua primeira escolha, e ele tem uma objeção igualmente forte. Os dois estão aqui inteiros para você julgar.</p>
+    <div class="duo" style="margin-top:12px">
+      <div>
+        <h3>O argumento</h3>
+        <p>Administração alcança NI e RI; NI e RI raramente alcançam Administração. Por um ano a mais, você compra o direito de mudar de ideia — e aos 17 mudar de ideia é o cenário provável, não a exceção.</p>
+        <p>Se em dois anos você continuar querendo comércio exterior, o caminho é curto e conhecido: estágio na área a partir do terceiro período e uma pós depois. O mercado já aceita administrador nessas vagas.</p>
+        <p>Se em dois anos você quiser outra coisa (e essa é a parte que ninguém consegue prever), não recomeça nada.</p>
+      </div>
+      <div>
+        <h3>A objeção</h3>
+        <p>Opcionalidade só vale se for usada, e ela é cobrada adiantada: cerca de R$ 74 mil entre mensalidade extra e salário não recebido. Quem já sabe o que quer paga caro por um seguro que não vai acionar.</p>
+        <p>E há um custo que não entra em planilha. O curso escolhido por segurança compete com a sua vontade exatamente nos três primeiros semestres, que é onde a maior parte das desistências acontece.</p>
+        <p>Um curso que você quer fazer tem mais chance de ser terminado do que um curso que você aceita fazer. Amplitude de currículo não substitui interesse.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="todos">
+    <header><h2>Quatro fatos que não dependem da sua escolha</h2><span class="n">07</span></header>
+    <div class="lista" style="margin-top:12px">
+      <div><b>Inglês não é matéria, é pré-requisito</b><p>As vagas da área pedem pelo menos uma língua estrangeira e, com frequência, uma segunda: espanhol ou francês. Sem inglês de trabalho, qualquer um dos três diplomas rende bem menos do que promete. Isso começa agora, não no quinto período.</p></div>
+      <div><b>A bolsa muda a conta inteira</b><p>A PUCPR oferece mais de 3 mil bolsas do ProUni. As notas de corte na universidade vão de cerca de 475 em Marketing a 764,82 em Medicina. Cursos de negócios ficam na faixa de baixo. Traduzindo: o ENEM que você está fazendo vale, nesta decisão, entre R$ 40 mil e R$ 115 mil. Integral exige renda familiar de até 1,5 salário mínimo por pessoa; parcial, até 3.</p></div>
+      <div><b>Diplomacia não depende do curso</b><p>O CACD 2026 abriu 60 vagas para terceiro-secretário, com inicial de R$ 22.558,56, e exige apenas diploma de curso superior em qualquer área. Nenhum dos três dá vantagem formal nessa disputa. O que decide é o estudo depois da faculdade, e é um projeto de anos.</p></div>
+      <div><b>O mercado está grande, e mexendo</b><p>O Brasil exportou US$ 348,7 bilhões em 2025, recorde da série iniciada em 1997, e de janeiro a agosto de 2026 as exportações cresceram 10,3%. As vendas aos EUA caíram 9,7% com a tarifa de 37,5%, compensadas por China, América Latina, Europa, Índia e Canadá. Tarifa nova significa contrato refeito e rota refeita, que é exatamente o trabalho de quem está nessa área.</p></div>
+    </div>
+  </section>
+
+  <section class="sec" id="miuda">
+    <header><h2>O “internacional” do folheto é vendido à parte</h2><span class="n">08</span></header>
+    <p class="prose">Os três cursos dão acesso a intercâmbio e a disciplinas em inglês. Mas os dois produtos que entregam diploma ou certificado estrangeiro são cobrados separadamente.</p>
+    <div class="lista" style="margin-top:12px">
+      <div><b>International Business Program · 48 × R$ 3.321,92</b><p>Programa complementar a qualquer graduação, de 3 a 5 anos, aulas 100% em inglês, com disciplinas numa universidade parceira em 8 países e aceitação automática em MBA ou mestrado no exterior. Não está incluído na mensalidade do curso: soma a ela, com 10% de desconto para aluno da casa.</p></div>
+      <div><b>Administração Internacional · R$ 4.306,65 por mês, 4 anos</b><p>Curso próprio, com no mínimo 900 horas em inglês, um ano obrigatório no exterior (6º e 7º semestres) e dupla titulação opcional. A mensalidade cobre até quatro disciplinas por semestre na universidade parceira; passagem e moradia são por sua conta.</p></div>
+    </div>
+    <p class="cap">Ou seja: a mensalidade de R$ 2.321 dá <b>oportunidade</b> de intercâmbio, não dupla titulação. Se a parte internacional for o motivo principal da escolha, compare o preço real dos dois programas acima antes de decidir pelo curso mais barato.</p>
+  </section>
+
+  <section class="sec" id="instituicao">
+    <header><h2>O que dá para saber sobre a PUCPR</h2><span class="n">09</span></header>
+    <p class="prose">No Reclame Aqui a universidade tem nota <b>7,5 de 10</b>, com 285 reclamações registradas: responde 98,9% delas e resolve 80,1%. Entre os que avaliaram, 60,3% voltariam a fazer negócio. O assunto dominante das queixas de 2026 é cobrança indevida e cancelamento de matrícula, concentrado em pós-graduação a distância: problema administrativo e financeiro, não de qualidade de aula na graduação presencial.</p>
+    <p class="prose">No Guia da Faculdade 2025 do Estadão, a PUCPR teve 9 cursos com nota máxima e 56 com quatro estrelas, e é a única instituição privada do Paraná com cursos cinco estrelas. Negócios Internacionais aparece com quatro.</p>
+    <p class="prose">Duas ressalvas honestas: <b>não encontrei nenhuma avaliação pública de aluno</b> desses três cursos, nem em plataformas de bolsa nem em fóruns, então nada aqui fala da experiência de quem cursou. E Negócios Internacionais nunca teve ciclo do ENADE, então a nota 5 é conceito de curso do MEC, não desempenho de aluno em prova.</p>
+  </section>
+
+  <section class="sec" id="antes">
+    <header><h2>Cinco coisas que só você pode checar</h2><span class="n">10</span></header>
+    <p class="prose">Nesta ordem. As três primeiras mudam a decisão; as duas últimas mudam a sua confiança nela.</p>
+    <ol class="passos" style="margin-top:12px">
+      <li>
+        <b>Ligue para as três coordenações e faça as mesmas quatro perguntas</b>
+        <p>Comparação só funciona com a mesma pergunta. Anote as respostas lado a lado.</p>
+        <div class="perg">
+          <span>— O estágio é obrigatório? A partir de qual período?</span>
+          <span>— Quais empresas contrataram alunos de vocês nos últimos dois anos?</span>
+          <span>— Da última turma formada, quantos estão empregados na área?</span>
+          <span>— Quanto custa o IBP somado à mensalidade deste curso?</span>
+        </div>
+      </li>
+      <li><b>Faça a conta da bolsa antes de comparar preço</b><p>Simule o ProUni e o FIES com a renda real da sua família. Se sair bolsa integral, metade dos argumentos desta página deixa de valer, e a comparação passa a ser só sobre o que você quer fazer.</p></li>
+      <li><b>Converse com duas ou três pessoas que trabalham na área</b><p>Comércio exterior em Curitiba ou em Paranaguá, gente com 3 a 10 anos de estrada. Pergunte como é o primeiro ano de trabalho, não como é a profissão. Conseguir essa conversa já é parte do trabalho da área.</p></li>
+      <li><b>Leia a matriz curricular dos três, do 1º ao 3º semestre</b><p>Não o folheto: a lista de disciplinas. É literalmente o que você vai fazer nos primeiros dezoito meses, que é o período em que as pessoas desistem. Se a lista de um deles te dá vontade de estudar, isso é informação de verdade.</p></li>
+      <li><b>Escreva a decisão e o motivo numa folha, e releia em 30 dias</b><p>Uma frase basta: “escolhi X porque Y”. Se em um mês o motivo ainda convencer você, a decisão é sua e está tomada. Se não convencer, você descobriu isso de graça.</p></li>
+    </ol>
+  </section>
+
+  <section class="sec" id="roteiro">
+    <header><h2>Como pesquisar um curso novo</h2><span class="n">11</span></header>
+    <p class="prose">Os três desta página são da mesma instituição de propósito: com preço, estrutura e reputação constantes, sobra só a variável que importa. Quando entrar outra faculdade na lista, essas constantes viram variáveis e precisam ser levantadas uma a uma. Esta é a lista, e a ordem em que vale levantar.</p>
+
+    <p class="prose">Dá para pedir a uma IA que faça o levantamento bruto: foi assim que os dados desta página foram reunidos. O prompt abaixo já vem com as regras que importam: citar a fonte de cada dado, escrever “não encontrado” em vez de estimar e não recomendar nada.</p>
+    <p class="noprint actions"><button class="primary" id="copyPrompt">Copiar prompt de pesquisa</button></p>
+    <p class="cap">Ela vai errar em alguma coisa: preço desatualizado, nota trocada, vaga que não existe mais. Os três números que decidem (mensalidade, nota do MEC e nota de corte do ProUni) confira na fonte original, com a lista de baixo na mão. O prompt acelera a busca; ele não substitui a conferência.</p>
+
+    <h3 class="sep">Se você só tiver uma tarde, levante estes cinco</h3>
+    <ol class="passos">
+      <li><b>Custo total real</b><p>Mensalidade × número de mensalidades por ano × anos, mais as taxas que ficam fora da mensalidade.</p></li>
+      <li><b>Nota do curso no e-MEC</b><p>No site oficial (emec.mec.gov.br), buscando pela instituição. Não a nota que a faculdade divulga.</p></li>
+      <li><b>Nota de corte do ProUni</b><p>Daquele curso, naquela instituição, no ano anterior. É o que diz se a bolsa é plausível para você.</p></li>
+      <li><b>Matriz curricular do 1º ao 3º semestre</b><p>O PDF, não a página de marketing. São os dezoito meses em que as pessoas desistem.</p></li>
+      <li><b>Vagas abertas na sua cidade que pedem esse curso</b><p>Busca por cidade em um portal de vagas. Se der menos de dez, isso é um dado sobre o diploma.</p></li>
+    </ol>
+
+    <h3 class="sep">O fichário completo</h3>
+
+    <div class="bloco">
+      <b>A · Identificação</b>
+      <ul class="itens">
+        <li>Nome exato do curso <small>“Comércio Exterior”, “Negócios Internacionais” e “Gestão de Comércio Exterior” não são a mesma coisa, mesmo quando o folheto parece igual.</small></li>
+        <li>Grau: bacharelado ou tecnólogo <small>Tecnólogo costuma durar 2 a 2,5 anos e custa menos; alguns concursos e programas de trainee pedem bacharelado. Confirme antes, não depois.</small></li>
+        <li>Duração em semestres e carga horária total</li>
+        <li>Modalidade — e quanto do curso é a distância <small>Muitos cursos “presenciais” têm de 20% a 40% da carga em EAD. Está no projeto pedagógico, não no folheto.</small></li>
+        <li>Câmpus, endereço e turno <small>Some o tempo de deslocamento diário; e confirme se o turno muda ao longo do curso, como acontece na PUCPR a partir do 4º período.</small></li>
+      </ul>
+    </div>
+
+    <div class="bloco">
+      <b>B · Qualidade, pelos dados oficiais</b>
+      <ul class="itens">
+        <li>Nota do curso (Conceito de Curso) no e-MEC</li>
+        <li>Conceito ENADE e CPC, e de qual ano <small>Curso novo não tem nenhum dos dois. Ausência não é nota baixa, mas também não é nota alta.</small></li>
+        <li>Situação do ato: autorizado, reconhecido ou renovado <small>“Autorizado” significa que o curso ainda não formou turma e não passou por avaliação de reconhecimento.</small></li>
+        <li>Ano da primeira turma <small>Sem egressos não há rede de ex-alunos nem histórico de estágio.</small></li>
+        <li>Estrelas no Guia da Faculdade do Estadão</li>
+      </ul>
+    </div>
+
+    <div class="bloco">
+      <b>C · Dinheiro</b>
+      <ul class="itens">
+        <li>Mensalidade cheia de 2026 e quantas por ano <small>Doze mensais ou seis semestrais muda o total em um terço. Pergunte qual é o regime.</small></li>
+        <li>Reajuste dos últimos três anos <small>Não está no site. Peça no atendimento e some ao seu cálculo.</small></li>
+        <li>Taxas fora da mensalidade <small>Matrícula, material, laboratório, atividade complementar, TCC, colação de grau.</small></li>
+        <li>Bolsas e financiamento <small>ProUni, FIES, bolsa institucional, desconto de pontualidade, convênio com empresa, bolsa de primeiro semestre (que costuma sumir no segundo).</small></li>
+        <li>Programas internacionais cobrados à parte, e quanto custam</li>
+      </ul>
+    </div>
+
+    <div class="bloco">
+      <b>D · O que o curso entrega</b>
+      <ul class="itens">
+        <li>Matriz curricular completa, em PDF</li>
+        <li>Estágio obrigatório? A partir de qual período, e quantas horas?</li>
+        <li>A faculdade encaminha para estágio ou você procura por conta própria?</li>
+        <li>Empresas que contrataram alunos nos últimos dois anos <small>Peça nomes. Se a coordenação não responde com nome, isso também é uma resposta.</small></li>
+        <li>Percentual da última turma empregado na área</li>
+      </ul>
+    </div>
+
+    <div class="bloco">
+      <b>E · O mercado daquele diploma, na sua cidade</b>
+      <ul class="itens">
+        <li>Quantas vagas abertas pedem esse curso <small>Filtre por cidade em Glassdoor, Indeed, InfoJobs e LinkedIn. Anote a data da busca: o número muda.</small></li>
+        <li>Quais cursos aparecem na linha “formação” desses anúncios <small>É ali que você vê, em texto, se o seu diploma entra ou fica de fora.</small></li>
+        <li>Faixa de entrada e mediana da função na cidade</li>
+        <li>Três pessoas formadas nesse curso, no LinkedIn <small>Onde estão trabalhando 3 a 5 anos depois de formadas? É a melhor previsão disponível do que o diploma faz.</small></li>
+      </ul>
+    </div>
+
+    <div class="bloco">
+      <b>F · Reputação</b>
+      <ul class="itens">
+        <li>Reclame Aqui: nota, número de reclamações, percentual resolvido e o assunto dominante <small>O assunto importa mais que a nota: cobrança indevida é um problema diferente de aula ruim.</small></li>
+        <li>Avaliações de aluno em plataformas e grupos <small>Se não achar nada, registre “não encontrado”. Ausência de dado é dado, e evita que você invente uma impressão depois.</small></li>
+      </ul>
+    </div>
+
+    <h3 class="sep">Onde procurar cada coisa</h3>
+    <div class="tablewrap fila">
+      <table class="comp">
+        <thead><tr><th scope="col">Dado</th><th scope="col">Onde</th></tr></thead>
+        <tbody>
+          <tr><th scope="row">Nota do curso, ENADE, reconhecimento</th><td class="y">e-MEC · emec.mec.gov.br</td></tr>
+          <tr><th scope="row">Nota de corte do ProUni</th><td class="y">prouni.mec.gov.br e agregadores de bolsa</td></tr>
+          <tr><th scope="row">Mensalidade, matriz, taxas, reajuste</th><td class="y">site da instituição + telefone do atendimento</td></tr>
+          <tr><th scope="row">Vagas e exigência de formação</th><td class="y">Glassdoor, Indeed, InfoJobs, LinkedIn</td></tr>
+          <tr><th scope="row">Faixa salarial</th><td class="y">Glassdoor e Salario.com.br</td></tr>
+          <tr><th scope="row">Reputação da instituição</th><td class="y">Reclame Aqui</td></tr>
+          <tr><th scope="row">Estrelas do curso</th><td class="y">Guia da Faculdade (Estadão)</td></tr>
+          <tr><th scope="row">Estágio, empresas, empregabilidade</th><td class="y">coordenação do curso, por telefone</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sep">Três armadilhas</h3>
+    <div class="lista">
+      <div><b>Nota da instituição não é nota do curso</b><p>Uma universidade com cursos cinco estrelas pode ter o seu curso em três. O que vale na sua decisão é a linha do curso, não a manchete da faculdade.</p></div>
+      <div><b>Folheto não é matriz</b><p>Todo folheto diz “mercado global”, “professores do mercado” e “vivência prática”. A matriz diz o que você vai cursar na terça de manhã. Compare matrizes, não folhetos.</p></div>
+      <div><b>Mensalidade de tabela não é o que você paga</b><p>Desconto de primeiro semestre, reajuste anual e taxas mudam o número. Peça o valor do 5º semestre de quem entrou há dois anos: é o preço de verdade.</p></div>
+    </div>
+  </section>
+
+  <section class="sec" id="ficha">
+    <header><h2>Ficha em branco</h2><span class="n">12</span></header>
+    <p class="prose">Uma por curso+instituição. Imprima quantas precisar e preencha à mão enquanto pesquisa: assim a comparação fica com os mesmos campos para todo mundo, que é a única forma de ela significar alguma coisa.</p>
+    <p class="noprint" style="margin-top:12px"><button class="primary" id="print">Imprimir a ficha em branco</button></p>
+
+    <div class="campos" style="margin-top:14px">
+      <label class="campo"><span>Curso</span><i></i></label>
+      <label class="campo"><span>Instituição</span><i></i></label>
+      <label class="campo"><span>Data da pesquisa</span><i></i></label>
+    </div>
+
+    <div class="grupo"><b>A · Identificação</b>
+      <div class="campos">
+        <label class="campo"><span>Grau (bacharelado / tecnólogo)</span><i></i></label>
+        <label class="campo"><span>Duração e carga horária</span><i></i></label>
+        <label class="campo"><span>Modalidade e % a distância</span><i></i></label>
+        <label class="campo"><span>Câmpus e turno</span><i></i></label>
+      </div>
+    </div>
+
+    <div class="grupo"><b>B · Qualidade</b>
+      <div class="campos">
+        <label class="campo"><span>Nota no e-MEC</span><i></i></label>
+        <label class="campo"><span>ENADE / CPC e ano</span><i></i></label>
+        <label class="campo"><span>Ato (autorizado / reconhecido)</span><i></i></label>
+        <label class="campo"><span>Ano da 1ª turma</span><i></i></label>
+      </div>
+    </div>
+
+    <div class="grupo"><b>C · Dinheiro</b>
+      <div class="campos">
+        <label class="campo"><span>Mensalidade e quantas por ano</span><i></i></label>
+        <label class="campo"><span>Custo total estimado</span><i></i></label>
+        <label class="campo"><span>Reajuste dos últimos 3 anos</span><i></i></label>
+        <label class="campo"><span>Taxas fora da mensalidade</span><i></i></label>
+        <label class="campo"><span>Nota de corte do ProUni</span><i></i></label>
+        <label class="campo"><span>Outras bolsas possíveis</span><i></i></label>
+      </div>
+    </div>
+
+    <div class="grupo"><b>D · O que entrega</b>
+      <div class="campos">
+        <label class="campo"><span>Estágio: obrigatório? a partir de quando?</span><i></i></label>
+        <label class="campo"><span>A faculdade encaminha?</span><i></i></label>
+        <label class="campo"><span>Empresas que contrataram</span><i></i></label>
+        <label class="campo"><span>% da última turma empregado</span><i></i></label>
+      </div>
+    </div>
+
+    <div class="grupo"><b>E · Mercado na cidade</b>
+      <div class="campos">
+        <label class="campo"><span>Vagas abertas que pedem o curso</span><i></i></label>
+        <label class="campo"><span>Cursos citados nos anúncios</span><i></i></label>
+        <label class="campo"><span>Faixa de entrada</span><i></i></label>
+        <label class="campo"><span>Onde estão os formados (LinkedIn)</span><i></i></label>
+      </div>
+    </div>
+
+    <div class="grupo"><b>F · Reputação</b>
+      <div class="campos">
+        <label class="campo"><span>Reclame Aqui: nota e assunto principal</span><i></i></label>
+        <label class="campo"><span>Avaliações de aluno</span><i></i></label>
+      </div>
+    </div>
+
+    <div class="grupo"><b>Fechamento</b>
+      <div class="campos">
+        <label class="campo"><span>O argumento mais forte a favor</span><i></i></label>
+        <label class="campo"><span>O argumento mais forte contra</span><i></i></label>
+        <label class="campo"><span>Entra na lista? Por quê?</span><i></i></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="fontes">
+    <header><h2>Fontes</h2><span class="n">setembro de 2026</span></header>
+    <ul class="fontes" style="margin-top:8px">
+      <li><a href="https://www.pucpr.br/cursos-graduacao/negocios-internacionais/">Negócios Internacionais · PUCPR</a></li>
+      <li><a href="https://www.pucpr.br/cursos-graduacao/relacoes-internacionais/">Relações Internacionais · PUCPR</a></li>
+      <li><a href="https://www.pucpr.br/cursos-graduacao/administracao/">Administração · PUCPR</a></li>
+      <li><a href="https://www.pucpr.br/cursos-graduacao/programa-de-administracao-internacional/">Administração Internacional · PUCPR</a></li>
+      <li><a href="https://www.pucpr.br/escola-de-negocios/ibp/">International Business Program · PUCPR</a></li>
+      <li><a href="https://www.reclameaqui.com.br/empresa/puc-pr/">PUCPR no Reclame Aqui</a></li>
+      <li><a href="https://www.pucpr.br/noticias/pucpr-e-unica-instituicao-privada-do-parana-com-cursos-5-estrelas-no-guia-de-faculdade-estadao/">Guia da Faculdade 2025 · Estadão</a></li>
+      <li><a href="https://querobolsa.com.br/prouni/notas-de-corte/faculdades/pontificia-universidade-catolica-do-parana">Notas de corte do ProUni na PUCPR</a></li>
+      <li><a href="https://www.glassdoor.com.br/Sal%C3%A1rios/curitiba-analista-de-com%C3%A9rcio-exterior-sal%C3%A1rio-SRCH_IL.0,8_IM1274_KO9,38.htm">Salário de analista de comex em Curitiba · Glassdoor</a></li>
+      <li><a href="https://www.glassdoor.com.br/Vaga/curitiba-comercio-exterior-vagas-SRCH_IL.0,8_IC2387909_KO9,26.htm">Vagas de comércio exterior em Curitiba · Glassdoor</a></li>
+      <li><a href="https://www.mirojobs.com.br/2026/05/analista-de-comercio-exterior.html">Vaga de analista em Paranaguá · Mirojobs</a></li>
+      <li><a href="https://esri.net.br/comercio-exterior-o-que-faz/">Comércio Exterior: cargos e salários 2026 · ESRI</a></li>
+      <li><a href="https://www.salario.com.br/profissao/gerente-de-cambio-e-comercio-exterior-cbo-141715/">Gerente de câmbio e comex · Salario.com.br</a></li>
+      <li><a href="https://www.bloomberg.com/news/articles/2026-01-06/brasil-supera-tarifas-de-trump-e-registra-recorde-em-2025">Recorde de exportações em 2025 · Bloomberg</a></li>
+      <li><a href="https://ric.com.br/economia/exportacoes-brasileiras-eua-acumulam-queda-ate-agosto-tarifaco/">Exportações aos EUA em 2026 · RIC</a></li>
+      <li><a href="https://www.thomsonreuters.com.br/pt/tax-accounting/comercio-exterior/blog/importancia-ia-comercio-exterior.html">IA no comércio exterior · Thomson Reuters</a></li>
+      <li><a href="https://blog.grancursosonline.com.br/concurso-diplomata-edital-publicado-2026/">CACD 2026 · Gran Cursos</a></li>
+    </ul>
+  </section>
+
+  <p class="foot muted">Nenhuma das três escolhas é definitiva. Transferência interna existe, pós existe, segunda graduação existe. A escolha que fecha portas de verdade é não escolher e deixar o prazo escolher por você.</p>
+</main>
+<!-- build:footer -->
+<footer class="shell-footer">
+  <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
+       Não crie div vazia para reservá-lo. -->
+  <div class="in"><p class="versao">versão 191 · 10/10/2026</p></div>
+</footer>
+<!-- /build:footer -->
+
+<dialog id="code" aria-labelledby="codeTitle">
+  <div class="dh"><h2 id="codeTitle">Prompt de pesquisa</h2></div>
+  <div class="db">
+    <p class="muted" id="codeHint">Copie o texto e cole no Claude, no ChatGPT ou no Gemini. Troque o que está entre colchetes antes de enviar.</p>
+    <textarea id="codeText" readonly aria-label="Prompt de pesquisa"></textarea>
+    <p class="cap" id="codeErr" role="alert" hidden></p>
+    <div class="actions">
+      <button class="primary" id="codeMain">Copiar</button>
+      <button id="codeCancel">Fechar</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  /* modo app e nome de quem usa (ADR-006, ADR-008): este documento não tem estado, só a copy.
+     Sem ponte não há perfil, e o nome é o padrão. */
+  const APP = !!window.desktop;
+  // O aviso dos arquivos avulsos (etapa 2, BR-45, US-033): só aberto do disco. O app de desktop também
+  // abre as telas de `file:`, e por isso a guarda é APP antes do protocolo.
+  document.getElementById("mudou").hidden = APP || location.protocol !== "file:";
+  const NOME_PADRAO = "Arthur";
+  const NOME = (APP && window.desktop.profile && window.desktop.profile.name) || NOME_PADRAO;
+  function renderNome(){ document.querySelectorAll("[data-nome]").forEach(el=>{ el.textContent = NOME; }); }
+  renderNome();
+
+  /* O carimbo do rodapé diz o número; no app o title diz se ele se mantém sozinho (ADR-003). Aqui
+     não há faixa de atualização — este documento não tem estado nem nada a reiniciar —, mas o
+     carimbo é o mesmo dos outros dois e responde a mesma pergunta de telefone. */
+  function versaoTitle(){
+    if(!APP) return;
+    const el = document.querySelector(".versao");
+    if(!el) return;
+    let st = { state:"idle" };
+    try{ st = window.desktop.update.status() || st; }catch(e){}
+    // Três frases, não duas: `idle` é onde toda falha termina, e quem separa "não cheguei ao
+    // servidor" de "a atualização está quebrada" é o resultado gravado. Enquanto a checagem corre
+    // não se afirma nenhuma das duas.
+    let diz = "abra com internet para atualizar";
+    if(st.state==="up-to-date" || st.state==="ready") diz = "atualizado automaticamente";
+    else if(st.state==="idle" && st.result==="error") diz = "a atualização automática falhou";
+    el.title = `${el.textContent} · ${diz}`;
+  }
+  if(APP){
+    versaoTitle();
+    setTimeout(versaoTitle, 1200);
+    setTimeout(versaoTitle, 4000);
+    const carimbo = document.querySelector(".versao");
+    if(carimbo){ carimbo.addEventListener("pointerenter", versaoTitle); carimbo.addEventListener("focusin", versaoTitle); }
+  }
+
+  /* fila rolável: enquanto sobrar item fora da tela, a máscara esmaece e a seta acende */
+  function fila(el){ const w=el.parentElement;
+    const upd=()=>{ const on = el.scrollLeft+el.clientWidth < el.scrollWidth-1;
+      el.classList.toggle("more",on); w.classList.toggle("more",on); };
+    el.addEventListener("scroll",upd,{passive:true}); window.addEventListener("resize",upd); upd(); }
+  fila(document.querySelector(".nav"));
+  document.querySelectorAll(".tablewrap").forEach(t=>fila(t));
+
+  /* impressão isolada da ficha, como body[data-print] nos dois apps */
+  document.getElementById("print").addEventListener("click",()=>{
+    document.body.dataset.print="ficha"; window.print();
+  });
+  window.addEventListener("afterprint",()=>{ delete document.body.dataset.print; });
+
+  /* ---- prompt de pesquisa ---- */
+  const PROMPT = [
+    "Você é um pesquisador de educação superior no Brasil. Vou decidir em qual curso de graduação me inscrever e preciso levantar os dados de uma opção.",
+    "",
+    "CURSO: [nome exato do curso]",
+    "INSTITUIÇÃO: [nome da faculdade ou universidade]",
+    "CIDADE ONDE PRETENDO TRABALHAR DEPOIS: [cidade]",
+    "",
+    "Pesquise na web e devolva os campos abaixo. Cinco regras valem para a resposta inteira:",
+    "",
+    "1. Cite a fonte de cada dado, com link. Se o dado vier do site da própria instituição, diga isso — site de faculdade é material de venda.",
+    "2. Quando não encontrar um dado, escreva \"não encontrado\". Não estime, não deduza e não preencha com o que costuma valer em outras instituições.",
+    "3. Quando as fontes divergirem, mostre as duas e diga qual é qual.",
+    "4. Todo valor em dinheiro e toda nota vêm com a data a que se referem.",
+    "5. Não me recomende nada. Eu decido; você levanta.",
+    "",
+    "A — IDENTIFICAÇÃO",
+    "- Nome exato do curso e grau (bacharelado ou tecnólogo)",
+    "- Duração em semestres e carga horária total",
+    "- Modalidade e qual percentual da carga é a distância",
+    "- Câmpus, endereço e turnos; o turno muda ao longo do curso?",
+    "",
+    "B — QUALIDADE (dados oficiais, no e-MEC)",
+    "- Conceito de Curso (CC) e o ano da avaliação",
+    "- Conceito ENADE e CPC, e de que ano; se o curso nunca teve ciclo, diga isso",
+    "- Situação do ato: autorizado, reconhecido ou renovado",
+    "- Ano da primeira turma",
+    "- Estrelas no Guia da Faculdade do Estadão, se houver",
+    "",
+    "C — DINHEIRO",
+    "- Mensalidade cheia do ano corrente e quantas mensalidades por ano",
+    "- Custo total até a formatura, mostrando a conta que você fez",
+    "- Taxas fora da mensalidade (matrícula, material, laboratório, TCC, colação)",
+    "- Nota de corte do ProUni para esse curso nessa instituição no último processo",
+    "- Outras bolsas e financiamentos, e o reajuste das mensalidades nos últimos anos",
+    "- Programas internacionais cobrados à parte e quanto custam",
+    "",
+    "D — O QUE O CURSO ENTREGA",
+    "- As disciplinas do 1º ao 3º semestre, da matriz curricular e não do texto de divulgação",
+    "- Estágio obrigatório? A partir de qual período e quantas horas?",
+    "- A instituição encaminha para estágio ou o aluno procura sozinho?",
+    "- Empresas que contrataram alunos nos últimos dois anos, se houver informação pública",
+    "- Percentual da última turma empregado na área, se houver",
+    "",
+    "E — MERCADO NA CIDADE INDICADA",
+    "- Quantas vagas abertas hoje pedem esse curso; diga a data da busca e o portal usado",
+    "- Quais formações aparecem na linha de requisitos desses anúncios",
+    "- Faixa salarial de entrada e mediana da função na cidade",
+    "- O que pessoas formadas nesse curso estão fazendo 3 a 5 anos depois",
+    "",
+    "F — REPUTAÇÃO",
+    "- Nota da instituição no Reclame Aqui, número de reclamações, percentual resolvido e o assunto dominante das queixas",
+    "- Avaliações de alunos desse curso específico; se não achar nenhuma, diga \"não encontrado\"",
+    "",
+    "G — FECHAMENTO",
+    "- Três argumentos a favor de cursar isso nessa instituição e três contra, com o mesmo tamanho e o mesmo esforço dos dois lados",
+    "- O que esse curso fecha que um curso mais amplo da mesma área deixaria aberto",
+    "- As três perguntas que eu deveria fazer por telefone à coordenação — as que a internet não responde"
+  ].join("\n");
+
+  const toastEl = document.getElementById("toast");
+  let toastTimer;
+  function toast(html){
+    toastEl.innerHTML = html; toastEl.classList.add("show");
+    clearTimeout(toastTimer); toastTimer = setTimeout(()=>toastEl.classList.remove("show"), 3200);
+  }
+
+  const dlg = document.getElementById("code");
+  const codeText = document.getElementById("codeText");
+  const codeErr = document.getElementById("codeErr");
+  function showCode(text){
+    codeText.value = text; codeErr.hidden = true;
+    if(!dlg.open) dlg.showModal();
+    codeText.focus(); codeText.select();
+  }
+  /* a cópia cai no diálogo quando o navegador não deixa copiar; nunca em prompt() ou alert() */
+  async function copyText(text, ok){
+    try{
+      if(!navigator.clipboard) throw new Error("sem clipboard");
+      await navigator.clipboard.writeText(text);
+      toast(ok); return true;
+    }catch(e){ showCode(text); return false; }
+  }
+  document.getElementById("copyPrompt").addEventListener("click",()=>{
+    copyText(PROMPT, "<b>Prompt copiado.</b> Cole no Claude, no ChatGPT ou no Gemini.");
+  });
+  /* dentro do diálogo, copiar fecha antes do toast: um toast sob o backdrop não seria visto */
+  document.getElementById("codeMain").addEventListener("click", async ()=>{
+    try{
+      if(!navigator.clipboard) throw new Error("sem clipboard");
+      await navigator.clipboard.writeText(codeText.value);
+      dlg.close(); toast("<b>Prompt copiado.</b> Cole no Claude, no ChatGPT ou no Gemini.");
+    }catch(e){
+      codeErr.textContent = "O navegador não deixou copiar. Selecione o texto acima e copie com Ctrl+C.";
+      codeErr.hidden = false; codeText.focus(); codeText.select();
+    }
+  });
+  document.getElementById("codeCancel").addEventListener("click",()=>dlg.close());
+
+  /* build:shell-js */
+  // Fechar os menus da barra. <details> não fecha sozinho ao clicar fora nem no Esc, e com dois menus
+  // na mesma barra o clique em um tem de fechar o outro — senão ficam os dois abertos por cima do
+  // conteúdo. Um handler só resolve as duas coisas: o menu que contém o clique sobrevive.
+  document.addEventListener("click", e => {
+    document.querySelectorAll(".shell .menu[open]").forEach(d => { if(!d.contains(e.target)) d.open = false; });
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key !== "Escape") return;
+    const aberto = document.querySelector(".shell .menu[open]");
+    if(aberto){ aberto.open = false; aberto.querySelector("summary").focus(); }
+  });
+
+  // As duas telas que o Arthur alterna. O painel do orientador não entra de propósito: é a ferramenta
+  // do pai, não uma tela do filho — e vice-versa. Quem não está nesta lista mostra só o título.
+  // `web` é o caminho da mesma tela na versão hospedada (etapa 2), onde cada uma é uma pasta.
+  const TELAS = [
+    {id:"missao",  nome:"Missão ENEM",      arq:"Missao_ENEM_Arthur.html",  web:"../aluno/"},
+    {id:"escolha", nome:"Escolha de curso", arq:"Escolha_Curso_Arthur.html", web:"../escolha/"},
+  ];
+
+  // Menu de telas. Todo file:// divide o mesmo localStorage no Chrome — entre pastas diferentes e sem
+  // precisar de flag (testado). Então cada tela carimba onde ela está e a vizinha linka para o caminho
+  // real, não para um nome relativo: é o que faz o link sobreviver ao "Escolha_Curso_Arthur (1).html"
+  // que o navegador cria quando o Arthur baixa o arquivo de novo, ou às duas telas em pastas diferentes.
+  (function(){
+    const barra = document.querySelector(".shell"), aqui = barra.dataset.tela;
+    if(!TELAS.some(t => t.id === aqui)) return; // tela sozinha: o título continua sendo só título
+    const CHAVE = "missao-enem-telas";
+    let onde = {};
+    try{ const v = JSON.parse(localStorage.getItem(CHAVE)); if(v && typeof v === "object" && !Array.isArray(v)) onde = v; }catch(e){}
+    onde[aqui] = location.href;
+    try{ localStorage.setItem(CHAVE, JSON.stringify(onde)); }catch(e){}
+
+    const cont = barra.querySelector(".telas"), titulo = cont.querySelector("h1").textContent;
+    const itens = TELAS.map(t => t.id === aqui
+      ? `<span aria-current="page">${t.nome}</span>`
+      : `<a href="${String(onde[t.id] || (/^https?:$/.test(location.protocol) ? t.web : t.arq)).replace(/"/g,"&quot;")}">${t.nome}</a>`).join("");
+    cont.innerHTML = `<details class="menu"><summary><h1>${titulo}</h1></summary><div class="pop">${itens}</div></details>`;
+  })();
+
+  // Seletor de tema. Quem sabe e quem grava é o boot no <head> (ele roda antes da primeira pintura);
+  // aqui só marcamos a opção que está valendo e escrevemos o nome dela no botão — inclusive quando o
+  // aparelho vira o tema sozinho. O botão mostra a escolha, não o tema resolvido: "Sistema" precisa
+  // continuar legível como "acompanha o aparelho".
+  (function(){
+    const g = document.getElementById("tema"), radios = [...g.querySelectorAll("input")];
+    const NOME = {claro:"Claro", escuro:"Escuro", sistema:"Sistema"};
+    const marca = ()=>{
+      const e = document.documentElement.dataset.escolha;
+      radios.forEach(i=>{ i.checked = i.value===e; });
+      document.getElementById("temaAtual").textContent = NOME[e] || NOME.sistema;
+      document.getElementById("temaSum").setAttribute("aria-label", `Tema: ${(NOME[e] || NOME.sistema).toLowerCase()}`);
+    };
+    g.addEventListener("change", e=>{
+      if(window.setTema && e.target.value) window.setTema(e.target.value);
+      marca(); // setTema não dispara o evento `tema` (esse é para mudança vinda de fora)
+      g.open = false; // escolheu: o menu fecha, e a tela repintada é o próprio aviso (não rende toast)
+    });
+    window.addEventListener("tema", marca);
+    marca();
+  })();
+
+  // User menu: só existe no app (ADR-006). É o ocupante do lugar que a barra guardava vazio, depois do
+  // tema — e continua sem placeholder nenhum no markup: no navegador `window.desktop` não existe e o
+  // <details> nunca é criado. O nome no botão, o nome e o e-mail na lista, e "Trocar de usuário", que
+  // é o único caminho de volta para a pergunta "Quem está usando?" (ADR-002/US-031).
+  // O texto vai por textContent, nunca por innerHTML: o nome e o e-mail são digitados pelo usuário.
+  (function(){
+    if(!window.desktop) return;
+    const acts = document.querySelector(".shell .acts");
+    if(!acts) return;
+    const profile = window.desktop.profile || {};
+    const menu = document.createElement("details");
+    menu.className = "menu user";
+    menu.id = "user";
+    const summary = document.createElement("summary");
+    const label = document.createElement("span");
+    label.textContent = profile.name || "Usuário";
+    summary.setAttribute("aria-label", `Usuário: ${label.textContent}`);
+    summary.appendChild(label);
+    const pop = document.createElement("div");
+    pop.className = "pop";
+    const name = document.createElement("span");
+    name.textContent = label.textContent;
+    const swap = document.createElement("button");
+    swap.type = "button";
+    swap.id = "switchRole";
+    swap.textContent = "Trocar de usuário";
+    swap.addEventListener("click", ()=>{ menu.open = false; window.desktop.switchRole(); });
+    pop.appendChild(name);
+    if(profile.email){ // sem e-mail não entra linha vazia: seria um item de menu em branco
+      const mail = document.createElement("span");
+      mail.className = "muted";
+      mail.textContent = profile.email;
+      pop.appendChild(mail);
+    }
+    pop.appendChild(swap);
+    menu.append(summary, pop);
+    acts.appendChild(menu);
+  })();
+  /* /build:shell-js */
+</script>
+</body>
+</html>
