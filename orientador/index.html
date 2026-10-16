@@ -622,6 +622,34 @@
   label.filebtn{display:inline-flex;flex-direction:row;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:inherit;cursor:pointer;position:relative}
   .filebtn input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
   .filebtn:has(input:focus-visible){outline:3px solid var(--blue);outline-offset:2px}
+  /* As redações extras (ADR-015 §2). A linha é o alvo inteiro — o gesto é "abrir esta redação", não
+     clicar num pedaço dela —, e o tema é texto DELE: sem overflow-wrap:anywhere um tema sem espaços
+     estica a linha e faz a página rolar de lado em 320px (BR-24). */
+  .xrow{display:grid;gap:4px;width:100%;text-align:left;margin-top:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:14px;color:var(--ink)}
+  .xrow .titulo{font-weight:600;min-width:0;overflow-wrap:anywhere}
+  .xrow.aberta{border-color:var(--primaria);box-shadow:inset 0 0 0 1px var(--primaria)}
+  /* Sem entrega não há ficha para abrir: a linha é texto, não botão (CLAUDE.md: nunca botão morto). */
+  .xrow.semabrir{color:var(--muted);font-weight:400;cursor:default}
+  .xrow.semabrir .muted{font-size:12px}
+  .xmeta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12px;color:var(--muted);min-width:0;overflow-wrap:anywhere}
+  .chip{display:inline-block;font-size:12px;padding:2px 10px;border-radius:99px;background:var(--bg);color:var(--muted);border:1px solid var(--line);white-space:nowrap}
+  .chip.apagada{background:var(--red-soft);color:var(--red);border-color:transparent}
+  .rednota{font-weight:700;font-variant-numeric:tabular-nums;color:var(--ink)}
+  #xLista > .vazio{max-width:58ch}
+  #xFicha{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  #xLido .xid{margin:0;overflow-wrap:anywhere}
+  #xLido .xenunciado{margin-top:10px}
+  #xLido .xenunciado .prop{white-space:pre-line;margin:8px 0 0}
+  #xForm{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+  #xForm > h3{margin:0}
+  .xnova{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .xnova .f{flex:1 1 240px;min-width:0}
+  .xpend{display:flex;gap:10px;align-items:baseline;margin:6px 0 0;font-size:14px}
+  .xpend > span{min-width:0;overflow-wrap:anywhere}
+  /* botão que se lê como link: é uma frase, não um comando, e precisa ser button para o teclado */
+  .linkish{background:none;border:0;padding:0;color:var(--blue);font-size:14px;text-decoration:underline;text-underline-offset:2px}
+  .linkish:hover{color:var(--blue-ink)}
+
   /* toque: alvo de 44px sem mudar o desenho e campo nunca abaixo de 16px */
   @media (pointer:coarse){
     input,textarea,select,.notas input,#redacao,textarea.code{font-size:16px}
@@ -630,11 +658,22 @@
     .chips button{min-height:44px}
     .chk label,.elems label{padding:11px 12px;font-size:14px}
     details.sub > summary{padding:12px 0;margin:-12px 0}
+    /* A proposta da extra: aqui o padding negativo do .sub não entrega os 44. A área invisível que
+       ele desenha entra 12px por cima dos vizinhos — a identificação acima, a linha do foco abaixo —,
+       e é o vizinho que responde ao elementFromPoint: medido, o alvo ficava em 33,3px. Aqui o alvo é
+       altura de verdade, sem invadir ninguém, como em .menu > summary e nos chips. A classe dupla é
+       necessária: `details.sub > summary` acima tem especificidade maior que `.xenunciado > summary`. */
+    details.sub.xenunciado > summary{min-height:44px;padding:0;margin:0}
     input,select{padding:10px 8px}
     select{min-height:44px}
     .filebtn input,.chk input,.elems input{padding:0}
     .notas input{padding:10px 6px}
     .foot button{padding:12px 14px}
+    /* A linha da extra são duas linhas de texto num cartão e já passa de 44px pelo padding; o mínimo é a
+       rede. O `.linkish` zera o padding do botão e vence a regra `button` acima, então a área cresce por
+       conta própria, para os dois lados: nada o encosta em cima nem embaixo. */
+    .xrow{min-height:44px}
+    .linkish{padding:12px 0;margin:-12px 0}
   }
   @media (max-width:480px){#code .actions{display:grid;grid-template-columns:1fr 1fr}#code .actions .filebtn{justify-content:center}}
   /* Conta e convites (modo online, só no app). A linha da conexão é texto de status; o pedido de um
@@ -662,6 +701,11 @@
   #codigoAlunoForm{margin-top:14px}
   @media (pointer:coarse){#usarEntrega{min-height:44px}}
   @media (pointer:coarse){.sync-chk{min-height:44px}}
+  /* Os botões do diálogo da conta: o `padding:10px 14px` do toque mais a fonte de 15px do painel dão
+     43,6px de altura, e a faixa de acerto medida a 375px fica a um arredondamento dos 44 — o bloco da
+     correção automática, entrando no meio do diálogo, empurrou o "Desfazer conexão" para 43,7. A
+     altura passa a ser declarada, para a catraca dos 44px não depender de onde cada peça caiu. */
+  @media (pointer:coarse){#conta .actions button{min-height:44px}}
   @media (forced-colors:active){
     .tabs button.active{outline:2px solid CanvasText}
     .tabs button.has{text-decoration:underline}
@@ -689,6 +733,12 @@
     body[data-print="estudo"] .card:not(#cEstudo),body[data-print="estudo"] .week{display:none}
     /* o parecer sai sozinho, com a faixa da semana: é a folha que os dois leem juntos na chamada */
     body[data-print="parecer"] .card:not(#cParecer){display:none}
+    /* "Imprimir esta redação": só a ficha da extra aberta, no mesmo desenho da impressão dela no app
+       dele (US-006 AC-3) — a lista, o formulário e a faixa da semana ficam fora do papel. */
+    body[data-print="ficha"] .card:not(#cExtras),body[data-print="ficha"] .week,
+    body[data-print="ficha"] #xLista,body[data-print="ficha"] #xFlag,body[data-print="ficha"] #xForm{display:none}
+    body[data-print="ficha"] #xFicha{margin:0;border:0;padding:0}
+    body[data-print="ficha"] #xLido .xenunciado > summary{display:none}
     input,textarea{border:0;border-bottom:1px solid var(--muted);border-radius:0;background:var(--surface)}
   }
 
@@ -913,6 +963,9 @@
 
   <!-- a faixa da semana e a grade são o que troca com a aba; juntas são o painel dela -->
   <div id="painelSemana" role="tabpanel">
+  <!-- O aviso das extras esperando correção (ADR-007): acima da faixa da semana, porque não é de semana
+       nenhuma — é o que chegou entre dois domingos. Sai da tela quando o parecer de todas foi enviado. -->
+  <p class="flag" id="extrasAviso" hidden><span id="extrasAvisoTxt"></span> <button type="button" class="linkish" id="extrasAvisoIr">Abrir</button></p>
   <div class="week" id="cWeek">
     <div>
       <strong id="wtitle">Semana</strong>
@@ -978,7 +1031,7 @@
           <div class="q"><p class="ask"><b>C2</b>“Qual é a sua tese em uma frase? De onde veio o repertório e o que ele prova?”</p><label>Tese em uma frase<input data-f="tese" maxlength="300"></label><label>Repertório usado e o que ele prova<input data-f="rep" maxlength="300"></label></div>
           <div class="q"><p class="ask"><b>C3</b>“Se eu discordasse de você, qual parágrafo me convenceria? Por quê?”</p><div class="row"><label>Parágrafo mais forte<input data-f="forte" class="short" maxlength="40"></label><label>Mais fraco<input data-f="fraco" class="short" maxlength="40"></label></div></div>
           <div class="q"><p class="ask"><b>C4</b>“Lê só a primeira frase de cada parágrafo, em sequência. Faz sentido como resumo?”</p><label>Conectivos repetidos<input data-f="conect" maxlength="300"></label></div>
-          <div class="q"><p class="ask"><b>C5</b>“Quem faz? Faz o quê? Como? Para quê? E o detalhe?”</p><div class="elems" id="elems"></div></div>
+          <div class="q"><p class="ask"><b>C5</b>“Quem faz? Faz o quê? Como? Para quê? E o detalhe?”</p><div class="elems" id="elems" data-elems></div></div>
         </details>
       </section>
 
@@ -1011,6 +1064,78 @@
       <div class="actions mt" id="parecerActions" hidden><button class="primary" id="copiarParecer">Copiar o parecer para <span data-nome></span></button><button data-print="parecer">Imprimir parecer</button></div>
     </div>
   </details>
+
+
+  <!-- As redações extras dele (ADR-002, ADR-008, ADR-015 §2). Abaixo da grade, como #cBanco e #cEstudo:
+       é peça das noites da semana e não uma das seis do encontro, e por isso fica fora da fila de
+       `order` do celular. O pai LÊ a redação que ele mandou e o que ele marcou, e ESCREVE só a ficha de
+       correção, os combinados e o parecer que sai dela — nenhum controle daqui marca uma pendência
+       (ADR-008, BR-18). A ficha de correção é clonada UMA vez do <template> e fica: trocar de redação
+       religa os campos, nunca reconstrói o formulário, senão o texto digitado iria embora a cada render. -->
+  <details class="card" id="cExtras">
+    <summary><h2>Redações extras de <span data-nome></span> <button class="help" data-help="extras" aria-label="Ajuda: redações extras">?</button></h2><span class="sum" id="xSum"></span></summary>
+    <div class="body">
+      <div id="xFlag"></div>
+      <div id="xLista"></div>
+      <div id="xFicha" hidden>
+        <div id="xLido"></div>
+        <div id="xForm" hidden></div>
+      </div>
+    </div>
+  </details>
+
+  <!-- A ficha de correção de UMA redação extra: os mesmos campos de #cFicha (menos "o que ele percebeu",
+       que é da leitura em voz alta do encontro de 40 minutos e não existe aqui), mais `conferir`,
+       `paragrafoTexto` e o foco desta redação. Os ids de dentro só existem depois do clone, então todo
+       handler é delegado em #cExtras e lê os nós dentro do render. -->
+  <template id="fichaTpl">
+    <h3>Ficha de correção desta redação</h3>
+    <p class="muted" id="xFichaFoco"></p>
+    <div class="notas">
+      <label><b>C1</b>Gramática<input type="number" inputmode="numeric" data-f="c1" min="0" max="200" step="20" aria-label="C1 Gramática e ortografia, 0 a 200"></label>
+      <label><b>C2</b>Tema<input type="number" inputmode="numeric" data-f="c2" min="0" max="200" step="20" aria-label="C2 Tema e repertório, 0 a 200"></label>
+      <label><b>C3</b>Argumento<input type="number" inputmode="numeric" data-f="c3" min="0" max="200" step="20" aria-label="C3 Argumentação, 0 a 200"></label>
+      <label><b>C4</b>Coesão<input type="number" inputmode="numeric" data-f="c4" min="0" max="200" step="20" aria-label="C4 Coesão, 0 a 200"></label>
+      <label><b>C5</b>Proposta<input type="number" inputmode="numeric" data-f="c5" min="0" max="200" step="20" aria-label="C5 Proposta de intervenção, 0 a 200"></label>
+      <label><b>Total</b>das 5<input type="number" data-f="nota" readonly tabindex="-1" aria-label="Nota total, soma das cinco"></label>
+    </div>
+    <div class="close">
+      <label class="key">UMA força<input data-f="forca" maxlength="300" placeholder="o que saiu melhor nesta redação"></label>
+      <label class="key">UM ajuste para a próxima<input data-f="ajuste" maxlength="300" placeholder="só um; é o que fica desta redação"></label>
+      <label>Foco desta redação<select id="xFoco">
+        <option value="">o foco da semana</option>
+        <option value="c1">C1 Gramática e ortografia</option>
+        <option value="c2">C2 Tema e repertório</option>
+        <option value="c3">C3 Argumentação</option>
+        <option value="c4">C4 Coesão</option>
+        <option value="c5">C5 Proposta de intervenção</option>
+      </select></label>
+      <label>Como ele confere sozinho<input data-f="conferir" maxlength="300" placeholder="em branco, entra o teste padrão da competência"></label>
+      <label>Parágrafo a reescrever<input data-f="paragrafo" class="short" maxlength="40" placeholder="ex.: 2º"></label>
+      <label>O que reescrever nele<input data-f="paragrafoTexto" maxlength="300" placeholder="o que falta naquele parágrafo"></label>
+    </div>
+    <details class="sub">
+      <summary>Perguntas por competência</summary>
+      <div class="q"><p class="ask"><b>C1</b>“Me mostra três frases com vírgula. Por que a vírgula está aí?”</p><label>Erro que mais se repete<input data-f="erro" maxlength="300"></label></div>
+      <div class="q"><p class="ask"><b>C2</b>“Qual é a sua tese em uma frase? De onde veio o repertório e o que ele prova?”</p><label>Tese em uma frase<input data-f="tese" maxlength="300"></label><label>Repertório usado e o que ele prova<input data-f="rep" maxlength="300"></label></div>
+      <div class="q"><p class="ask"><b>C3</b>“Se eu discordasse de você, qual parágrafo me convenceria? Por quê?”</p><div class="row"><label>Parágrafo mais forte<input data-f="forte" class="short" maxlength="40"></label><label>Mais fraco<input data-f="fraco" class="short" maxlength="40"></label></div></div>
+      <div class="q"><p class="ask"><b>C4</b>“Lê só a primeira frase de cada parágrafo, em sequência. Faz sentido como resumo?”</p><label>Conectivos repetidos<input data-f="conect" maxlength="300"></label></div>
+      <div class="q"><p class="ask"><b>C5</b>“Quem faz? Faz o quê? Como? Para quê? E o detalhe?”</p><div class="elems" data-elems></div></div>
+    </details>
+    <div class="actions mt"><button id="xMontar">Montar o parecer</button></div>
+    <p class="muted" id="xMontarPorque" hidden></p>
+    <p class="err" id="xErr" role="alert" hidden></p>
+    <div class="parecer mt" id="xParecerView"></div>
+    <h3 class="mt">Combinado com <span data-nome></span></h3>
+    <p class="muted">Vai junto na próxima entrega do parecer. Cada item marcado como feito aparece lá em cima, em O que ficou de fazer.</p>
+    <div id="xPendencias"></div>
+    <div class="xnova mt"><label class="f">Novo combinado<input id="xPendenciaNova" maxlength="200" placeholder="ex.: reler a proposta em voz alta antes de passar a limpo"></label><button id="xAddPendencia">Adicionar</button></div>
+    <p class="err" id="xPendErr" role="alert" hidden></p>
+    <label class="mt">Minhas anotações desta redação<textarea data-f="notas" aria-label="Minhas anotações desta redação" placeholder="O que falar na chamada sobre esta redação."></textarea></label>
+    <div class="actions mt"><button id="xCopiarComando">Copiar o comando</button><button id="xColarPreparo">Colar o preparo</button></div>
+    <p class="muted" id="xPrepStat" hidden></p>
+    <div class="actions mt"><button id="xEnviar">Copiar o parecer para <span data-nome></span></button><button data-print="ficha">Imprimir esta redação</button></div>
+  </template>
 
   <section class="card" id="cEvo">
     <h2>Evolução <button class="help" data-help="evolucao" aria-label="Ajuda: evolução">?</button></h2>
@@ -1079,7 +1204,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 191 · 10/10/2026</p></div>
+  <div class="in"><p class="versao">versão 235 · 16/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -1103,6 +1228,23 @@
     <!-- O aluno conectado que está na tela: desfazer a conexão daqui (BR-38, BR-47). O arquivo das
          anotações vem antes, oferecido pelo nome; desfazer precisa de rede (BR-42). -->
     <div id="contaConectado" hidden><p id="contaConectadoTxt"></p><div class="actions"><button id="salvarAnotacoes">Salvar o arquivo das anotações antes</button><button class="quiet" id="desfazerConexao">Desfazer conexão</button></div></div>
+    <!-- A correção automática (ADR-003, ADR-012): a chave do fornecedor do modelo é dele e vive no
+         Vault do servidor — o campo é só de escrita e nunca é preenchido de volta, nem na reabertura.
+         O interruptor e o teto são POR ALUNO, e o que está na tela é o aluno da tela: a conexão
+         encerrada esconde a linha dele, e os pareceres que já chegaram continuam onde estão.
+         O bloco inteiro nasce escondido: sem ponte não há o que cadastrar. -->
+    <div id="contaCorrecao" hidden>
+      <h3>Correção automática <button class="help" data-help="correcao" aria-label="Ajuda: correção automática">?</button></h3>
+      <p class="muted" id="chaveStat"></p>
+      <label class="f">Chave do fornecedor do modelo<input type="password" id="chaveApi" autocomplete="off" maxlength="200" spellcheck="false"></label>
+      <div class="actions"><button id="salvarChave">Salvar chave</button><button class="quiet" id="removerChave" hidden>Remover chave</button></div>
+      <div id="correcaoAluno" hidden>
+        <label class="sync-chk"><input type="checkbox" id="correcaoOn">Correção automática para <span data-nome></span></label>
+        <label class="f">Correções por semana<input type="number" id="correcaoTeto" min="0" max="20" step="1" inputmode="numeric"></label>
+      </div>
+      <label class="sync-chk"><input type="checkbox" id="avisosEmail">Avisos por e-mail</label>
+      <p class="muted" id="avisosEmailOff" hidden>Os avisos por e-mail foram desligados: o endereço não recebe</p>
+    </div>
     <p class="muted">O convite é um código de 8 letras e números que vale 7 dias e serve uma vez. Passe ao aluno por onde quiser. No app, o aluno digita o código, lê o que você vai ver e pede a conexão; você aceita aqui.</p>
     <div class="actions"><button class="primary" id="convidar" hidden>Convidar aluno</button></div>
     <!-- Etapa 2: o aluno também convida (BR-14). Quem digita o código pede, e o aluno lê o que você vai
@@ -1165,6 +1307,71 @@
   // Limites de cada campo do bloco, aplicados no maxlength do aluno e de novo na carga, aqui.
   const LIM = {conteudo:200, outra:40, oque:10000, onde:300, minMax:180};
   const ESTUDO_PAGOS = 5, ESTUDO_XP = 20;
+
+  // ---------- banco de temas das redações extras (ADR-004 e ADR-013 de redacoes-extras)
+  // GERADO PELO BUILD a partir de .agents/skills/planejar-temas/assets/temas-extras-2026.json, o
+  // asset que o modo `extras <ano>` da skill escreve e o orientador revisa. Igual nos dois apps por
+  // construção — não há cópia à mão para divergir —, e `npm run check` recusa entrada sem enunciado,
+  // id repetido ou texto acima do limite. Não edite entre os marcadores: edite o asset e rode
+  // `npm run build`.
+  /* build:temas */
+  const TEMAS_EXTRAS = [
+    {"id":"p2026-01","grupo":"provavel","faixa":"alta","ano":null,"titulo":"Desafios para a inclusão de pessoas neurodivergentes na sociedade brasileira","eixo":"deficiência e neurodivergência","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a inclusão de pessoas neurodivergentes na sociedade brasileira\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa alta","repertorio":"Lei Brasileira de Inclusão (Lei 13.146/2015) e o Censo 2022: 2,4 milhões de pessoas com diagnóstico de autismo e 63,1% das pessoas com deficiência acima de 25 anos sem o fundamental completo (IBGE, maio/2025).","semana":2},
+    {"id":"p2026-02","grupo":"provavel","faixa":"alta","ano":null,"titulo":"Desafios para a proteção de crianças e adolescentes no ambiente digital brasileiro","eixo":"infância e ambiente digital","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a proteção de crianças e adolescentes no ambiente digital brasileiro\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa alta","repertorio":"ECA Digital (Lei 15.211/2025), em vigor desde 17/03/2026, somado ao ECA (Lei 8.069/1990) e à Lei 15.100/2025, dos celulares nas escolas. O ECA Digital é uma proposta de intervenção completa e em vigor: serve de modelo de C5.","semana":4},
+    {"id":"p2026-03","grupo":"provavel","faixa":"media","ano":null,"titulo":"Desafios para o cuidado da saúde mental dos adolescentes no Brasil","eixo":"saúde mental","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para o cuidado da saúde mental dos adolescentes no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Lei 14.819/2024, que cria a Política Nacional de Atenção Psicossocial nas Comunidades Escolares, e Byung-Chul Han (Sociedade do cansaço).","semana":6},
+    {"id":"p2026-04","grupo":"provavel","faixa":"media","ano":null,"titulo":"Caminhos para enfrentar a invisibilidade da população em situação de rua no Brasil","eixo":"população em situação de rua","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para enfrentar a invisibilidade da população em situação de rua no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Decreto 7.053/2009, que institui a Política Nacional para a População em Situação de Rua, e Fernando Braga da Costa (Homens invisíveis), de onde sai o conceito de invisibilidade social.","semana":3},
+    {"id":"p2026-05","grupo":"provavel","faixa":"media","ano":null,"titulo":"Desafios para a valorização e a formação de professores no Brasil","eixo":"educação e trabalho docente","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a valorização e a formação de professores no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Constituição de 1988, art. 206 (valorização dos profissionais da educação), e o Plano Nacional de Educação (Lei 13.005/2014), que fixou metas de carreira e de formação.","semana":null},
+    {"id":"p2026-06","grupo":"provavel","faixa":"media","ano":null,"titulo":"Caminhos para universalizar o acesso à água e ao saneamento básico no Brasil","eixo":"saneamento e água","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para universalizar o acesso à água e ao saneamento básico no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Marco Legal do Saneamento (Lei 14.026/2020), com a meta de universalização em 2033, e a Constituição de 1988, art. 6º (direitos sociais).","semana":null},
+    {"id":"p2026-07","grupo":"provavel","faixa":"media","ano":null,"titulo":"Desafios para o enfrentamento do endividamento por apostas online no Brasil","eixo":"apostas e endividamento","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para o enfrentamento do endividamento por apostas online no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Lei 14.790/2023, que regulamenta as apostas de quota fixa, com a regulamentação em vigor desde janeiro de 2025, e o Código de Defesa do Consumidor (Lei 8.078/1990).","semana":null},
+    {"id":"p2026-08","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Desafios para a mobilidade urbana nas cidades brasileiras","eixo":"mobilidade urbana","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a mobilidade urbana nas cidades brasileiras\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Política Nacional de Mobilidade Urbana (Lei 12.587/2012) e o Estatuto da Cidade (Lei 10.257/2001).","semana":null},
+    {"id":"p2026-09","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Desafios para a proteção de quem trabalha por aplicativo no Brasil","eixo":"trabalho por aplicativo","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a proteção de quem trabalha por aplicativo no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Constituição de 1988, art. 7º (direitos do trabalhador), e a CLT (Decreto-Lei 5.452/1943), que define o vínculo de emprego.","semana":null},
+    {"id":"p2026-10","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Caminhos para reduzir o desperdício de alimentos e a insegurança alimentar no Brasil","eixo":"insegurança alimentar","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para reduzir o desperdício de alimentos e a insegurança alimentar no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Lei Orgânica de Segurança Alimentar e Nutricional (Lei 11.346/2006), que inscreve a alimentação adequada como direito, e a Lei 14.016/2020, da doação de alimentos.","semana":null},
+    {"id":"p2026-11","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Desafios para a acolhida de migrantes e refugiados no Brasil","eixo":"migração","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a acolhida de migrantes e refugiados no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Lei de Migração (Lei 13.445/2017) e Lei do Refúgio (Lei 9.474/1997).","semana":null},
+    {"id":"p2026-12","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Caminhos para ampliar o letramento digital das pessoas idosas no Brasil","eixo":"idade e letramento digital","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para ampliar o letramento digital das pessoas idosas no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Estatuto da Pessoa Idosa (Lei 10.741/2003, rebatizado pela Lei 14.423/2022) e o Marco Civil da Internet (Lei 12.965/2014).","semana":null},
+    {"id":"p2026-13","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Desafios para o enfrentamento da gordofobia na sociedade brasileira","eixo":"corpo e preconceito","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para o enfrentamento da gordofobia na sociedade brasileira\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Constituição de 1988, art. 196 (saúde como direito de todos), e a Lei 8.080/1990, que organiza o SUS e a atenção à saúde.","semana":null},
+    {"id":"p2026-14","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Caminhos para enfrentar o analfabetismo funcional no Brasil","eixo":"educação e alfabetismo","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para enfrentar o analfabetismo funcional no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Constituição de 1988, art. 205 (educação como direito de todos), e o Plano Nacional de Educação (Lei 13.005/2014).","semana":null},
+    {"id":"enem2025","grupo":"anterior","faixa":null,"ano":2025,"titulo":"Perspectivas acerca do envelhecimento na sociedade brasileira","eixo":"idade","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Perspectivas acerca do envelhecimento na sociedade brasileira\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2025","repertorio":"Estatuto da Pessoa Idosa (Lei 10.741/2003) e o Censo 2022: a população de 65 anos ou mais cresceu 57,4% em 12 anos (IBGE, out/2023).","semana":null},
+    {"id":"enem2024","grupo":"anterior","faixa":null,"ano":2024,"titulo":"Desafios para a valorização da herança africana no Brasil","eixo":"raça","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a valorização da herança africana no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2024","repertorio":"Lei 10.639/2003, do ensino de história e cultura afro-brasileira, e a Lei 14.759/2023, que fez do 20 de novembro feriado nacional.","semana":5},
+    {"id":"enem2023","grupo":"anterior","faixa":null,"ano":2023,"titulo":"Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil","eixo":"gênero","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para o enfrentamento da invisibilidade do trabalho de cuidado realizado pela mulher no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2023","repertorio":"Constituição de 1988, art. 6º, e a PNAD Contínua: mulheres dedicam 21,3 horas semanais a afazeres domésticos e cuidados (IBGE).","semana":1},
+    {"id":"enem2022","grupo":"anterior","faixa":null,"ano":2022,"titulo":"Desafios para a valorização de comunidades e povos tradicionais no Brasil","eixo":"etnia e território","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a valorização de comunidades e povos tradicionais no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2022","repertorio":"Decreto 6.040/2007, da Política Nacional de Desenvolvimento Sustentável dos Povos e Comunidades Tradicionais, e a Convenção 169 da OIT.","semana":null},
+    {"id":"enem2021","grupo":"anterior","faixa":null,"ano":2021,"titulo":"Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil","eixo":"documentação e cidadania","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Invisibilidade e registro civil: garantia de acesso à cidadania no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2021","repertorio":"Lei 9.534/1997, da gratuidade do registro civil; o sub-registro de nascimento caiu de 20,3% (2002) para 2,1%, e cerca de 3 milhões de brasileiros seguem sem registro (IBGE/CNJ).","semana":null},
+    {"id":"enem2020","grupo":"anterior","faixa":null,"ano":2020,"titulo":"O estigma associado às doenças mentais na sociedade brasileira","eixo":"saúde mental","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"O estigma associado às doenças mentais na sociedade brasileira\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2020","repertorio":"Lei 10.216/2001, da reforma psiquiátrica, e a Lei 14.819/2024, da atenção psicossocial nas escolas.","semana":null},
+    {"id":"enem2019","grupo":"anterior","faixa":null,"ano":2019,"titulo":"Democratização do acesso ao cinema no Brasil","eixo":"cultura","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Democratização do acesso ao cinema no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2019","repertorio":"Lei Rouanet (Lei 8.313/1991) e a criação da Ancine (Medida Provisória 2.228-1/2001).","semana":null},
+    {"id":"enem2018","grupo":"anterior","faixa":null,"ano":2018,"titulo":"Manipulação do comportamento do usuário pelo controle de dados na internet","eixo":"digital","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Manipulação do comportamento do usuário pelo controle de dados na internet\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2018","repertorio":"Marco Civil da Internet (Lei 12.965/2014) e a LGPD (Lei 13.709/2018); o escândalo da Cambridge Analytica (The Observer, março/2018) é o caso concreto.","semana":null},
+    {"id":"enem2017","grupo":"anterior","faixa":null,"ano":2017,"titulo":"Desafios para a formação educacional de surdos no Brasil","eixo":"deficiência","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a formação educacional de surdos no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2017","repertorio":"Lei de Libras (Lei 10.436/2002) e o Decreto 5.626/2005, mais a LBI (Lei 13.146/2015).","semana":null},
+    {"id":"enem2016","grupo":"anterior","faixa":null,"ano":2016,"titulo":"Caminhos para combater a intolerância religiosa no Brasil","eixo":"religião","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para combater a intolerância religiosa no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2016","repertorio":"Constituição de 1988, art. 5º, VI (liberdade de crença), e a Lei 7.716/1989, dos crimes de preconceito.","semana":null},
+    {"id":"enem2015","grupo":"anterior","faixa":null,"ano":2015,"titulo":"A persistência da violência contra a mulher na sociedade brasileira","eixo":"gênero","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"A persistência da violência contra a mulher na sociedade brasileira\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2015","repertorio":"Lei Maria da Penha (Lei 11.340/2006) e a Lei do Feminicídio (Lei 13.104/2015).","semana":null},
+    {"id":"enem2014","grupo":"anterior","faixa":null,"ano":2014,"titulo":"Publicidade infantil em questão no Brasil","eixo":"infância","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Publicidade infantil em questão no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2014","repertorio":"Resolução Conanda 163/2014, que define abusiva a publicidade dirigida à criança, e o ECA (Lei 8.069/1990).","semana":null},
+    {"id":"enem2013","grupo":"anterior","faixa":null,"ano":2013,"titulo":"Efeitos da implantação da Lei Seca no Brasil","eixo":"regulação","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Efeitos da implantação da Lei Seca no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2013","repertorio":"Lei Seca endurecida (Lei 12.760/2012) e o Código de Trânsito Brasileiro (Lei 9.503/1997).","semana":null},
+    {"id":"enem2012","grupo":"anterior","faixa":null,"ano":2012,"titulo":"O movimento imigratório para o Brasil no século XXI","eixo":"migração","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"O movimento imigratório para o Brasil no século XXI\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2012","repertorio":"Lei de Migração (Lei 13.445/2017) e Lei do Refúgio (Lei 9.474/1997).","semana":null},
+    {"id":"enem2011","grupo":"anterior","faixa":null,"ano":2011,"titulo":"Viver em rede no século XXI: os limites entre o público e o privado","eixo":"digital","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Viver em rede no século XXI: os limites entre o público e o privado\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2011","repertorio":"Marco Civil da Internet (Lei 12.965/2014) e a LGPD (Lei 13.709/2018).","semana":null},
+    {"id":"enem2010","grupo":"anterior","faixa":null,"ano":2010,"titulo":"O trabalho na construção da dignidade humana","eixo":"trabalho","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"O trabalho na construção da dignidade humana\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2010","repertorio":"Constituição de 1988, art. 6º e 7º (direitos sociais e do trabalhador), e a CLT (Decreto-Lei 5.452/1943).","semana":null},
+    {"id":"enem2009","grupo":"anterior","faixa":null,"ano":2009,"titulo":"O indivíduo frente à ética nacional","eixo":"ética","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"O indivíduo frente à ética nacional\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2009","repertorio":"Constituição de 1988, art. 37 (moralidade na administração pública), e a Lei da Ficha Limpa (Lei Complementar 135/2010).","semana":null}
+  ];
+  /* /build:temas */
+
+  // ---------- links conferidos do parecer (BR-20 de parecer-aluno)
+  // GERADO PELO BUILD a partir de .agents/skills/preparar-encontro/assets/materiais.json: a lista
+  // conferida à mão, a mesma que o validador da skill usa para recusar endereço inventado.
+  // Só o painel precisa dela (é ele que monta o parecer à mão). Edite o asset e rode `npm run build`.
+  /* build:materiais */
+  const MATERIAIS = [
+    {"tema":"crase","titulo":"Crase: quando usar (Toda Matéria)","url":"https://www.todamateria.com.br/crase/","usar":"desvio de crase em C1 (falta ou sobra)"},
+    {"tema":"concordancia-verbal","titulo":"Concordância verbal (Toda Matéria)","url":"https://www.todamateria.com.br/concordancia-verbal/","usar":"sujeito plural com verbo no singular e vice-versa"},
+    {"tema":"concordancia-nominal","titulo":"Concordância nominal (Toda Matéria)","url":"https://www.todamateria.com.br/concordancia-nominal/","usar":"artigo, adjetivo ou pronome que não concorda com o substantivo"},
+    {"tema":"acentuacao","titulo":"Acentuação gráfica (Toda Matéria)","url":"https://www.todamateria.com.br/acentuacao-grafica/","usar":"acento que falta ou sobra (oxítona, paroxítona, proparoxítona)"},
+    {"tema":"pontuacao","titulo":"Sinais de pontuação (Toda Matéria)","url":"https://www.todamateria.com.br/pontuacao/","usar":"vírgula entre sujeito e verbo, vírgula que falta antes de conectivo, ponto e vírgula"},
+    {"tema":"regencia","titulo":"Regência verbal (Toda Matéria)","url":"https://www.todamateria.com.br/regencia-verbal/","usar":"preposição errada depois do verbo (assistir o filme, chegar em casa)"},
+    {"tema":"translineacao","titulo":"Separação de sílabas e translineação (Toda Matéria)","url":"https://www.todamateria.com.br/separacao-silabica/","usar":"C1: palavra partida no fim da linha da folha passada a limpo fora das sílabas (rr, ss, sc, xc e hiato se separam; ditongo, ch, lh, nh, qu, gu não)"},
+    {"tema":"ortografia","titulo":"Ortografia (Toda Matéria)","url":"https://www.todamateria.com.br/ortografia/","usar":"grafia errada que não é acento (mas/mais, a/há, s/z)"},
+    {"tema":"conectivos","titulo":"Conectivos por função (Toda Matéria)","url":"https://www.todamateria.com.br/conectivos/","usar":"C4: conectivo repetido ou de função trocada; a lista de adição, oposição, causa e conclusão"},
+    {"tema":"coesao","titulo":"Coesão e coerência (Toda Matéria)","url":"https://www.todamateria.com.br/coesao-e-coerencia/","usar":"C4: retomada, pronome sem referente, progressão entre parágrafos"},
+    {"tema":"dissertativo","titulo":"O texto dissertativo-argumentativo (Toda Matéria)","url":"https://www.todamateria.com.br/texto-dissertativo-argumentativo/","usar":"C2/C3: tese, projeto de texto, introdução e conclusão; C5: a proposta de intervenção"},
+    {"tema":"repertorio","titulo":"Repertório sociocultural (Toda Matéria)","url":"https://www.todamateria.com.br/repertorio-sociocultural/","usar":"C2: repertório só citado, não ligado ao argumento"},
+    {"tema":"cartilha","titulo":"Cartilha do Participante — A redação do Enem (Inep)","url":"https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/outros-documentos","usar":"o documento oficial, com as cinco competências e redações nota 1000 comentadas"}
+  ];
+  /* /build:materiais */
+
   // ---------- folha de redação (ADR-005 e ADR-007 de folha-de-redacao-e-noticias)
   // FOLHA, folhaLinhas, folhaHTML e normFolha são CÓPIA VERBATIM entre os dois apps, e folhaLinhas é
   // também a do enem.mjs da skill corrigir-redacao: scripts/check-weeks.mjs reprova qualquer diferença,
@@ -1207,6 +1414,25 @@
     }
     return '<div class="sheet-wrap"><ol class="sheet" style="--cols:' + o.cols + '">' + h + "</ol></div>";
   }
+  // A regra de UMA folha passada a limpo, tirada de normFolha() para a redação extra usar exatamente a
+  // mesma (ADR-001 de redacoes-extras): no máximo 30 linhas, cada uma em uma linha só e com até 120
+  // caracteres; as linhas em branco do fim não são guardadas, as do meio são, e folha sem nada escrito
+  // não existe — devolve null, e quem chamou apaga a chave. A semana em que a folha pode existir é a
+  // regra de QUEM chama (1 a 7 na redação da semana, qualquer uma na extra), não desta função.
+  // CÓPIA VERBATIM entre os dois apps.
+  // A redação extra paga 50 XP ao ser registrada, pelas DUAS primeiras de cada semana, na ordem de
+  // registro — o resto fica no catálogo com "sem XP", como o sexto bloco de estudo (ADR-005). Literal
+  // textualmente igual nos dois apps: scripts/check-weeks.mjs reprova com "EXTRA diverge", porque o
+  // número do Arthur e o do painel do pai têm de bater.
+  const EXTRA_PAGAS = 2, EXTRA_XP = 50;
+  function normLimpo(l){
+    const inteiro = (v, lo, hi)=>Number.isInteger(v) && v >= lo && v <= hi;
+    if(!l || typeof l !== "object" || Array.isArray(l) || !Array.isArray(l.linhas)) return null;
+    const linhas = l.linhas.slice(0, FOLHA.linhas).map(x=>typeof x === "string" ? Array.from(x.replace(/[\r\n]/g,"")).slice(0, FOLHA.colMax).join("") : "");
+    while(linhas.length && !linhas[linhas.length - 1].trim()) linhas.pop();
+    if(!linhas.length) return null;
+    return {linhas, larg: inteiro(l.larg, FOLHA.largMin, FOLHA.largMax) ? l.larg : FOLHA.larg, fim: !!l.fim, em: Number.isFinite(l.em) ? l.em : 0};
+  }
   // Coage, no lugar, s.folha e o limpo/redEm de cada semana; nunca lança e nunca recusa o estado
   // inteiro (TechSpec, Data Models). Chave ausente em s.folha é "nunca mediu": a tela diz "padrão" e lê
   // 68/4 — por isso valor fora da faixa APAGA a chave em vez de virar 68. O limpo existe só nas semanas
@@ -1223,13 +1449,81 @@
       if(!w || typeof w !== "object") return;
       if("redEm" in w && !Number.isFinite(w.redEm)) delete w.redEm;
       if(!("limpo" in w)) return;
-      const l = w.limpo;
-      if(!l || typeof l !== "object" || Array.isArray(l) || !Array.isArray(l.linhas) || !(n >= 1 && n <= 7)){ delete w.limpo; return; }
-      const linhas = l.linhas.slice(0, FOLHA.linhas).map(x=>typeof x === "string" ? Array.from(x.replace(/[\r\n]/g,"")).slice(0, FOLHA.colMax).join("") : "");
-      while(linhas.length && !linhas[linhas.length - 1].trim()) linhas.pop();
-      if(!linhas.length){ delete w.limpo; return; }
-      w.limpo = {linhas, larg: inteiro(l.larg, FOLHA.largMin, FOLHA.largMax) ? l.larg : FOLHA.larg, fim: !!l.fim, em: Number.isFinite(l.em) ? l.em : 0};
+      const l = n >= 1 && n <= 7 ? normLimpo(w.limpo) : null;
+      if(l) w.limpo = l; else delete w.limpo;
     });
+  }
+  // As redações extras (ADR-001, ADR-014, ADR-015 de redacoes-extras). CÓPIA VERBATIM entre os dois
+  // apps, como normFolha e normNoticias: é o mesmo dado atravessando o código de backup e as partes do
+  // modo online, e scripts/check-weeks.mjs reprova qualquer diferença.
+  // DUAS coisas, e só elas, derrubam um item: `id` que não é texto e `semana` que não é inteiro de 1 a 8
+  // (US-041 EC-2). Sem os dois não há onde pendurar a redação nem em que semana contá-la; todo o resto é
+  // coagido, porque perder uma extra inteira por um campo estragado seria perder a redação dele.
+  // O id repetido ganha sufixo, como no banco de repertório: dois itens com o mesmo id fariam Editar,
+  // Apagar e a conta das duas pagas apontarem para o item errado. Sem `at` o relógio do id serve, e só
+  // então o de agora — a ordem de criação é o que decide quem é mais nova no catálogo.
+  // O parecer passa pelo normalizeParecer() e SAI quando o `extra` dele não é este id: um código editado
+  // à mão poria o parecer de uma redação na ficha de outra.
+  // `auto` e `apagada` são do painel do pai, não do aparelho dele: são o retrato da entrega (ADR-014 §2),
+  // e passam por aqui pela mesma regra do `registro` para que montaDados() possa levá-los.
+  function normExtras(s){
+    const ehObj = v => !!v && typeof v === "object" && !Array.isArray(v);
+    const txt = (v, n) => (v == null ? "" : String(v)).slice(0, n);
+    const livre = v => v == null ? "" : String(v);
+    const em = v => { const x = Number(v); return Number.isFinite(x) && x > 0 ? x : null; };
+    const o = v => ehObj(v) ? v : {};
+    // O retrato do texto que ele mandou: a folha passada a limpo, ou o rascunho quando não havia folha.
+    const captura = c => !ehObj(c) ? null : Array.isArray(c.linhas)
+      ? {linhas: c.linhas.slice(0, FOLHA.linhas).map(y=>txt(y, FOLHA.colMax)), larg: Number.isInteger(c.larg) && c.larg >= FOLHA.largMin && c.larg <= FOLHA.largMax ? c.larg : FOLHA.larg}
+      : {redacao: livre(c.redacao)};
+    const ids = new Set(), out = [];
+    (Array.isArray(s.extras) ? s.extras : []).forEach((x, i)=>{
+      if(!ehObj(x)) return;
+      const n = Number(x.semana);
+      if(typeof x.id !== "string" || !x.id || !Number.isInteger(n) || n < 1 || n > 8) return;
+      let id = x.id;
+      while(ids.has(id)) id += "-" + i;
+      ids.add(id);
+      const og = o(x.origem);
+      const it = {id, semana: n, at: em(x.at) || Number(id) || Date.now(),
+        tema: txt(x.tema, 200).trim() || "(sem tema)",
+        origem: Object.assign({tipo: og.tipo === "banco" ? "banco" : "livre"}, og.id == null ? {} : {id: txt(og.id, 40)}, {rotulo: txt(og.rotulo, 60)}),
+        enunciado: txt(x.enunciado, 1500), redacao: livre(x.redacao)};
+      if(em(x.redEm)) it.redEm = em(x.redEm);
+      const lp = normLimpo(x.limpo);
+      if(lp) it.limpo = lp;
+      if(em(o(x.registro).em)) it.registro = {em: em(o(x.registro).em)};
+      const pd = o(x.pedido);
+      if(em(pd.em)) it.pedido = {em: em(pd.em), n: Math.round(Number(pd.n)) || 0, captura: captura(pd.captura), semVersaoLimpo: !!pd.semVersaoLimpo};
+      const au = o(x.auto);
+      if(em(au.em)) it.auto = {em: em(au.em), captura: captura(au.captura), semVersaoLimpo: !!au.semVersaoLimpo};
+      const cg = o(x.corrigindo);
+      if(em(cg.em)) it.corrigindo = {em: em(cg.em), run: txt(cg.run, 60)};
+      if(em(o(x.apagada).em)) it.apagada = {em: em(o(x.apagada).em)};
+      const pa = normalizeParecer(x.parecer), pb = normalizeParecer(x.parecerAuto);
+      if(pa && pa.extra === id) it.parecer = pa;
+      if(pb && pb.extra === id) it.parecerAuto = pb;
+      const ms = o(x.mensagem), mt = txt(ms.texto, 1200);
+      if(mt.trim()) it.mensagem = {texto: mt, em: em(ms.em) || 0};
+      // Os combinados do orientador, trocados inteiros a cada envio dele (BR-19).
+      it.combinados = (Array.isArray(x.combinados) ? x.combinados : []).filter(ehObj)
+        .map((c, j)=>({id: txt(c.id, 40) || String(j), texto: txt(c.texto, 200)})).filter(c=>c.texto.trim()).slice(0, 20);
+      // As marcas. Os exercícios param em 2, que é o teto de um parecer (MAXR do enem.mjs), e NÃO no
+      // tamanho do parecer deste item — é a mesma regra do w.exercicios da redação da semana, e é ela que
+      // faz esta coerção dar o mesmo resultado nos dois apps: o painel do pai apaga o parecer de cada
+      // extra na carga (BR-15) e, com a conta saindo do parecer, a segunda normalização apagaria as
+      // marcas que ele acabou de importar. Quem desenha a lista corta no tamanho do parecer, como
+      // exArr() já faz na semana. Combinado sem item some com ele (US-031 EC-3), e item derivado nunca
+      // tem marca (BR-18).
+      const mk = o(x.marcas), mks = {};
+      if(mk.rew) mks.rew = true;
+      mks.exercicios = (Array.isArray(mk.exercicios) ? mk.exercicios : []).slice(0, 2).map(Boolean);
+      mks.combinados = {};
+      it.combinados.forEach(c=>{ if(o(mk.combinados)[c.id]) mks.combinados[c.id] = true; });
+      it.marcas = mks;
+      out.push(it);
+    });
+    s.extras = out;
   }
   // As notícias da semana (ADR-003, ADR-008 de folha-de-redacao-e-noticias). normNoticias e apresentada
   // são CÓPIA VERBATIM entre os dois apps: é o mesmo dado atravessando o código de backup, e
@@ -1317,6 +1611,8 @@
     contrato:{t:"Contrato de rotina de <span data-nome></span>",b:`<p>Cópia somente leitura do contrato preenchido no painel do aluno: encontro, dia de envio, limite de jogo, recompensas por patente e a grade da semana. Se algo precisa mudar, combinem na chamada; a edição é feita lá.</p>`},
     banco:{t:"Banco de repertório de <span data-nome></span>",b:`<p>Os repertórios cadastrados, do mais recente para o mais antigo, com a semana e os temas para que servem. Meta até a prova: 10 no banco, 6 decorados. Use na semana 7 para montar o kit de prova com <span data-nome></span>.</p>`},
     estudo:{t:"Banco de estudo de <span data-nome></span>",b:`<p>Tudo o que foi registrado até aqui, agrupado por semana, da mais recente para a mais antiga — não só a semana selecionada. Cada linha traz matéria, conteúdo, dia, tempo e os textos escritos em cada bloco.</p><p>Os chips filtram por matéria e valem só enquanto a página estiver aberta. Use perto da prova para montar a revisão com <span data-nome></span>: o que foi muito visto, o que ficou de fora. “Imprimir banco de estudo” leva só este card para o papel.</p>`},
+    correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora pelo modelo, no servidor, sem esperar o domingo. Ela só existe no modo conectado, e quem a liga é você: <b>com a sua chave</b>, <b>por aluno</b> e <b>com um teto por semana</b>.</p><ul><li><b>A chave é sua.</b> Ela é guardada no servidor, cifrada, e nunca volta para esta tela: o campo é só de escrita, e o que você lê aqui é a data em que ela foi cadastrada. <b>Salvar chave</b> pergunta ao fornecedor se ela serve antes de guardar — chave recusada não é guardada em lugar nenhum. <b>Remover chave</b> desliga a correção automática de todos os seus alunos na hora; a que estiver rodando termina.</li><li><b>Por aluno, com teto.</b> Ligar pede que você reconheça uma linha: a folha passada a limpo de <span data-nome></span> é enviada ao fornecedor do modelo para ser corrigida. <b>Correções por semana</b> vai de 0 a 20 (o padrão é 2); 0 equivale a desligado, e a ficha de <span data-nome></span> diz <i>0 de 0 nesta semana</i>. O crédito volta na segunda-feira, pelo calendário da missão.</li><li><b>Só a folha passada a limpo é corrigida</b>, nunca o rascunho — é ela que um corretor leria na prova. Sem folha, a ficha de <span data-nome></span> oferece só <b>Pedir correção</b>, que vem para você.</li><li><b>Falha não custa crédito.</b> Correção que não volta, demora demais ou volta com defeito não gasta nada, e a ficha de <span data-nome></span> volta ao estado anterior. O cartão do aluno mostra as últimas falhas com o motivo curto; três seguidas trocam a linha por <i>A correção automática está falhando: confira a chave</i>, e <b>nada é desligado sozinho</b>.</li><li><b>Você recebe uma cópia</b> de todo parecer automático: ele aparece na ficha da redação, em <b>Redações extras</b>, com <i>Parecer automático</i> no cabeçalho. Montando o seu por cima e enviando, é o seu que passa a valer, e o automático fica legível atrás de um toque.</li><li><b>Avisos por e-mail:</b> cada pedido de correção de <span data-nome></span> manda um e-mail para o endereço da sua conta, sem o texto da redação. Desligando aqui, os pedidos continuam aparecendo na faixa do painel e no passo do domingo. <b>Só a recusa imediata do servidor de e-mail é detectada</b> — um endereço que recusa depois, em silêncio, continua marcado como funcionando, e nesse caso os avisos param de chegar sem que o painel saiba. Detectada a recusa, os avisos são desligados e esta linha diz isso.</li></ul><p>O que sai daqui para o fornecedor do modelo: a folha passada a limpo de <span data-nome></span>, o tema e a proposta. Nome, e-mail e o resto do painel não saem.</p>`},
+    extras:{t:"Redações extras",b:`<p>As redações que <span data-nome></span> escreve por conta própria, fora da redação da semana. Cada uma conta na semana em que foi registrada e vale 50 XP, pelas duas primeiras de cada semana.</p><ul><li><b>Você só vê o que foi mandado.</b> Enquanto a correção não é pedida, a redação não aparece aqui — nem o rascunho, nem a folha passada a limpo. Pedida a correção, o que você lê é a versão daquele instante: o texto pode ter mudado depois, e isso não muda o que está nesta tela. Apagada no aparelho de <span data-nome></span>, a linha diz <b>apagada pelo aluno</b> e o texto entregue continua legível.</li><li><b>Sem folha passada a limpo</b> a entrega vem com o rascunho, dito como rascunho, e o parecer sai com <i>lido do rascunho</i>.</li><li><b>Corrigir à mão:</b> preencha a ficha — as cinco notas, uma força, um ajuste — e toque em <b>Montar o parecer</b>. Sai um parecer na mesma forma dos outros três, com o glossário das competências, o ajuste e o que estudar. Montar de novo substitui o anterior.</li><li><b>O ajuste é um só</b>, na competência do foco da semana. Quando o seu texto fala de outra competência, o painel pergunta se o foco desta redação não é outro: <b>Foco desta redação</b> muda só esta.</li><li><b>Com a skill:</b> <b>Copiar o comando</b> leva a proposta e o texto para o Claude Code — a skill não precisa do plano para uma extra — e <b>Colar o preparo</b> traz a ficha e o parecer de volta. O preparo de uma extra não entra na semana, e o da semana não entra aqui.</li><li><b>Combinado com <span data-nome></span>:</b> o que vocês acertarem na chamada. Até 200 caracteres por item; viaja na próxima entrega do parecer. Remover um antes de mandar o tira da lista do outro lado.</li><li><b>O que ficou de fazer</b> mostra as marcas do último código ou da última descida. Você lê e não muda: marcar é gesto de quem escreveu.</li></ul>`},
     evolucao:{t:"Evolução",b:`<p>Nota total por semana, usando a nota da ficha (ou, se você não lançou, a registrada no painel do aluno). Abaixo, a última nota de cada competência. A partir da segunda semana com nota, “ponto fraco” marca a mais baixa delas, quando está abaixo de 160 e no menor valor que já teve. Use o prompt “Analisar a evolução” quando tiver três ou mais semanas lançadas.</p>`},
     conta:{t:"Conta e convites",b:`<p>A conta é opcional. Sem conta, o painel funciona como sempre: você importa o código que o aluno manda. A senha deste painel não muda e não tem relação com a conta.</p><ol><li><b>Entrar:</b> você digita o seu e-mail e recebe um código de 6 dígitos, que vale 10 minutos. Se não chegar, olhe a pasta de spam ou use <b>Corrigir e-mail</b>. Neste computador você entra uma vez só.</li><li><b>Convidar aluno:</b> gera um código de 8 letras e números, que vale 7 dias e serve uma vez. <b>Copiar</b> põe só o código na área de transferência; passe ao aluno por onde quiser. <b>Cancelar convite</b> o desativa na hora.</li><li><b>Aceitar:</b> o aluno digita o código, vê o seu nome e o que você vai ver, e pede a conexão. O pedido aparece aqui com o nome e o e-mail do aluno, com <b>Aceitar</b> e <b>Recusar</b>. Nada chega antes do aceite.</li></ol><p><b>O aluno também convida:</b> se o aluno passar um código gerado no app, digite em <b>Recebeu um código de um aluno?</b>. Você vê o nome e o e-mail e pede a conexão; o aluno lê o que você vai ver e aceita.</p><p><b>Responsável legal:</b> ao aceitar ou pedir, o painel pergunta se você é o responsável legal do aluno. Se não for, e o aluno tiver menos de 18 anos, é o aluno quem informa o e-mail do responsável, que recebe um aviso de quem você é, do que você vê e de como desfazer a conexão; o responsável não aprova nada. A conta de orientador é para quem tem 18 anos ou mais: uma conta criada antes disso pede a confirmação uma vez.</p><p>Se este painel já tem as anotações de um aluno com o mesmo e-mail — ou um aluno só, sem e-mail, que veio de antes —, é essa entrada que passa a ser a do aluno conectado, com tudo o que você já anotou.</p><p><b>Desfazer conexão:</b> qualquer um dos dois desfaz, sem o outro concordar. Quando a conexão acaba, saem deste painel, das cópias automáticas e do servidor o aluno e todas as anotações que você fez — ficha, notas, preparo, parecer, redação colada —, sem prazo de carência. Se for você a desfazer, o painel oferece antes <b>Salvar o arquivo das anotações</b>; esse arquivo é seu, e, restaurado, traz o aluno de volta como aluno por código, sem conexão. Desfazer daqui precisa de rede. Se for o aluno a desfazer, a saída daqui acontece no próximo contato com a rede, e um aviso diz isso.</p><p><b>Vários aparelhos:</b> entrando com a mesma conta em outro computador, as suas anotações vão junto — a ficha, as notas, o preparo colado, a redação transcrita, de todos os alunos, os por código inclusive. O que você preenche num aparece no outro. Um mesmo campo mudado nos dois sem rede fica com a mudança mais recente. Nada disso o aluno vê: o que chega ao aluno é só o que <b>Enviar o parecer</b> entrega. <b>Restaurar anotações</b>, conectado, vale em todos os seus aparelhos.</p><p><b>A lista de alunos:</b> com dois ou mais, os nomes aparecem acima das semanas, em ordem alfabética, cada um com o XP da semana, se houve registro nesta semana e a data do último; tocar num nome abre o painel daquele aluno, e as anotações dos outros ficam como estão. O aluno que chega por código colado leva <b>por código</b>; dois com o mesmo nome mostram o e-mail. Os convites esperando, e os vencidos, vêm depois dos alunos, com <b>Cancelar convite</b>. A lista não muda de ordem pela atividade de ninguém.</p><p><b>Sincronização</b> liga e desliga a conexão neste computador; <b>Sair da conta</b> encerra a sessão e não apaga nada do painel. <b>Excluir conta</b> apaga a sua conta de orientador, as conexões e o que estava no servidor, com um código novo no seu e-mail para confirmar; neste computador as anotações ficam. Se o mesmo e-mail é responsável na Missão Olimpíadas, aquela conta continua: daqui sai só o que é da Missão ENEM.</p>`},
   };
@@ -1415,6 +1711,13 @@
     normEstudo(a);
     // A folha e o passar a limpo dele, pela mesma coerção do migrate() do aluno (cópia verbatim).
     normFolha(a);
+    // As redações extras, pela mesma coerção do migrate() dele (cópia verbatim) — e então REDUZIDAS ao
+    // que o orientador pode ter (BR-15, ADR-014): o rascunho, a folha passada a limpo, os dois pareceres
+    // e a mensagem que ele recebeu nunca ficam aqui. O tema, a origem, a semana, o registro e as marcas
+    // ficam, porque é deles que saem o aWeekXP() e as linhas do resumo; e a CAPTURA do pedido fica,
+    // porque ela é o retrato que ele mesmo mandou — é a única versão que o pai pode ler.
+    normExtras(a);
+    a.extras.forEach(x=>{ delete x.redacao; delete x.redEm; delete x.limpo; delete x.parecer; delete x.parecerAuto; delete x.mensagem; });
     // `perfil` e `exportedAt` são envelope do código, não estado dele: aqui eles viram `perfil` e
     // `exportadoEm` da entrada do aluno, e o estado guardado fica igual ao que o painel dele guarda.
     // `soApresentadas` também é envelope: diz que o código veio da mensagem, com só o item apresentado
@@ -1436,7 +1739,7 @@
   // segundo aluno é uma tela de distância e não uma segunda migração.
   function novoAluno(perfil){
     return {perfil:{nome:str(perfil&&perfil.nome)||NOME_PADRAO, email:str(perfil&&perfil.email)},
-      dados:null, importadoEm:null, exportadoEm:null, xpAnterior:null, weeks:{}, conta:null, vivo:null, recebidoEm:null};
+      dados:null, importadoEm:null, exportadoEm:null, xpAnterior:null, weeks:{}, extras:{}, feedbackExtras:{}, correction:null, conta:null, vivo:null, recebidoEm:null};
   }
   // A chave é o e-mail do código, aparado e em minúsculas — código sem perfil cai em "arthur", que é
   // a chave que a migração do formato plano também usa.
@@ -1500,6 +1803,24 @@
     return {semana:Math.round(num(v.semana,1,8,1)), xpSemana:Math.round(num(v.xpSemana,0,1e6,0)), xpTotal:Math.round(num(v.xpTotal,0,1e7,0)),
       patente:str(v.patente), ultimoEm:tsOuNulo(v.ultimoEm), registros:v.registros===true, abre};
   }
+  // A correção automática deste aluno, como o servidor a contou (`sync-data.correction`): o
+  // interruptor, o teto, o gasto da semana e o da missão, as últimas falhas e os avisos por e-mail.
+  // Nada é calculado aqui — o relógio do crédito é do servidor (ADR-009 §5) —, e `null` é "ainda não
+  // sei", que é o que o cartão diz como `verificando` em vez de inventar um número.
+  const MOTIVOS = {key:"chave", provider:"fornecedor", invalid:"formato", timeout:"demorou", no_key:"sem chave", disabled:"desligada"};
+  // O teto da semana que o servidor usa quando ninguém escolheu outro (ADR-003): é o que o campo
+  // mostra antes da primeira descida, e o que vai junto do primeiro "ligar".
+  const CAP_PADRAO = 2;
+  function normCorrection(v){
+    if(!v || typeof v!=="object" || Array.isArray(v)) return null;
+    return {enabled:!!v.enabled, keyAt:tsOuNulo(v.keyAt), cap:Math.round(num(v.cap,0,20,0)),
+      used:Math.round(num(v.used,0,1e6,0)), left:Math.round(num(v.left,0,1e6,0)),
+      week:Math.round(num(v.week,1,8,1)), total:Math.round(num(v.total,0,1e6,0)),
+      failures:(Array.isArray(v.failures)?v.failures:[]).filter(f=>f && typeof f==="object" && !Array.isArray(f))
+        .map(f=>({extra:str(f.extra), error:f.error==null ? null : str(f.error), at:tsOuNulo(f.at)})).slice(0,10),
+      emails:v.emails===undefined ? true : !!v.emails,
+      emailsOffReason:v.emailsOffReason==="bounce" ? "bounce" : null};
+  }
   function normalizeAluno(a){
     if(!a || typeof a!=="object" || Array.isArray(a)) a = novoAluno();
     a.perfil = obj(a.perfil); a.perfil.nome = str(a.perfil.nome); a.perfil.email = str(a.perfil.email);
@@ -1509,6 +1830,15 @@
     a.conta = (typeof a.conta==="string" && a.conta) ? a.conta : null;
     // os totais ao vivo do aluno conectado (a parte `live`) e quando a última descida chegou
     a.vivo = normVivo(a.vivo); a.recebidoEm = tsOuNulo(a.recebidoEm);
+    // o que o servidor contou da correção automática deste aluno, na última descida
+    a.correction = normCorrection(a.correction);
+    // As anotações dele POR REDAÇÃO EXTRA, e o que voltou do servidor por extra. As duas são mapas por
+    // id: a chave vive enquanto a extra viver, e uma extra que o aluno apagou leva a anotação dela na
+    // próxima normalização — não há ficha de correção de uma redação que não existe.
+    a.extras = obj(a.extras);
+    Object.keys(a.extras).forEach(k=>{ a.extras[k] = normNotasExtra(a.extras[k], k); });
+    a.feedbackExtras = obj(a.feedbackExtras);
+    Object.keys(a.feedbackExtras).forEach(k=>{ const fb = normFeedbackExtra(a.feedbackExtras[k], k); if(fb) a.feedbackExtras[k] = fb; else delete a.feedbackExtras[k]; });
     a.weeks = obj(a.weeks);
     Object.keys(a.weeks).forEach(k=>{
       const n = Number(k), w = a.weeks[k];
@@ -1533,7 +1863,14 @@
   // leem. Os limites de texto são os da ficha: a skill já corta neles, e aqui corta de novo, porque o
   // bloco é colado à mão e pode ter sido editado. Fora do domínio (versão, semana) vira null, não erro.
   const LIMF = {erro:300, tese:300, rep:300, conect:300, forca:300, ajuste:300, forte:40, fraco:40, paragrafo:40};
+  // Os dois campos que só a ficha da redação extra tem. Aqui e não junto do card dela: `let state =
+  // load()` roda no meio deste IIFE, e normNotasExtra() já os lê ali — declarado depois, o const cairia
+  // na zona morta e a carga inteira iria para a quarentena.
+  const LIMX = {conferir:300, paragrafoTexto:300};
   const PREP_AREAS = ["redacao","briefing","estudo","repertorio","rotina","xp"], PREP_TONS = ["bom","atencao","neutro"], PREP_BLOCOS = ["chegada","leitura","correcao","briefing","fechamento"];
+  // O parecer da redação DA SEMANA: um que traga `extra` é de uma redação extra e não mora no preparo
+  // semanal nem em state.pareceres (ADR-015 §3).
+  function parecerDaSemana(p){ const q = normalizeParecer(p); return q && !q.extra ? q : null; }
   function normalizePreparo(p){
     if(!p || typeof p!=="object" || Array.isArray(p) || p.preparo!==1) return null;
     const n = Number(p.semana); if(!Number.isInteger(n) || n<1 || n>7) return null;
@@ -1565,8 +1902,71 @@
       ficha, insights, roteiro,
       exercicios:lista(p.exercicios, 2).map(x=>({titulo:str(x.titulo).slice(0,60), instrucao:str(x.instrucao).slice(0,300), porque:str(x.porque).slice(0,200)})),
       mensagem:str(p.mensagem).slice(0,1200),
-      // o parecer para ele viaja dentro do preparo; fora do domínio vira null e o card diz que não veio
-      parecer:normalizeParecer(p.parecer) };
+      // o parecer para ele viaja dentro do preparo; fora do domínio vira null e o card diz que não veio.
+      // Um que traga `extra` é da ficha de uma redação extra e não entra aqui (ADR-015 §3): o preparo
+      // semanal é da redação da semana, e o da extra tem card próprio.
+      parecer:parecerDaSemana(p.parecer) };
+  }
+  // As anotações do pai sobre UMA redação extra (parte extra_notes, ADR-014 §4): a gêmea de weeks[n],
+  // por extra. A ficha de correção, o foco escolhido para ela, o preparo colado, o parecer montado, os
+  // combinados e o último envio. É daqui que sai o parecer que ele manda — nunca do estado do aluno, que
+  // chega reduzido ao metadado (BR-15). A entrada é sempre devolvida: anotação esvaziada continua
+  // existindo, e é o que a parte manda vazia quando ele apaga tudo.
+  function normNotasExtra(v, id){
+    const o = obj(v), f = obj(o.f), ficha = {};
+    CS.forEach(c=>{ const x = f[c]; ficha[c] = (x==="" || x==null || !Number.isFinite(Number(x))) ? "" : String(Math.round(num(x,0,200,0))); });
+    const cs = CS.map(c=>ficha[c]);
+    ficha.nota = cs.every(x=>x!=="") ? String(cs.reduce((a,b)=>a+Number(b),0)) : ((f.nota!=="" && f.nota!=null && Number.isFinite(Number(f.nota))) ? String(Math.round(num(f.nota,0,1000,0))) : "");
+    Object.keys(LIMF).forEach(k=>{ ficha[k] = str(f[k]).slice(0,LIMF[k]); });
+    Object.keys(LIMX).forEach(k=>{ ficha[k] = str(f[k]).slice(0,LIMX[k]); });
+    ficha.notas = str(f.notas).slice(0,4000);
+    const el = obj(o.elems), elems = {};
+    ELEMS.forEach(([e])=>{ if(e in el) elems[e] = !!el[e]; });
+    const pa = normalizeParecer(o.parecer), ev = obj(o.envio), pre = obj(o.pre);
+    return {f:ficha, elems, foco: CS.includes(o.foco) ? o.foco : null,
+      prep: normalizePreparoExtra(o.prep, id),
+      parecer: pa && pa.extra===id ? pa : null,
+      pendencias: (Array.isArray(o.pendencias) ? o.pendencias : []).filter(c=>c && typeof c==="object" && !Array.isArray(c))
+        .map((c,i)=>({id: str(c.id).slice(0,40) || String(i), texto: str(c.texto).slice(0,200)})).filter(c=>c.texto.trim()).slice(0,20),
+      envio: tsOuNulo(ev.em) && typeof ev.hash==="string" && ev.hash ? {em:tsOuNulo(ev.em), hash:ev.hash} : null,
+      msgEm: tsOuNulo(o.msgEm),
+      pre: {nota: !!pre.nota, prep: !!pre.prep}};
+  }
+  // O que voltou do servidor por UMA extra (ADR-014 §3, §5): no máximo duas linhas, `auto` e `mentor`.
+  // Fica no APARELHO e não sobe em parte nenhuma: é cópia do que a mesa já tem. Quem a preenche é o
+  // sync-data (task_08); aqui ela é definida, coagida e lida.
+  function normFeedbackExtra(v, id){
+    const o = obj(v), out = {};
+    const lado = (r, comMsg)=>{
+      const x = obj(r), p = normalizeParecer(x.parecer), pp = p && p.extra===id ? p : null;
+      const msg = comMsg ? str(x.message).slice(0,1200) : "";
+      const pend = comMsg ? (Array.isArray(x.pendencias) ? x.pendencias : []).filter(c=>c && typeof c==="object" && !Array.isArray(c))
+        .map((c,i)=>({id: str(c.id).slice(0,40) || String(i), texto: str(c.texto).slice(0,200)})).filter(c=>c.texto.trim()).slice(0,20) : [];
+      if(!pp && !msg.trim() && !pend.length) return null;
+      const y = {parecer:pp, sentAt:tsOuNulo(x.sentAt), rev:Math.round(num(x.rev,0,Infinity,1))};
+      if(comMsg){ y.message = msg; y.pendencias = pend; }
+      return y;
+    };
+    const a = lado(o.auto, false), m = lado(o.mentor, true);
+    if(a) out.auto = a;
+    if(m) out.mentor = m;
+    return (a || m) ? out : null;
+  }
+  // As linhas de `extra_feedback` que desceram (`sync-data.extraFeedback`), viradas no mapa por id que
+  // o aFichaDe() lê. Elas vêm do servidor com os nomes dele (`sent_at`), e passam pela mesma coerção do
+  // estado guardado: duas linhas no máximo por extra, `auto` e `mentor`. O servidor é a verdade, então
+  // o mapa é trocado inteiro — uma linha que saiu de lá sai daqui.
+  function recebidasExtras(rows){
+    const out = {};
+    (Array.isArray(rows) ? rows : []).forEach(f=>{
+      if(!f || typeof f!=="object" || Array.isArray(f)) return;
+      const id = str(f.extra), lado = str(f.origin);
+      if(!id || (lado!=="auto" && lado!=="mentor")) return;
+      (out[id] || (out[id] = {}))[lado] = {parecer:f.parecer, message:f.message,
+        pendencias:f.pendencias, sentAt:f.sent_at===undefined ? f.sentAt : f.sent_at, rev:f.rev};
+    });
+    Object.keys(out).forEach(id=>{ const fb = normFeedbackExtra(out[id], id); if(fb) out[id] = fb; else delete out[id]; });
+    return out;
   }
   function normalizeMine(s){
     // Migração do formato plano para alunos{} — uma vez, e escolhida pelos DADOS: depois dela as chaves
@@ -1703,7 +2103,8 @@
   function montaDados(partes){
     const ehObj = v => !!v && typeof v==="object" && !Array.isArray(v);
     const corpo = x => ehObj(x) && "body" in x ? x.body : x;
-    const sem = new Map(), ras = new Map();
+    const chave = v => v==null ? "" : String(v);
+    const sem = new Map(), ras = new Map(), ent = new Map();
     let live = null;
     if(Array.isArray(partes)){
       partes.forEach(r=>{
@@ -1711,6 +2112,7 @@
         if(r.kind==="live") live = r.body;
         else if(r.kind==="week") sem.set(Number(r.week), r.body);
         else if(r.kind==="delivery") ras.set(Number(r.week), r.body);
+        else if(r.kind==="extra_delivery") ent.set(chave(r.subject), {week:Number(r.week), body:r.body});
       });
     }else if(ehObj(partes)){
       live = corpo(partes.live);
@@ -1718,10 +2120,21 @@
       if(ehObj(partes.deliveries)) Object.keys(partes.deliveries).forEach(k=>ras.set(Number(k), corpo(partes.deliveries[k])));
     }
     const l = ehObj(live) ? live : {};
-    const dados = {v:4, contrato:ehObj(l.contrato)?l.contrato:{}, folha:ehObj(l.folha)?l.folha:{}, badges:ehObj(l.badges)?l.badges:{}, weeks:{}, estudo:[], bank:[]};
+    const dados = {v:4, contrato:ehObj(l.contrato)?l.contrato:{}, folha:ehObj(l.folha)?l.folha:{}, badges:ehObj(l.badges)?l.badges:{}, weeks:{}, estudo:[], bank:[], extras:[]};
+    // As extras (ADR-014 §1 e §2): o METADADO de cada uma vem na parte da semana — é o que o orientador
+    // pode ler (BR-15) e o que o aWeekXP() e o resumo precisam — e o RETRATO do que ele mandou vem da
+    // entrega dela, uma por extra. A chave é o id; a entrega sozinha já vira item, porque ela pode chegar
+    // antes da parte da semana. O texto capturado entra como `pedido.captura`, a mesma forma que o
+    // código de backup traz, e `auto`/`apagada` dizem que a correção automática rodou e que ele apagou
+    // a redação depois de tê-la mandado (US-040 EC-1) — o retrato fica.
+    const xs = new Map();
     sem.forEach((b, n)=>{
       if(!Number.isInteger(n) || n<1 || n>8 || !ehObj(b)) return;
       dados.weeks[n] = Object.assign({}, ehObj(b.w) ? b.w : {});
+      (Array.isArray(dados.weeks[n].extras) ? dados.weeks[n].extras : []).forEach(x=>{
+        if(ehObj(x) && x.id!=null) xs.set(chave(x.id), Object.assign({}, x, {id:chave(x.id)}));
+      });
+      delete dados.weeks[n].extras;
       (Array.isArray(b.estudo) ? b.estudo : []).forEach(e=>{ if(ehObj(e)) dados.estudo.push(e); });
       (Array.isArray(b.bank) ? b.bank : []).forEach(e=>{ if(ehObj(e)) dados.bank.push(e); });
     });
@@ -1732,8 +2145,22 @@
       if(ehObj(b.limpo)) w.limpo = b.limpo;
       if(Number.isFinite(Number(b.em)) && Number(b.em)>0) w.entregue = Number(b.em);
     });
+    ent.forEach((r, id)=>{
+      const b = r.body;
+      if(!id || !ehObj(b)) return;
+      const x = xs.get(id) || {id, semana: Number.isInteger(r.week) ? r.week : 1};
+      if(b.tema!=null) x.tema = b.tema;
+      if(ehObj(b.origem)) x.origem = b.origem;
+      if(b.enunciado!=null) x.enunciado = b.enunciado;
+      const cap = ehObj(b.texto) ? b.texto : (b.redacao==null ? null : {redacao:b.redacao});
+      const ped = ehObj(b.pedido) ? b.pedido : null, aut = ehObj(b.auto) ? b.auto : null;
+      if(ped || aut) x.pedido = {em:(ped||aut).em, n:ped?ped.n:0, captura:cap, semVersaoLimpo:!!b.semVersaoLimpo};
+      if(aut) x.auto = {em:aut.em};
+      if(ehObj(b.apagada)) x.apagada = {em:b.apagada.em};
+      xs.set(id, x);
+    });
     const ordem = (a, b) => (Number(a.at)||0) - (Number(b.at)||0);
-    dados.estudo.sort(ordem); dados.bank.sort(ordem);
+    dados.estudo.sort(ordem); dados.bank.sort(ordem); dados.extras = [...xs.values()].sort(ordem);
     return dados;
   }
   let toastTimer = null;
@@ -1912,11 +2339,23 @@
     // existir. Sair com 0 aqui faria o pai ver um número menor que o do Arthur num código editado à mão.
     const w=aWeek(n)||{}; const fin=WEEKS[n-1].final; let xp=0;
     TASKS.forEach(([id,,pts])=>{ if(fin && FINAL_HIDE.includes(id)) return; if(w.tasks&&w.tasks[id]&&(id!=="early"||w.tasks.red)) xp+=pts; });
-    xp+=Math.min(ESTUDO_PAGOS,aBlocos(n).length)*ESTUDO_XP+Math.min(2,aRep(n))*15; const d=(w.days||[]).reduce((a,b)=>a+b,0); xp+=d*10; if(d===7) xp+=50; return xp;
+    xp+=Math.min(ESTUDO_PAGOS,aBlocos(n).length)*ESTUDO_XP+Math.min(2,aRep(n))*15;
+    // As extras pagam também na semana 8 (ADR-005). Gêmeo do weekXP() dele, e os dois têm de dar o mesmo
+    // número: o painel guarda o metadado de registro de TODA extra, justamente para esta conta fechar.
+    xp+=Math.min(EXTRA_PAGAS,aRegistradas(n).length)*EXTRA_XP;
+    const d=(w.days||[]).reduce((a,b)=>a+b,0); xp+=d*10; if(d===7) xp+=50; return xp;
   }
   // Leitura dos blocos dele. Mesmas funções do painel do aluno (blocos/minutos/matLabel), com prefixo
   // `a` porque aqui elas leem `aluno().dados` e o orientador nunca escreve nele.
   function aBlocos(n){ return (((aluno().dados||{}).estudo)||[]).filter(e=>e.week===n).sort((a,b)=>a.at-b.at); }
+  // As extras dele. Gêmeas de registradas() no app do aluno, com prefixo `a` porque leem
+  // `aluno().dados` e o orientador nunca escreve nelas.
+  function aExtras(){ return ((aluno().dados||{}).extras)||[]; }
+  // Gêmea de registradas() no app do aluno, com a MESMA exclusão do que nasceu fora do período
+  // (US-035 EC-1): o XP das duas telas tem de bater, e um backup editado à mão não pode fazer o painel
+  // contar uma redação que o aluno não conta.
+  function aNoPeriodo(x){ const t = Number(x.at) || 0; return t >= +INICIO && t <= +new Date(2026,10,8); }
+  function aRegistradas(n){ return aExtras().filter(x=>x.semana===n && x.registro && aNoPeriodo(x)).sort((a,b)=>a.registro.em-b.registro.em || a.at-b.at); }
   function aMin(n){ return aBlocos(n).reduce((s,e)=>s+(e.min||0),0); }
   // Gêmea de matLabel() no app do aluno, e as duas têm de dizer a mesma coisa: o chip "Sem matéria" é
   // descrição verdadeira do bloco (e filtro útil), ao contrário do chip "Outra" que o ADR-002 proíbe.
@@ -1989,7 +2428,14 @@
   // código passa pelo WhatsApp e pode ter sido editado no caminho.
   function normalizeParecer(p){
     if(!p || typeof p!=="object" || Array.isArray(p) || p.parecer!==1) return null;
-    const n = Number(p.semana); if(!Number.isInteger(n) || n<1 || n>7) return null;
+    // A redação extra (ADR-015 §3): `extra` é o id dela, e é por ele que a chegada do parecer é roteada
+    // — presente, a ficha daquela extra; ausente, a semana. Id fora do padrão derruba o documento
+    // INTEIRO, como versão errada: um id estragado poria o parecer de uma redação na ficha de outra.
+    // A semana 8 existe para a extra e não existe para a da semana: na 8 não há redação nova (plano §4),
+    // mas uma extra pode ser começada até 4/11. É a mesma regra do validador do enem.mjs.
+    if(p.extra!=null && !(typeof p.extra==="string" && p.extra.length<=40 && /^[0-9a-z-]+$/.test(p.extra))) return null;
+    const ex = p.extra==null ? null : p.extra;
+    const n = Number(p.semana); if(!Number.isInteger(n) || n<1 || n>(ex?8:7)) return null;
     const cs = ["c1","c2","c3","c4","c5"];
     const s = v => v==null ? "" : String(v);
     const o = v => v && typeof v==="object" && !Array.isArray(v) ? v : {};
@@ -2014,8 +2460,8 @@
     notas.total = cs.every(c=>notas[c]!==null) ? cs.reduce((a,c)=>a+notas[c],0) : null;
     const f = o(p.forca), a = o(p.ajuste), at = o(p.ateSegunda), fo = o(p.fonte), px = o(p.proxima);
     const ts = Number(p.geradoEm);
-    return { parecer:1, semana:n, tema:s(p.tema).slice(0,300), geradoEm:Number.isFinite(ts)&&ts>0?ts:null,
-      fonte:{correcao:fo.correcao==="externa"?"externa":"skill", leitores:(Array.isArray(fo.leitores)?fo.leitores:[]).map(s).slice(0,3), confiabilidade:["alta","media","baixa"].includes(fo.confiabilidade)?fo.confiabilidade:null},
+    return { parecer:1, semana:n, ...(ex ? {extra:ex} : {}), tema:s(p.tema).slice(0,300), geradoEm:Number.isFinite(ts)&&ts>0?ts:null,
+      fonte:{correcao:["externa","automatica","manual"].includes(fo.correcao)?fo.correcao:"skill", leitores:(Array.isArray(fo.leitores)?fo.leitores:[]).map(s).slice(0,3), confiabilidade:["alta","media","baixa"].includes(fo.confiabilidade)?fo.confiabilidade:null},
       nota:notas,
       forca:{comp:comp(f.comp), cita:s(f.cita).slice(0,200), texto:s(f.texto).slice(0,300)},
       ajuste:{comp:comp(a.comp), cita:s(a.cita).slice(0,200), texto:s(a.texto).slice(0,300), conferir:s(a.conferir).slice(0,300)},
@@ -2056,6 +2502,174 @@
     if(p.proxima.tema) h += `<p class="muted pprox">Próxima (semana ${p.proxima.semana}): ${esc(p.proxima.tema)}${p.proxima.repertorio?` · repertório-alvo ${esc(p.proxima.repertorio)}`:""}</p>`;
     return h;
   }
+
+  // ---------- a ficha da redação: o estado, o que falta e a identificação (ADR-015 §2)
+  // AS QUATRO FUNÇÕES ABAIXO SÃO CÓPIA VERBATIM ENTRE OS DOIS APPS, como parecerHTML e normExtras:
+  // scripts/check-weeks.mjs reprova qualquer diferença. Elas são a ficha: o chip que o aluno lê e o que
+  // o pai lê têm de dizer a mesma coisa da mesma redação, e a lista do que falta tem de ter os mesmos
+  // itens na mesma ordem nos dois lados — senão "você já passou a limpo?" na chamada aponta para coisas
+  // diferentes. São PURAS: leem só a view model (fichaDe no aluno, aFichaDe no painel) e não tocam em
+  // estado, DOM nem relógio. Nenhuma chave dentro de string ou regex: o extrator do check conta chaves
+  // sem entender string.
+  // "Tem texto escrito?" é a MESMA conta do gesto de registrar, que passa por folhaLinhas(): os
+  // invisíveis que o celular e o WhatsApp colam num texto copiado — os mesmos que o decodeBackup e o
+  // folhaLinhas já removem por saber disso — não são linha escrita. O espaço e o espaço duro o trim()
+  // já comia, e o \uFEFF também, porque é espaço em branco para ele; o que passava era o \u200B-\u2060.
+  // Sem isto o chip dizia "rascunho" sobre uma folha visivelmente vazia e a lista pedia um registro
+  // que o gesto recusa (BUG-20261015-largura-zero-vira-rascunho).
+  function temTexto(s){ return !!String(s||"").replace(/[\u200B-\u200D\u2060\uFEFF]/g,"").trim(); }
+  // Os oito estados de US-002 AC-2, na ordem em que vencem: o parecer vence o pedido e o "corrigindo"
+  // (chegou, acabou), e "lida" é o parecer com a lista do que falta inteira feita. Numa extra isso
+  // inclui "Ler o parecer", o item que o parecer cria e que só sai quando ele abre a ficha dela.
+  function estadoFicha(vm){
+    if(vm.tipo==="semana" && vm.final) return "sem redação nova";
+    if(vm.parecer || vm.parecerAuto) return pendenciasDe(vm).every(i=>i.feita) ? "lida" : "corrigida";
+    if(vm.corrigindo) return "corrigindo";
+    if(vm.pedido) return "correção pedida";
+    if(vm.limpo && vm.limpo.linhas.length) return "passada a limpo";
+    if(vm.registro || (vm.tipo==="semana" && vm.tasks && vm.tasks.red)) return "registrada";
+    return temTexto(vm.redacao) ? "rascunho" : "não começada";
+  }
+  // O que falta, DERIVADO a cada render e nunca guardado (BR-18). Só três famílias têm marca gravada —
+  // a reescrita, os exercícios do parecer e os combinados do orientador —; os itens derivados
+  // (registrar, passar a limpo, pedir correção, ler o parecer) somem sozinhos quando a condição deles é
+  // cumprida, e marcar um deles é um não-gesto. A ordem é a de US-030 AC-1 e não depende do estado: é a
+  // ordem em que as coisas acontecem com uma redação.
+  function pendenciasDe(vm){
+    const p = vm.parecer || vm.parecerAuto || null, ex = vm.tipo==="extra", its = [];
+    const temLimpo = !!(vm.limpo && vm.limpo.linhas.length);
+    if(ex && !vm.registro && temTexto(vm.redacao)) its.push({id:"registrar", titulo:"Registrar a redação", sub:"", porque:"", feita:false, derivada:true});
+    // Na extra a folha é o passo seguinte ao registro, e vale até a correção ser pedida ou chegar — com
+    // o pedido na mão do orientador, o retrato dele já foi, e passar a limpo depois não muda o que ele
+    // vai ler; na redação da semana
+    // ela é o que o plano exige (semanas 5 e 7), depois de a redação estar marcada e até a folha estar
+    // finalizada — é a mesma régua do passo do painel Hoje. Sem a redação marcada a folha não é passo:
+    // seria uma cobrança parada em duas semanas desde o primeiro dia da missão.
+    if(ex ? (!!vm.registro && !temLimpo && !p && !vm.pedido && !vm.corrigindo) : (!!vm.exigida && !!(vm.tasks && vm.tasks.red) && !(vm.limpo && vm.limpo.fim)))
+      its.push({id:"limpo", titulo:"Passar a limpo", sub:"", porque:"", feita:false, derivada:true});
+    // A correção automática lê só a folha passada a limpo (ADR-006): sem ela, o caminho é o pedido.
+    if(ex && vm.registro && !p && !vm.pedido && !vm.corrigindo)
+      its.push({id:"corrigir", titulo: vm.autoDisponivel && temLimpo ? "Corrigir agora" : "Pedir correção", sub:"", porque:"", feita:false, derivada:true});
+    // "Ler o parecer" é da EXTRA: ali o parecer chega sozinho (pela conta) ou por um código colado
+    // numa redação que pode estar em qualquer semana, e sem este item nada na tela diria que ele
+    // chegou. Na redação da semana o parecer tem superfície própria — o passo do painel Hoje no dia do
+    // encontro, e a linha de resumo da seção —, e a seção É o parecer: um item dizendo "leia isto"
+    // dentro do que ele está lendo seria uma cobrança de um gesto que ele já fez.
+    if(ex && p && !vm.lido) its.push({id:"ler", titulo:"Ler o parecer", sub:"", porque:"", feita:false, derivada:true});
+    // A reescrita do parágrafo. Na redação da semana ela É a tarefa `rew` das sete da semana — mesmo
+    // rótulo, mesmo estado, mesmos 30 XP — e existe com parecer mesmo sem "Até segunda": a tarefa
+    // existe de todo jeito, e o subtítulo é que fica em branco. Na extra, que não tem tarefa nenhuma,
+    // ela só existe se o parecer disser o que reescrever.
+    if(p && (!ex || p.ateSegunda.paragrafo || p.ateSegunda.texto)){
+      const par = p.ateSegunda.paragrafo;
+      const sub = par || p.ateSegunda.texto ? `${par?`Reescreva o ${par} parágrafo. `:""}${p.ateSegunda.texto}` : "";
+      its.push({id:"rew", titulo: ex ? (par ? `Reescrever o ${par} parágrafo` : "Reescrever o parágrafo") : vm.rotuloRew,
+        sub, porque:"", feita:!!vm.marcas.rew});
+    }
+    (p ? p.exercicios : []).forEach((x,i)=>its.push({id:"ex"+i, titulo:x.titulo, sub:x.instrucao, porque:x.porque, feita:!!vm.marcas.exercicios[i]}));
+    vm.combinados.forEach(c=>its.push({id:"c:"+c.id, titulo:c.texto, sub:"", porque:"", de:true, feita:!!vm.marcas.combinados[c.id]}));
+    return its;
+  }
+  // A linha de identificação, igual nos dois apps (US-002 AC-1): o que a redação é, de onde veio o tema
+  // e quando ela mudou pela última vez. A data é a do último gesto que mexeu nela — o rascunho, a
+  // folha, o registro ou o parecer que chegou —, e sem gesto nenhum ela não existe: semana em branco
+  // não tem o que datar. A data é formatada aqui dentro, e não por um ajudante de cada app, porque o
+  // texto é comparado byte a byte entre os dois.
+  function fichaIdTexto(vm){
+    const dois = n=>String(n).padStart(2,"0");
+    const mudou = [vm.redEm, vm.limpo && vm.limpo.em, vm.registro && vm.registro.em,
+      (vm.parecer || vm.parecerAuto || {}).geradoEm].map(v=>Number(v)||0).reduce((a,b)=>Math.max(a,b), 0);
+    const partes = vm.tipo==="extra" ? ["Extra", "semana " + vm.semana, vm.tema, (vm.origem||{}).rotulo]
+      : ["Semana " + vm.semana, vm.tema];
+    if(mudou > 0){ const d = new Date(mudou); partes.push("mudou em " + dois(d.getDate()) + "/" + dois(d.getMonth()+1)); }
+    return partes.filter(Boolean).join(" · ");
+  }
+  // O FOCO de correção de cada semana, como o plano §4 o define (BR-05, ADR-006, ADR-009 §1). Cópia da
+  // tabela do app do aluno: ela decide em que competência cai o ajuste da redação extra, e o parecer que
+  // sai daqui é o que ele lê — um foco diferente lá e aqui seria o mesmo texto cobrando duas coisas.
+  const FOCO_SEMANA = ["nenhum", "c2", "c4", "c5", "nenhum", "c1", "nenhum", "nenhum"];
+  function focoDaSemana(n){ return FOCO_SEMANA[n-1] || "nenhum"; }
+  function focoTexto(f){ return f==="nenhum" ? "a competência mais baixa" : f.toUpperCase(); }
+
+  // ---------- o parecer montado da ficha (ADR-008, ADR-015 §4)
+  // Quando o orientador corrige uma redação extra à mão não há leitura reconciliada: há a ficha que ele
+  // preencheu. parecerDaFicha() monta dali um parecer VÁLIDO POR CONSTRUÇÃO, na mesma forma dos outros
+  // três (skill, externa, automática), e por isso o painel NÃO carrega o validador da skill: o
+  // construtor não produz documento inválido, e o enem.test.mjs prova o validador sobre a saída de
+  // parecerDaFicha() em cada ramo. O bloco abaixo é CÓPIA VERBATIM do enem.mjs da skill — o
+  // scripts/check-weeks.mjs reprova qualquer diferença, como em folhaLinhas (só `export` e
+  // indentação não contam).
+  // Ele vive num escopo próprio porque mapaDaFicha() lê um `ELEMS` que é a lista CRUA de ids, e o ELEMS
+  // do painel é a lista de pares [id, rótulo] da ficha. Dois nomes para a mesma coisa seriam pior: aqui
+  // o de dentro é o do enem.mjs, byte a byte, e o de fora continua sendo o do markup.
+  const {parecerDaFicha, CONFERIR_PADRAO, ESTUDAR_PADRAO, maisBaixa, mapaDaFicha} = (function(){
+    const CS = ["c1", "c2", "c3", "c4", "c5"];
+    const ELEMS = ["agente", "acao", "meio", "fim", "det"];
+    const ELEMS_LEITOR = { agente: "agente", acao: "acao", meio: "meio", fim: "finalidade", det: "detalhamento" };
+    const isObj = v => v && typeof v === "object" && !Array.isArray(v);
+    const corta = (s, n) => String(s ?? "").slice(0, n);
+    const ord = n => Number.isInteger(n) && n > 0 ? n + "º" : "";
+    const LIMR = { tema: 300, texto: 300, cita: 200, conferir: 300, regra: 300, titulo: 60, trecho: 200, ltitulo: 80, url: 200, etitulo: 80, instrucao: 300, porque: 200, metade: 40 };
+    const MAXR = { tropecos: 5, casos: 4, mapa: 4, estudar: 5, exercicios: 2 };
+    /* verbatim:enem.mjs */
+    const CONFERIR_PADRAO = {
+      c1: "Releia procurando só o desvio que mais se repete, em voz alta, parando em cada vírgula.",
+      c2: "Confira se a tese responde ao tema em uma frase e se cada repertório está amarrado ao argumento, não só citado.",
+      c3: "Leia só a primeira frase de cada parágrafo, em sequência: duas frases com a mesma ideia são um parágrafo a menos.",
+      c4: "Marque os conectivos do texto e veja se algum se repete ou anuncia uma função que o parágrafo não cumpre.",
+      c5: "Procure na proposta os cinco elementos, um a um: agente, ação, meio, finalidade e detalhamento.",
+    };
+    const ESTUDAR_PADRAO = { c1: "ortografia", c2: "repertorio", c3: "dissertativo", c4: "conectivos", c5: "cartilha" };
+    function maisBaixa(nota) {
+      let alvo = null;
+      for (const c of CS) if (Number.isInteger(nota[c]) && (alvo === null || nota[c] < nota[alvo])) alvo = c;
+      return alvo || CS[0];
+    }
+    function mapaDaFicha(ficha) {
+      const f = ficha || {}, out = [];
+      const poe = (comp, titulo, texto) => { if (String(texto ?? "").trim()) out.push({ comp, titulo, texto: corta(texto, LIMR.texto), conferir: CONFERIR_PADRAO[comp] }); };
+      poe("c2", "A tese", f.tese);
+      poe("c2", "O repertório", f.rep);
+      const paras = [f.fraco ? "Parágrafo mais fraco: " + f.fraco : "", f.forte ? "Parágrafo mais forte: " + f.forte : ""].filter(Boolean);
+      poe("c3", String(f.fraco ?? "").trim() ? "O parágrafo mais fraco" : "O parágrafo mais forte", paras.join(" · "));
+      poe("c4", "Conectivos", f.conect);
+      const el = isObj(f.elems) ? f.elems : {};
+      const faltam = ELEMS.filter(k => !el[k]).map(k => ELEMS_LEITOR[k]);
+      if (faltam.length && faltam.length < ELEMS.length) poe("c5", "O que falta na proposta", "Falta: " + faltam.join(", ") + ".");
+      poe("c1", "O erro de português mais frequente", f.erro);
+      return out;
+    }
+    function materialDe(materiais, tema, comp) {
+      const m = (Array.isArray(materiais) ? materiais : []).find(k => isObj(k) && k.tema === tema);
+      return m ? { titulo: corta(m.titulo, LIMR.ltitulo), texto: corta(m.usar || "", LIMR.texto), url: m.url }
+        : { titulo: "A matriz do ENEM na competência " + String(comp).toUpperCase(), texto: "", url: null };
+    }
+    const ordDaFicha = v => Number.isInteger(v) ? ord(v) : ord(parseInt(String(v ?? ""), 10));
+    function parecerDaFicha(ficha, ctx) {
+      const f = ficha || {}, c = ctx || {};
+      const nota = Object.fromEntries(CS.map(k => [k, Number.isInteger(f[k]) ? f[k] : null]));
+      const total = CS.every(k => nota[k] !== null) ? CS.reduce((a, k) => a + nota[k], 0) : null;
+      const comp = CS.includes(c.comp) ? c.comp : CS.includes(c.foco) ? c.foco : maisBaixa(nota);
+      const mapa = mapaDaFicha(f).filter(m => m.comp !== comp).slice(0, MAXR.mapa);
+      const ajuste = corta(f.ajuste, LIMR.texto);
+      return {
+        parecer: 1, semana: c.semana, ...(c.extra === undefined || c.extra === null ? {} : { extra: c.extra }),
+        tema: corta(c.tema, LIMR.tema), geradoEm: c.agora,
+        fonte: { correcao: "manual", leitores: [], confiabilidade: null },
+        nota: { ...nota, total },
+        forca: { comp: null, cita: "", texto: corta(f.forca, LIMR.texto) },
+        ajuste: { comp, cita: "", texto: ajuste, conferir: corta(f.conferir || CONFERIR_PADRAO[comp], LIMR.conferir) },
+        ateSegunda: { paragrafo: ordDaFicha(f.paragrafo), texto: corta(f.paragrafoTexto || "", LIMR.texto) },
+        tropecos: [], mapa,
+        exercicios: ajuste ? [{ titulo: "Treinar o ajuste desta redação", instrucao: corta(ajuste, LIMR.instrucao), porque: "É o ajuste desta redação: um só, de propósito." }] : [],
+        estudar: [materialDe(c.materiais, ESTUDAR_PADRAO[comp], comp)],
+        proxima: { semana: c.semana + 1, tema: null, repertorio: null },
+      };
+    }
+    /* /verbatim:enem.mjs */
+    return {parecerDaFicha, CONFERIR_PADRAO, ESTUDAR_PADRAO, maisBaixa, mapaDaFicha};
+  })();
+
   const BRIEF_FIELDS=[["tema","Tema"],["fontes","Fontes"],["oque","O que aconteceu"],["porque","Por que importa"],["ganha","Quem ganha / quem perde"],["brasil","E o Brasil?"],["serve","Serve de repertório para"],["pergunta","Pergunta que ficou sem resposta"]];
   const DAYS7=["seg","ter","qua","qui","sex","sáb","dom"], ROWS=["Escola","Estudo","Redação","Notícia","Jogo","Livre"];
   function renderArthurBrief(){
@@ -2091,7 +2705,7 @@
   // Os controles que o próprio redesenho recria (o chip do filtro, as caixas da ficha) passam por aqui:
   // é o gêmeo, só com as chaves deste painel, do keepFocus()/focusKey() do aluno.
   function keepFocus(fn){
-    const a=document.activeElement, attr=a&&a!==document.body&&["data-mat","data-e","data-b","data-a"].find(x=>a.hasAttribute(x));
+    const a=document.activeElement, attr=a&&a!==document.body&&["data-mat","data-e","data-b","data-a","data-extra","data-xpend"].find(x=>a.hasAttribute(x));
     const key=attr?`[${attr}="${CSS.escape(a.getAttribute(attr))}"]`:null;
     fn();
     if(key && !(document.activeElement && document.activeElement.matches(key))){ const el=document.querySelector(key); if(el) el.focus({preventScroll:true}); }
@@ -2240,6 +2854,7 @@
       ${not.length?`<p class="muted">Ainda não: ${not.join(" · ")}</p>`:""}
       ${fazerAnterior()}
       <p class="muted mt">Notícia: ${days.join(", ")||"nenhum dia"}${reps?` · Repertórios: ${reps}`:""}</p>
+      ${abertasDe(current)?`<p class="muted">Extras: ${abertasDe(current)} pendência${abertasDe(current)===1?"":"s"} aberta${abertasDe(current)===1?"":"s"}</p>`:""}
       <div id="arthurBlocos">${bs.length?aRowsEstudo(bs,aPagos(current)):`<p class="muted">Nenhum bloco registrado.</p>`}</div>
       ${m.final?"":(s.nota?`<p class="mt notaext">Nota lançada no painel do aluno: <b>${esc(s.nota)}</b></p>`:`<p class="muted mt">Nota externa: ainda não lançada.</p>`)}`;
   }
@@ -2303,6 +2918,17 @@
         fn: esperando ? ()=>document.getElementById("colarPreparo").click() : copiarComando,
       });
     }
+    // Corrigir as extras vem depois de preparar e antes da chamada: é o parecer de cada uma que a skill
+    // lê como contexto da semana (ADR-009 §4), e é o que ele manda sem esperar o domingo. O passo não
+    // existe quando nada espera — e não "existe feito": um quadro com um passo permanentemente marcado
+    // diria que corrigir extras é etapa de todo domingo, e ela só é quando ele pediu (ADR-007).
+    const pendX = pendentes();
+    if(pendX.length) lista.push({
+      id:"extras", tit:"Corrigir as extras", feito:false,
+      como: pendX.length===1 ? "1 redação extra espera correção: abra a primeira."
+                             : `${pendX.length} redações extras esperam correção: abra a primeira.`,
+      rotulo:"Abrir a primeira", fn: ()=>abreExtra(pendX[0].id),
+    });
     // O que fecha este passo é o que SÓ a chamada produz. Força e ajuste não servem: o preparo os
     // preenche como palpite, e o quadro diria "chamada feita" antes de ele discar. `percebeu` é o que
     // ele mesmo disse na leitura em voz alta, os `bchecks` são marcados enquanto ele fala e `notas` é o
@@ -2441,20 +3067,27 @@
   // o script dele) e as MARCAS do backup (weeks[n].exercicios). Fora de parecerHTML() de propósito: aquela
   // função é copiada verbatim nos dois apps, e desenhar a lista lá dentro daria ao pai os checkboxes do
   // filho (ADR-002). Sem input, sem botão e sem nada que ele possa acionar: ele lê e nunca escreve (ADR-003).
-  function fazerPaiHTML(p, wa, prep){
+  // O desenho é um só e serve às duas fichas (ADR-015 §2): os itens chegam como {titulo, sub, feito} —
+  // de itensPai() na redação da semana, de pendenciasDe(vm) na redação extra. `feito` tem três estados
+  // na semana (true, false e `null` para "este backup é anterior a esta lista") e dois na extra, onde as
+  // marcas vêm sempre junto com o metadado dela.
+  function fazerPaiHTML(its, placar, de, rodape){
+    const conn = alunoConectado();
+    // A marca é desenho, e leitor de tela não lê desenho: o estado vai junto em texto oculto, como no quadro do domingo.
+    const linha = i => `<p class="pfrow${i.feito?" done":""}"><span class="pfmark" aria-hidden="true">${i.feito===null?"·":i.feito?"✓":"—"}</span><span>${esc(i.titulo)}${i.sub?` <span class="muted">${esc(i.sub)}</span>`:""}<span class="vh"> · ${i.feito===null?(conn?"ainda sem informação":"sem informação neste backup"):i.feito?"feito":"ainda não"}</span></span></p>`;
+    return `<div class="pbloco pfeito"><h3>O que ficou de fazer <span class="pcomp">${placar}${de}</span></h3>`
+      + its.map(linha).join("") + (rodape||"") + `</div>`;
+  }
+  function fazerPaiSemana(p, wa, prep){
     if(!p) return "";
     const {marcas, its, feitos} = itensPai(wa, prep), conn = alunoConectado(), ts = conn ? aluno().recebidoEm : backupTs();
     // Conectado, as marcas chegam com a semana dele (ADR-006): "não sei" só é verdade enquanto o parecer
     // não chegou ao app dele, e então a frase diz isso, sem "desconhecido" (US-019 AC-2).
     const placar = !marcas ? (conn ? (wk(current).envio ? `esperando chegar a ${nomeAluno()}` : "ainda não enviado") : "placar desconhecido") : (feitos===its.length ? "tudo feito" : `${feitos} de ${its.length}`);
     const de = marcas && ts ? (conn ? ` · recebido em ${dmDe(ts)}` : ` · do backup de ${dmDe(ts)}`) : "";
-    // A marca é desenho, e leitor de tela não lê desenho: o estado vai junto em texto oculto, como no quadro do domingo.
-    const linha = i => `<p class="pfrow${i.feito?" done":""}"><span class="pfmark" aria-hidden="true">${i.feito===null?"·":i.feito?"✓":"—"}</span><span>${esc(i.titulo)}<span class="vh"> · ${i.feito===null?(conn?"ainda sem informação":"sem informação neste backup"):i.feito?"feito":"ainda não"}</span></span></p>`;
-    return `<div class="pbloco pfeito"><h3>O que ficou de fazer <span class="pcomp">${placar}${de}</span></h3>`
-      + its.map(linha).join("")
-      + (marcas ? "" : conn ? `<p class="muted">As marcas aparecem aqui quando o parecer chegar ao app de ${esc(nomeAluno())}.</p>`
-        : `<p class="muted">${aluno().dados?`O backup de ${esc(nomeAluno())} é anterior a esta lista`:`Importe o código de ${esc(nomeAluno())}`}: não dá para saber o que está marcado.</p>`)
-      + `</div>`;
+    const rodape = marcas ? "" : conn ? `<p class="muted">As marcas aparecem aqui quando o parecer chegar ao app de ${esc(nomeAluno())}.</p>`
+      : `<p class="muted">${aluno().dados?`O backup de ${esc(nomeAluno())} é anterior a esta lista`:`Importe o código de ${esc(nomeAluno())}`}: não dá para saber o que está marcado.</p>`;
+    return fazerPaiHTML(its, placar, de, rodape);
   }
   // O placar do cabeçalho do card, com os mesmos três estados da gêmea: card fechado responde "quanto",
   // card aberto responde "qual". Semana 8 e "ainda não chegou" ficam com o texto que já tinham.
@@ -2480,7 +3113,7 @@
     acts.querySelector('[data-print="parecer"]').hidden = !p;
     view.innerHTML = p ? parecerHTML(p) : "";
     // Vazio ele some sozinho (.parecer:empty), e por estar dentro do card sai na folha de "Imprimir parecer".
-    feito.innerHTML = fazerPaiHTML(p, aWeek(current), wk(current).prep);
+    feito.innerHTML = fazerPaiSemana(p, aWeek(current), wk(current).prep);
     // Aberto quando existe, recolhido quando não — o mesmo de #cRed, e pela mesma razão: chegou o
     // preparo, o parecer tem de estar na tela sem ninguém precisar procurar por ele. Só no render da
     // semana, nunca em bindForm(): marcar um checkbox da ficha não pode reabrir o card durante a chamada.
@@ -2523,6 +3156,474 @@
     copy(txt, {title:`Parecer para ${nome}`, done:`Parecer da semana ${p.semana} copiado. Cole no WhatsApp para ${nome}.`});
   }
   document.getElementById("copiarParecer").addEventListener("click", copiarParecer);
+
+  // ============================ as redações extras (ADR-002, ADR-008, ADR-015 §2)
+  // O painel tem de CADA extra três coisas de donos diferentes, e é aFichaDe() que as junta num objeto
+  // só, o mesmo que o app dele monta em fichaDe(): o metadado e a ENTREGA (dados.extras[id] — tema,
+  // semana, registro, o pedido com a captura, as marcas dele), as anotações do pai (aluno().extras[id] —
+  // a ficha de correção, o foco escolhido, o parecer montado, os combinados) e o que voltou do servidor
+  // (aluno().feedbackExtras[id], preenchido pelo sync-data). O rascunho e a folha passada a limpo NUNCA
+  // estão aqui: o que se lê é o retrato do gesto dele (BR-15).
+  // Qual está aberta é da SESSÃO, como a aba: recarregar volta à lista, que é onde o domingo começa.
+  let xAberta = null;
+  function notasVazias(){ return {f:{}, elems:{}, foco:null, prep:null, parecer:null, pendencias:[], envio:null, msgEm:null, pre:{}}; }
+  // Duas leituras, de propósito: notasDe() nunca cria (os renders passam por ela, e um render não pode
+  // semear estado), notasExtra() cria, como wk() faz com a semana, e só quem escreve a chama.
+  function notasDe(id){ return ((aluno().extras||{})[id]) || notasVazias(); }
+  function notasExtra(id){
+    const al = aluno(); if(!al.extras || typeof al.extras!=="object") al.extras = {};
+    if(!al.extras[id]) al.extras[id] = notasVazias();
+    const nt = al.extras[id];
+    if(!nt.f) nt.f = {}; if(!nt.elems) nt.elems = {}; if(!nt.pre) nt.pre = {};
+    if(!Array.isArray(nt.pendencias)) nt.pendencias = [];
+    return nt;
+  }
+  function aExtraPorId(id){ return aExtras().find(x=>x.id===id) || null; }
+  // O retrato que ele mandou: o pedido ao orientador, ou a corrida automática quando ela foi o gesto. O
+  // mais novo vence, porque um pedido depois da correção automática é ele pedindo outra leitura.
+  function entregaDe(x){
+    const ps = [x && x.pedido, x && x.auto].filter(p=>p && p.em);
+    return ps.length ? ps.slice().sort((a,b)=>b.em-a.em)[0] : null;
+  }
+  // A view model da ficha, do lado do pai (ADR-015 §2). `lido` é sempre true: "Ler o parecer" é item
+  // DELE, e aqui ele só atrapalharia a conta do que falta. `autoDisponivel` é sempre false: o botão de
+  // corrigir agora é do app dele.
+  function aFichaDe(ref){
+    const id = ref && ref.extra, x = id ? aExtraPorId(id) : null;
+    if(!x) return null;
+    const nt = notasDe(x.id), fb = obj((aluno().feedbackExtras||{})[x.id]);
+    const mentor = (obj(fb.mentor).parecer ? normalizeParecer(obj(fb.mentor).parecer) : null) || nt.parecer || null;
+    const auto = obj(fb.auto).parecer ? normalizeParecer(obj(fb.auto).parecer) : null;
+    const msg = str(obj(fb.mentor).message).trim();
+    const m = obj(x.marcas);
+    return {tipo:"extra", semana:x.semana, id:x.id, tema:x.tema, origem:x.origem, enunciado:x.enunciado||"",
+      foco:focoDaSemana(x.semana), redacao:"", redEm:Number(x.redEm)||0, limpo:null,
+      registro:x.registro||null, entrega:null, pedido:x.pedido||null, corrigindo:x.corrigindo||null,
+      parecer:mentor, parecerAuto:auto,
+      mensagem: msg ? {texto:msg, em:Number(obj(fb.mentor).sentAt)||0} : (x.mensagem||null),
+      lido:true, autoDisponivel:false, final:false, exigida:false,
+      tasks:null, rotuloRew:(TASKS.find(([t])=>t==="rew")||[])[1]||"",
+      // `corrigida automaticamente em dd/mm` sai do gesto, que vem na entrega; chegando o parecer
+      // automático antes da entrega (a descida das duas é separada, ADR-014 §5), o instante do
+      // parecer responde pela linha — ela é verdade de qualquer um dos dois lados.
+      at:Number(x.at)||0, obj:x, notas:nt, apagada:x.apagada||null,
+      auto:x.auto || (auto && obj(fb.auto).sentAt ? {em:Number(obj(fb.auto).sentAt)} : null), entregue:entregaDe(x),
+      marcas:{rew:!!m.rew, exercicios:Array.isArray(m.exercicios)?m.exercicios:[], combinados:obj(m.combinados)},
+      combinados:Array.isArray(x.combinados)?x.combinados:[]};
+  }
+  // As que esperam correção. "Esperam" é ele ter pedido e o pai ainda não ter respondido: o envio DESTA
+  // extra anterior ao pedido não fecha nada, que é o caso do pedido chegado por um backup mais novo que
+  // o parecer já mandado (US-023 EC-3). Apagada pelo aluno não espera: não há a quem entregar.
+  function pendentes(){
+    return aExtras().filter(x=>{
+      if(!x.pedido || !x.pedido.em || x.apagada) return false;
+      const env = notasDe(x.id).envio;
+      return !(env && env.em >= x.pedido.em);
+    }).sort((a,b)=>(b.at||0)-(a.at||0));
+  }
+  // A ordem da lista: as que esperam primeiro, o resto da mais nova para a mais velha (US-006 AC-2).
+  function extrasOrdenadas(){
+    const pend = pendentes(), ids = new Set(pend.map(x=>x.id));
+    return pend.concat(aExtras().filter(x=>!ids.has(x.id)).sort((a,b)=>(b.at||0)-(a.at||0)));
+  }
+  function temParecer(vm){ return !!(vm && (vm.parecer || vm.parecerAuto)); }
+  function abertasDe(n){
+    return aExtras().filter(x=>x.semana===n).reduce((s,x)=>{ const vm = aFichaDe({extra:x.id});
+      return s + (vm ? pendenciasDe(vm).filter(i=>!i.feita).length : 0); }, 0);
+  }
+
+  // ---- a faixa e o passo do domingo (ADR-007)
+  function renderAviso(){
+    const n = pendentes().length, el = document.getElementById("extrasAviso");
+    el.hidden = !n;
+    document.getElementById("extrasAvisoTxt").textContent = n===1
+      ? "1 redação extra pedindo correção" : `${n} redações extras pedindo correção`;
+  }
+  // Abrir uma extra: o card abre, a ficha dela entra na tela e o foco vai ao título do card, como o
+  // irPara() de qualquer peça do domingo.
+  function abreExtra(id){
+    if(!aExtraPorId(id)) return;
+    xAberta = id;
+    document.getElementById("cExtras").open = true;
+    renderExtras();
+    irPara("cExtras");
+  }
+
+  // ---- a lista e a ficha em leitura
+  // A folha que ele mandou: a passada a limpo quando havia uma, senão o rascunho daquele instante, dito
+  // como rascunho (US-006 AC-1, BR-16). Desenhada pela mesma folhaHTML() dos dois apps, em Handlee.
+  function xFolhaHTML(vm){
+    const ent = vm.entregue, cap = ent && ent.captura;
+    if(!cap) return "";
+    if(Array.isArray(cap.linhas)){
+      const n = cap.linhas.filter(l=>l.trim()).length;
+      return `<p class="folhastat"><b>Folha passada a limpo</b> · ${n} linha${n===1?"":"s"} escrita${n===1?"":"s"} · largura ${cap.larg} · entregue em ${dmDe(ent.em)}</p>`
+        + folhaHTML(cap.linhas, {cols:cap.larg, min:30, marca:false});
+    }
+    const linhas = folhaLinhas(str(cap.redacao), aLarg(), aRecuo());
+    return `<p class="folhastat"><b>Rascunho</b> · sem versão a limpo · ${linhas.length} linha${linhas.length===1?"":"s"} · entregue em ${dmDe(ent.em)}</p>`
+      + folhaHTML(linhas, {cols:aLarg(), min:30, marca:false});
+  }
+  // As etiquetas da linha e do cabeçalho da ficha: o estado, o gesto que a entregou e o que o aluno fez
+  // com ela depois. `apagada pelo aluno` é chip, não data: é um estado, e o texto entregue continua
+  // legível (US-040 EC-1).
+  function xMetaHTML(vm){
+    const bits = [`<span class="chip estado">${esc(estadoFicha(vm))}</span>`];
+    if(vm.apagada) bits.push(`<span class="chip apagada">apagada pelo aluno</span>`);
+    if(vm.pedido) bits.push(`<span>pedida em ${dmDe(vm.pedido.em)}</span>`);
+    if(vm.auto) bits.push(`<span>corrigida automaticamente em ${dmDe(vm.auto.em)}</span>`);
+    const p = vm.parecer || vm.parecerAuto;
+    if(p && p.nota.total!==null) bits.push(`<b class="rednota">${p.nota.total}</b>`);
+    const ab = pendenciasDe(vm).filter(i=>!i.feita).length;
+    if(ab) bits.push(`<span>${ab} pendência${ab===1?"":"s"}</span>`);
+    return `<span class="xmeta">${bits.join("")}</span>`;
+  }
+  function renderExtras(){
+    const sum = document.getElementById("xSum"), lista = document.getElementById("xLista");
+    const flag = document.getElementById("xFlag"), ficha = document.getElementById("xFicha");
+    const todas = aExtras(), vms = todas.map(x=>aFichaDe({extra:x.id}));
+    const pend = pendentes().length, corr = vms.filter(temParecer).length;
+    sum.textContent = !todas.length ? (aluno().dados || alunoConectado() ? "nenhuma ainda" : "—")
+      : `${todas.length} extra${todas.length===1?"":"s"} · ${pend} pendente${pend===1?"":"s"} · ${corr} corrigida${corr===1?"":"s"}`;
+    // O aviso de backup velho vale aqui como vale em "O que ele registrou": o que veio depois do código
+    // não está nesta tela, e as marcas que ela mostra são as daquele retrato (US-006 EC-3, US-033 EC-1).
+    flag.innerHTML = alunoConectado() ? "" : staleFlag(current);
+    if(!todas.length){
+      lista.innerHTML = `<p class="muted vazio">${aluno().dados || alunoConectado()
+        ? "Nenhuma redação extra ainda. A primeira aparece aqui quando chegar um pedido de correção."
+        : "Importe o código ou conecte a conta para ver as redações extras."}</p>`;
+      xAberta = null; ficha.hidden = true; return;
+    }
+    lista.innerHTML = extrasOrdenadas().map(x=>{
+      const vm = aFichaDe({extra:x.id}), id = esc(x.id), abre = !!vm.entregue;
+      const corpo = `<span class="titulo">${esc(fichaIdTexto(vm))}</span>${xMetaHTML(vm)}`;
+      // Sem entrega não há o que abrir: o pai tem o metadado dela e mais nada (BR-15). Linha, não botão —
+      // um botão prometeria uma ficha (CLAUDE.md: nunca se renderiza botão morto).
+      return abre
+        ? `<button type="button" class="xrow${x.id===xAberta?" aberta":""}" data-extra="${id}"${x.id===xAberta?' aria-current="true"':""}>${corpo}</button>`
+        : `<div class="xrow semabrir">${corpo}<span class="muted">só o registro chegou — a correção ainda não foi pedida</span></div>`;
+    }).join("");
+    const vm = xAberta ? aFichaDe({extra:xAberta}) : null;
+    if(!vm || !vm.entregue){ xAberta = null; ficha.hidden = true; return; }
+    ficha.hidden = false;
+    renderLido(vm);
+    renderForm(vm);
+  }
+  // A origem da leitura, dita do MESMO jeito nas duas telas: quando o retrato que foi corrigido é o
+  // rascunho, o cabeçalho do parecer declara isso — a nota pode ter sofrido por causa dos fins de
+  // linha, e é C1 e C4 que se leem ali. Cópia verbatim nos dois apps (VERBATIM do check-weeks.mjs),
+  // porque até 16/10 a frase existia só no painel: ela NÃO está dentro de parecerHTML(), e a trava que
+  // prova o documento igual não a alcançava (BUG-20261016-filho-nao-sabe-que-a-nota-saiu-do-rascunho).
+  // O pai passa a entrega que ele recebeu, o filho passa o retrato dele: é o mesmo fato, carimbado no
+  // gesto de pedir e imutável depois (BR-15, BR-16).
+  function lidoDoRascunho(ent){
+    return ent && (ent.semVersaoLimpo || !Array.isArray(obj(ent.captura).linhas)) ? " · lido do rascunho" : "";
+  }
+  // A ficha em LEITURA: a identificação, o enunciado, o foco, a folha, o parecer que vale e a lista do
+  // que ficou de fazer com as marcas dele. Nenhum controle que escreva uma marca (ADR-008, BR-18).
+  function renderLido(vm){
+    const el = document.getElementById("xLido");
+    const p = vm.parecer || vm.parecerAuto, auto = vm.parecer && vm.parecerAuto ? vm.parecerAuto : null;
+    let cab = "";
+    if(p){
+      const quando = p.geradoEm ? dmDe(p.geradoEm) : "";
+      const nome = p.fonte.correcao==="automatica" ? "Parecer automático" : "Parecer que você montou";
+      cab = `${nome}${quando?` · ${quando}`:""}` + lidoDoRascunho(vm.entregue)
+        + (auto ? ` · substitui o parecer automático de ${esc(dmDe(auto.geradoEm))} <button type="button" class="linkish" data-ver-auto>ver o parecer automático</button>` : "");
+    }
+    el.innerHTML = `<h3 class="xid">${esc(fichaIdTexto(vm))}</h3>${xMetaHTML(vm)}`
+      + (vm.enunciado ? `<details class="sub xenunciado"><summary>A proposta desta redação</summary><p class="prop">${esc(vm.enunciado)}</p></details>` : "")
+      + `<p class="muted">Foco: ${esc(focoTexto(CS.includes(vm.notas.foco) ? vm.notas.foco : vm.foco))}${CS.includes(vm.notas.foco)?" (escolhido por você)":""}</p>`
+      + `<div class="hand">${xFolhaHTML(vm)}</div>`
+      + (p ? `<p class="muted mt">${cab}</p><div class="parecer mt">${parecerHTML(p)}</div>` : `<p class="muted mt">Ainda sem parecer: preencha a ficha abaixo e toque em Montar o parecer.</p>`)
+      + `<div class="parecer mt" id="xAutoView" hidden></div>`
+      // Lista vazia E sem parecer: não há bloco, como no painel dele — um título prometendo uma lista
+      // que não existe. Com parecer o bloco fica e diz que não há nada pendente: ali o vazio é resposta.
+      + (pendenciasDe(vm).length || p ? `<div class="parecer mt">${fazerPaiHTML(pendenciasDe(vm).map(i=>({titulo:i.titulo, sub:i.sub, feito:i.feita})), placarExtra(vm), deDoBackup(), "")}</div>` : "");
+    if(auto){
+      const a = document.getElementById("xAutoView");
+      a.innerHTML = parecerHTML(auto);
+      el.querySelector("[data-ver-auto]").addEventListener("click", e=>{
+        a.hidden = !a.hidden; e.target.textContent = a.hidden ? "ver o parecer automático" : "esconder o parecer automático"; });
+    }
+  }
+  function placarExtra(vm){
+    const its = pendenciasDe(vm), feitos = its.filter(i=>i.feita).length;
+    return !its.length ? "nada pendente" : feitos===its.length ? "tudo feito" : `${feitos} de ${its.length}`;
+  }
+  // De onde vêm as marcas: do retrato que chegou. É a mesma frase da gêmea da semana, e é ela que diz ao
+  // pai que o ✓ que ele lê é de ontem (US-033 EC-1).
+  function deDoBackup(){
+    const conn = alunoConectado(), ts = conn ? aluno().recebidoEm : backupTs();
+    return ts ? (conn ? ` · recebido em ${dmDe(ts)}` : ` · do backup de ${dmDe(ts)}`) : "";
+  }
+
+  // ---- a ficha de correção (o que o pai escreve)
+  // Clonada UMA vez do <template> e religada a cada troca de redação: o formulário não viaja, como o do
+  // bloco de estudo do app dele (ADR-006 de redacoes-extras, revisto em task_04).
+  let xFormId = null, xFormAlvo = null;
+  function renderForm(vm){
+    const host = document.getElementById("xForm");
+    // O clone nasce com os [data-nome] em branco, e o renderNome() do render() já passou.
+    if(!host.firstChild){ host.append(document.getElementById("fichaTpl").content.cloneNode(true)); renderNome(); }
+    host.hidden = false;
+    const nt = notasExtra(vm.id);
+    // Um preparo que chegou pela parte extra_notes e ainda não foi aplicado: aplica agora, como bindForm().
+    if(nt.prep && !nt.pre.prep){ aplicarPreparoExtra(vm.id, nt.prep); save(); }
+    // Religa quando troca a redação E quando troca o OBJETO: o evento `storage` e a descida substituem
+    // `state` inteiro, e os oninput de antes continuariam escrevendo no estado que já não é o do painel.
+    if(xFormId !== vm.id || xFormAlvo !== nt){
+      xFormId = vm.id; xFormAlvo = nt;
+      bindFicha(host, nt, {depois: campo=>{ if(CS.includes(campo)) renderChart(); renderExtras(); }});
+    }
+    host.querySelectorAll("[data-f]").forEach(inp=>{ if(document.activeElement!==inp) inp.value = nt.f[inp.dataset.f] ?? ""; });
+    const foco = document.getElementById("xFoco");
+    if(document.activeElement!==foco) foco.value = CS.includes(nt.foco) ? nt.foco : "";
+    document.getElementById("xFichaFoco").textContent = `O ajuste desta redação vai para ${focoTexto(CS.includes(nt.foco) ? nt.foco : vm.foco)}. Força e ajuste são seus; as cinco notas montam o parecer.`;
+    // Quantas notas faltam decide o botão: o parecer não existe pela metade (US-026 EC-2).
+    const f = fichaDoBuilder(nt), faltam = CS.filter(c=>f[c]===null).length;
+    const montar = document.getElementById("xMontar"), porque = document.getElementById("xMontarPorque");
+    const razao = faltam ? `Faltam ${faltam} nota${faltam===1?"":"s"}` : "";
+    montar.disabled = !!faltam;
+    montar.title = razao;
+    porque.textContent = razao; porque.hidden = !razao;
+    // Um acento por vez: montar é o gesto enquanto não há parecer; depois dele, entregar é.
+    const temP = !!nt.parecer;
+    montar.classList.toggle("primary", !temP);
+    montar.textContent = temP ? "Montar o parecer de novo" : "Montar o parecer";
+    document.getElementById("xParecerView").innerHTML = nt.parecer ? parecerHTML(nt.parecer) : "";
+    renderPendencias(nt);
+    // Conectado o mesmo botão ENTREGA, como o da semana (ADR-006): o parecer e os combinados vão
+    // juntos, num toque, pelo motor. No modo local ele copia a mensagem para o WhatsApp.
+    const env = document.getElementById("xEnviar"), conn = alunoConectado();
+    env.classList.toggle("primary", temP);
+    env.disabled = !temP || (conn && enviandoExtra);
+    env.innerHTML = `${conn ? "Enviar o parecer" : "Copiar o parecer"} para <span data-nome>${esc(nomeAluno())}</span>`;
+    const st = document.getElementById("xPrepStat");
+    const quando = nt.envio ? ` Último envio em ${fmtWhen(nt.envio.em)}.` : "";
+    st.textContent = nt.prep
+      ? `Preparo desta redação extra, gerado em ${fmtWhen(nt.prep.geradoEm)}. Força e ajuste são palpite até você conferir.${quando}`
+      : quando.trim();
+    st.hidden = !st.textContent;
+  }
+  // A ligação dos campos de UMA ficha a um objeto de anotações, dada uma raiz. É o que bindForm() sempre
+  // fez com a ficha da semana, agora dito uma vez: a ficha da redação extra é a MESMA ficha sobre outro
+  // dono (ADR-015 §2). A raiz recorta o documento — #painelSemana na semana, #xForm na extra — porque as
+  // duas desenham [data-f] ao mesmo tempo e uma não pode escrever na outra.
+  function bindFicha(root, alvo, hooks){
+    const h = hooks || {}, antes = h.antes || (()=>null), depois = h.depois || (()=>{});
+    const f = alvo.f;
+    root.querySelectorAll("[data-f]").forEach(inp=>{ inp.value = f[inp.dataset.f] ?? ""; if(inp.readOnly) return; inp.oninput=()=>{
+      let v = inp.value; const c = inp.dataset.f, ctx = antes(c);
+      if(CS.includes(c)){
+        if(v!==""){ const nv=Number(v); if(!Number.isFinite(nv)){ v=""; } else { v=Math.min(200,Math.max(0,Math.round(nv))); inp.value=v; } }
+        f[c] = v===""?"":String(v);
+        const cs=CS.map(k=>f[k]); f.nota = cs.every(x=>x!==undefined&&x!=="") ? String(cs.reduce((a,b)=>a+Number(b),0)) : "";
+        const t=root.querySelector('[data-f="nota"]'); if(t) t.value=f.nota;
+        save(); depois(c, ctx); return;
+      }
+      f[c]=v; save(); depois(c, ctx); }; });
+    const el = root.querySelector("[data-elems]");
+    if(!el) return;
+    el.innerHTML = ELEMS.map(([id,l])=>`<label class="${alvo.elems[id]?'on':''}"><input type="checkbox" data-e="${id}" ${alvo.elems[id]?'checked':''}>${l}</label>`).join("");
+    el.querySelectorAll("[data-e]").forEach(cb=>cb.onchange=()=>{ alvo.elems[cb.dataset.e]=cb.checked; save(); depois("elems", null); });
+  }
+  // A ficha como o construtor do parecer a espera: as notas como inteiro (na tela são texto), os textos
+  // como estão e os cinco elementos como booleano.
+  function fichaDoBuilder(nt){
+    const f = obj(nt.f), out = {};
+    CS.forEach(c=>{ const v = f[c]; out[c] = (v==="" || v==null || !Number.isFinite(Number(v))) ? null : Math.round(Number(v)); });
+    ["forca","ajuste","conferir","paragrafo","paragrafoTexto","erro","tese","rep","forte","fraco","conect"].forEach(k=>{ out[k] = str(f[k]); });
+    out.elems = {}; ELEMS.forEach(([id])=>{ out.elems[id] = !!obj(nt.elems)[id]; });
+    return out;
+  }
+  // A competência do ajuste: o foco escolhido para esta redação, senão o da semana, senão a mais baixa
+  // desta redação (ADR-009 §1). É a mesma conta do construtor, dita aqui para a recusa poder nomeá-la.
+  function compDoAjuste(vm, nt, f){
+    if(CS.includes(nt.foco)) return nt.foco;
+    if(CS.includes(vm.foco)) return vm.foco;
+    return maisBaixa(Object.fromEntries(CS.map(c=>[c, f[c]])));
+  }
+  // "C4" citado no texto do ajuste. Palavra inteira: `c1a` e `c12` não contam, e nem o `c` de uma palavra.
+  function compCitada(txt){ const m = /\bc([1-5])\b/i.exec(str(txt)); return m ? "c"+m[1] : null; }
+  function xErro(msg, foco){
+    const e = document.getElementById("xErr"); e.textContent = msg||""; e.hidden = !msg;
+    if(msg && foco){ const el = document.getElementById(foco); if(el){ el.focus(); el.scrollIntoView({block:"nearest"}); } }
+  }
+  function montarParecerExtra(){
+    const vm = xAberta ? aFichaDe({extra:xAberta}) : null; if(!vm) return;
+    const nt = notasExtra(vm.id), f = fichaDoBuilder(nt);
+    const faltam = CS.filter(c=>f[c]===null).length;
+    if(faltam){ xErro(`Faltam ${faltam} nota${faltam===1?"":"s"}`); return; }
+    const comp = compDoAjuste(vm, nt, f), citada = compCitada(f.ajuste);
+    // O ajuste que nomeia outra competência é quase sempre o foco errado, não o texto errado: a recusa
+    // diz qual é o foco e onde mudá-lo (US-026 EC-1, BR-05).
+    if(citada && citada!==comp){ xErro(`O ajuste desta redação é em ${comp.toUpperCase()} — mude o foco se for o caso`, "xFoco"); return; }
+    xErro("");
+    nt.parecer = parecerDaFicha(f, {semana:vm.semana, tema:vm.tema, extra:vm.id, foco:vm.foco,
+      comp: CS.includes(nt.foco) ? nt.foco : null, materiais:MATERIAIS, agora:Date.now()});
+    save(); renderExtras(); renderChart();
+    toast(`Parecer da redação extra montado · ajuste em ${comp.toUpperCase()}`);
+  }
+
+  // ---- os combinados (US-031, BR-19)
+  function renderPendencias(nt){
+    const el = document.getElementById("xPendencias");
+    el.innerHTML = nt.pendencias.length
+      ? nt.pendencias.map(c=>`<p class="xpend"><span>${esc(c.texto)}</span><button type="button" class="linkish" data-xpend="${esc(c.id)}">Remover</button></p>`).join("")
+      : `<p class="muted">Nenhum combinado. O que vocês acertarem na chamada entra aqui.</p>`;
+  }
+  function xPendErro(msg){ const e = document.getElementById("xPendErr"); e.textContent = msg||""; e.hidden = !msg; }
+  function addPendencia(){
+    const inp = document.getElementById("xPendenciaNova"), t = str(inp.value).trim();
+    if(!t){ xPendErro("Diga o que ele precisa fazer"); inp.focus(); return; }
+    const nt = notasExtra(xAberta);
+    if(nt.pendencias.length >= 20){ xPendErro("São 20 combinados no máximo nesta redação."); return; }
+    // O id sai do relógio, com sufixo quando colide, como em novaExtra() e no banco: dois combinados
+    // somados no mesmo milissegundo ganhariam o mesmo id, e o Remover levaria os dois junto.
+    const at = Date.now(); let id = String(at), k = 0;
+    while(nt.pendencias.some(c=>c.id===id)) id = String(at) + "-" + (++k);
+    nt.pendencias.push({id, texto:t.slice(0,200)});
+    inp.value = ""; xPendErro(""); save(); renderExtras();
+    document.getElementById("xPendenciaNova").focus();
+  }
+
+  // ---- o comando da skill e o preparo desta redação (US-027)
+  // A entrada REDUZIDA (ADR-009 §4, validarEntrada do enem.mjs): a redação, a proposta e o foco. Sem
+  // semanaAluno, sem estudo, sem repertórios, sem contrato, sem xp e sem anteriores — nada disso é desta
+  // redação, e o preparo dela não tem roteiro de 40 minutos. A proposta viaja dentro do comando, então a
+  // skill nunca precisa do plano para uma extra (US-027 EC-2).
+  function entradaExtra(x){
+    const al = aluno(), nt = notasDe(x.id), ent = entregaDe(x), cap = obj(ent && ent.captura);
+    const limpo = Array.isArray(cap.linhas) ? cap : null;
+    return {v:1, semana:x.semana, aluno:{nome:nomeAluno()}, geradoEm:Date.now(),
+      backupDe:(alunoConectado() && al.recebidoEm)||al.exportadoEm||al.importadoEm||null,
+      tema:x.tema,
+      // Da folha passada a limpo o texto é a própria folha, linha a linha, na ordem em que ele a escreveu.
+      redacao: limpo ? limpo.linhas.join("\n") : str(cap.redacao),
+      folha:{largura:aLarg(), recuo:aRecuo()},
+      ...(limpo ? {limpo:{linhas:limpo.linhas.slice(), largura:limpo.larg, estado:"finalizada", exigida:false}} : {}),
+      extra:{id:x.id, origem:str(obj(x.origem).rotulo), enunciado:str(x.enunciado),
+        foco: CS.includes(nt.foco) ? nt.foco : focoDaSemana(x.semana)}};
+  }
+  function comandoExtra(x){ return `/preparar-encontro ${x.semana}\n${JSON.stringify(entradaExtra(x))}`; }
+  // O preparo de UMA redação extra, como a skill o devolve: a ficha, os exercícios, a mensagem e o
+  // parecer DELA. Não tem roteiro — não há encontro de 40 minutos de uma extra — e a semana vai até 8,
+  // porque uma extra existe na reta final.
+  // Os mesmos campos de texto do preparo da semana, mais os dois que só a ficha da extra tem. Função e
+  // não constante: PREP_TEXTOS nasce lá embaixo, junto do aplicarPreparo() da semana.
+  const prepCampos = () => PREP_TEXTOS.concat(Object.keys(LIMX));
+  function normalizePreparoExtra(p, id){
+    if(!p || typeof p!=="object" || Array.isArray(p) || p.preparo!==1 || p.extra!==id) return null;
+    const n = Number(p.semana); if(!Number.isInteger(n) || n<1 || n>8) return null;
+    const nota = v => (v==="" || v==null || !Number.isFinite(Number(v))) ? null : Math.round(num(v,0,200,0)/20)*20;
+    const fi = obj(p.ficha), ficha = {};
+    CS.forEach(c=>{ ficha[c] = nota(fi[c]); });
+    Object.keys(LIMF).forEach(k=>{ ficha[k] = str(fi[k]).slice(0,LIMF[k]); });
+    Object.keys(LIMX).forEach(k=>{ ficha[k] = str(fi[k]).slice(0,LIMX[k]); });
+    const el = obj(fi.elems); ficha.elems = {}; ELEMS.forEach(([e])=>{ ficha.elems[e] = !!el[e]; });
+    const f = obj(p.fonte), pa = normalizeParecer(p.parecer);
+    return {preparo:1, semana:n, extra:id, aluno:str(p.aluno).slice(0,80), geradoEm:tsOuNulo(p.geradoEm),
+      fonte:{correcao:["skill","externa","automatica","manual","nenhuma"].includes(f.correcao)?f.correcao:"nenhuma",
+        leitores:(Array.isArray(f.leitores)?f.leitores:[]).map(str).slice(0,3),
+        confiabilidade:["alta","media","baixa"].includes(f.confiabilidade)?f.confiabilidade:null},
+      ficha,
+      exercicios:(Array.isArray(p.exercicios)?p.exercicios:[]).filter(x=>x && typeof x==="object").slice(0,2)
+        .map(x=>({titulo:str(x.titulo).slice(0,60), instrucao:str(x.instrucao).slice(0,300), porque:str(x.porque).slice(0,200)})),
+      mensagem:str(p.mensagem).slice(0,1200),
+      parecer: pa && pa.extra===id ? pa : null};
+  }
+  // O preparo entra na ficha só onde ela está vazia, como o da semana — o que o pai já digitou é decisão
+  // dele —, e o parecer dela entra inteiro: é o produto da skill, e montar à mão por cima substitui.
+  function aplicarPreparoExtra(id, p){
+    const nt = notasExtra(id); nt.prep = p; nt.pre.prep = true;
+    const vazio = v => v===undefined || v===null || String(v).trim()==="";
+    let k = 0;
+    if(CS.every(c=>vazio(nt.f[c])) && CS.every(c=>p.ficha[c]!==null)){ CS.forEach(c=>{ nt.f[c] = String(p.ficha[c]); }); nt.pre.nota = true; k += 5; }
+    const cs = CS.map(c=>nt.f[c]); nt.f.nota = cs.every(x=>x!==undefined && x!=="") ? String(cs.reduce((a,b)=>a+Number(b),0)) : (nt.f.nota||"");
+    prepCampos().forEach(c=>{ if(vazio(nt.f[c]) && p.ficha[c]){ nt.f[c] = p.ficha[c]; k++; } });
+    let e = 0; ELEMS.forEach(([i])=>{ if(!(i in nt.elems) && p.ficha.elems[i]===true){ nt.elems[i] = true; e++; } }); if(e) k++;
+    if(p.parecer) nt.parecer = p.parecer;
+    return k;
+  }
+  function temaDaExtra(id){ const x = aExtraPorId(id); return x ? x.tema : ""; }
+
+  // ---- a entrega: pelo código no modo local, pela conta no conectado (ADR-002, US-028)
+  // Conectado, o gesto é o mesmo do parecer da semana: o documento e os combinados entram na fila e
+  // contam como feito ao entrar nela (BR-33), e o toast é que diz se foi ou se espera a rede (BR-37).
+  // Enviar de novo substitui o que ele tem; o mesmo conteúdo não vira aviso para ele (o servidor não
+  // sobe a revisão).
+  let enviandoExtra = false;
+  async function enviarParecerExtra(){
+    const x = aExtraPorId(xAberta); if(!x) return;
+    const nt = notasExtra(x.id), p = nt.parecer, al = aluno();
+    if(!p || !al.conta || enviandoExtra) return;
+    const pendencias = nt.pendencias.map(c=>({id:c.id, texto:c.texto}));
+    enviandoExtra = true; renderExtras();
+    const r = await SYNC.sendFeedback({student:al.conta, extra:x.id, parecer:p, message:null, pendencias});
+    enviandoExtra = false;
+    if(!r || !r.ok){ renderExtras(); toast(`Não deu para enviar: a conexão com ${nomeAluno()} não está ativa.`); return; }
+    nt.envio = {em:Date.now(), hash:impressao(JSON.stringify([p, pendencias]))};
+    nt.msgEm = nt.envio.em;
+    save(); renderExtras(); renderPassos(); renderAviso();
+    toast(r.queued ? "Vai ser enviado quando houver rede" : "Parecer enviado");
+  }
+  function copiarParecerExtra(){
+    if(alunoConectado()){ enviarParecerExtra(); return; }
+    const x = aExtraPorId(xAberta); if(!x) return;
+    const nt = notasExtra(x.id), p = nt.parecer; if(!p) return;
+    // Os combinados viajam DENTRO do documento: é o único canal que o modo local tem (BR-19).
+    const doc = Object.assign({}, p, {pendencias: nt.pendencias.map(c=>({id:c.id, texto:c.texto}))});
+    const nome = nomeAluno();
+    const txt = `Parecer da redação extra «${x.tema}». ${nome}, cole esta mensagem inteira no seu painel, em Redações → a ficha dela → Colar o parecer.\n\n${enc(doc)}`;
+    nt.envio = {em:Date.now(), hash:impressao(JSON.stringify(doc))};
+    nt.msgEm = nt.envio.em;
+    save(); renderExtras(); renderPassos(); renderAviso();
+    copy(txt, {title:`Parecer para ${nome}`, done:`Parecer da redação extra copiado. Cole no WhatsApp para ${nome}.`});
+  }
+
+  // ---- os eventos do card. Tudo delegado: os ids de dentro só existem depois do clone do <template>.
+  document.getElementById("extrasAvisoIr").addEventListener("click", ()=>{ const p = pendentes()[0]; if(p) abreExtra(p.id); });
+  document.getElementById("cExtras").addEventListener("click", e=>{
+    const row = e.target.closest("[data-extra]");
+    if(row){ abreExtra(row.dataset.extra); return; }
+    // O botão de imprimir da ficha nasce com o clone, depois desta varredura: aqui ele é delegado.
+    const pr = e.target.closest("[data-print]");
+    if(pr){ e.preventDefault(); imprime(pr.dataset.print); return; }
+    const del = e.target.closest("[data-xpend]");
+    if(del){ const nt = notasExtra(xAberta); nt.pendencias = nt.pendencias.filter(c=>c.id!==del.dataset.xpend);
+      xPendErro(""); save(); keepFocus(renderExtras); return; }
+    const id = e.target.id;
+    if(id==="xMontar"){ montarParecerExtra(); return; }
+    if(id==="xAddPendencia"){ addPendencia(); return; }
+    if(id==="xEnviar"){ copiarParecerExtra(); return; }
+    if(id==="xCopiarComando"){
+      const x = aExtraPorId(xAberta); if(!x) return;
+      copy(comandoExtra(x), {title:"Comando para o Claude Code", done:"Comando copiado. Cole no Claude Code, na pasta do projeto."});
+      return;
+    }
+    if(id==="xColarPreparo"){
+      const x = aExtraPorId(xAberta); if(!x) return;
+      askCode(`Colar o preparo da redação extra`, "Cole o bloco JSON que a skill /preparar-encontro devolveu para esta redação. Pode colar a resposta inteira: o bloco é achado dentro dela.", text=>{
+        const r = decodePreparo(text); if(r.err) return r.err;
+        const d = obj(r.data);
+        if(d.extra==null) return `Este preparo é da semana ${Number(d.semana)||"?"}, não desta redação extra`;
+        if(d.extra!==x.id) return `Este preparo é de outra redação extra${temaDaExtra(d.extra)?` («${temaDaExtra(d.extra)}»)`:""}.`;
+        const p = normalizePreparoExtra(d, x.id);
+        if(!p) return "Esse preparo não tem a forma esperada (versão 1, a semana da redação e a ficha).";
+        const k = aplicarPreparoExtra(x.id, p); save(); render();
+        toast(`Preparo da redação extra colado${k?` · ${k} campo${k===1?"":"s"} na ficha`:""}${p.parecer?" · parecer pronto":""}`);
+        return null;
+      });
+      return;
+    }
+  });
+  document.getElementById("cExtras").addEventListener("change", e=>{
+    if(e.target.id!=="xFoco") return;
+    const nt = notasExtra(xAberta);
+    nt.foco = CS.includes(e.target.value) ? e.target.value : null;
+    xErro(""); save(); renderExtras();
+  });
   // A redação é o card mais alto do painel e chega vazia até ele importar. Vazia, o card fica recolhido e a
   // linha de resumo diz o que falta — no celular ela vem depois do roteiro e do registro, e meia tela de
   // textarea em branco antes deles seria o pior começo de domingo. Só no render da semana, nunca em
@@ -2662,23 +3763,20 @@
     }
     // Um preparo que chegou por backup sem ter sido aplicado (estado de outra máquina): aplica agora.
     if(w.prep && !w.pre.prep){ aplicarPreparo(current, w.prep); save(); }
-    document.querySelectorAll("[data-f]").forEach(inp=>{ inp.value=w.f[inp.dataset.f]??""; if(inp.readOnly) return; inp.oninput=()=>{
-      let v=inp.value;
-      if(CS.includes(inp.dataset.f)){
-        if(v!==""){ const nv=Number(v); if(!Number.isFinite(nv)){ v=""; } else { v=Math.min(200,Math.max(0,Math.round(nv))); inp.value=v; } }
-        w.f[inp.dataset.f]= v===""?"":String(v);
-        const cs=CS.map(c=>w.f[c]); w.f.nota = cs.every(x=>x!==undefined&&x!=="") ? String(cs.reduce((a,b)=>a+Number(b),0)) : "";
-        const t=document.querySelector('[data-f="nota"]'); if(t) t.value=w.f.nota;
-        save(); renderChart(); return;
-      }
-      const wasClosed = !!(w.f.forca&&w.f.forca.trim()&&w.f.ajuste&&w.f.ajuste.trim());
-      w.f[inp.dataset.f]=v; save(); if(["forca","ajuste","notas"].includes(inp.dataset.f)) renderTabs();
-      if(["percebeu","notas"].includes(inp.dataset.f)) renderPassos();
-      if(!wasClosed && w.f.forca&&w.f.forca.trim()&&w.f.ajuste&&w.f.ajuste.trim() && !closedNoted.has(current)){ closedNoted.add(current); toastHTML(`Fechamento da semana ${current} pronto: <b>uma força, um ajuste</b>. É o que fica para a semana.`); } }; });
+    // A ficha da semana é a MESMA ficha da redação extra sobre outro dono (ADR-015 §2): a ligação dos
+    // campos é bindFicha(), e a raiz é #painelSemana — fora dela mora a ficha da extra, que escreve nas
+    // anotações dela e não nesta semana.
+    bindFicha(document.getElementById("painelSemana"), w, {
+      antes: ()=>!!(w.f.forca&&w.f.forca.trim()&&w.f.ajuste&&w.f.ajuste.trim()),
+      depois: (campo, fechadoAntes)=>{
+        if(CS.includes(campo)){ renderChart(); return; }
+        if(campo==="elems"){ keepFocus(bindForm); return; }
+        if(["forca","ajuste","notas"].includes(campo)) renderTabs();
+        if(["percebeu","notas"].includes(campo)) renderPassos();
+        if(!fechadoAntes && w.f.forca&&w.f.forca.trim()&&w.f.ajuste&&w.f.ajuste.trim() && !closedNoted.has(current)){ closedNoted.add(current); toastHTML(`Fechamento da semana ${current} pronto: <b>uma força, um ajuste</b>. É o que fica para a semana.`); }
+      }});
     const red=document.getElementById("redacao"); red.value=w.redacao||""; grow(red); red.oninput=()=>{ w.redacao=red.value; save(); grow(red); redFit(); renderPassos(); };
     const ai=document.getElementById("aiResp"); ai.value=w.ai||""; ai.oninput=()=>{ w.ai=ai.value; save(); };
-    document.getElementById("elems").innerHTML=ELEMS.map(([id,l])=>`<label class="${w.elems[id]?'on':''}"><input type="checkbox" data-e="${id}" ${w.elems[id]?'checked':''}>${l}</label>`).join("");
-    document.querySelectorAll("[data-e]").forEach(cb=>cb.onchange=()=>{ w.elems[cb.dataset.e]=cb.checked; save(); keepFocus(bindForm); });
     document.getElementById("bchecks").innerHTML=BCHECKS.map(([id,l])=>`<label class="${w.bchecks[id]?'on':''}"><input type="checkbox" data-b="${id}" ${w.bchecks[id]?'checked':''}>${l}</label>`).join("");
     document.querySelectorAll("[data-b]").forEach(cb=>cb.onchange=()=>{ w.bchecks[cb.dataset.b]=cb.checked; save(); keepFocus(bindForm); renderPassos(); });
     document.getElementById("aspects").innerHTML=ASPECTS.map(([id,l])=>`<label class="${state.aspects.includes(id)?'on':''}"><input type="checkbox" data-a="${id}" ${state.aspects.includes(id)?'checked':''}>${l}</label>`).join("");
@@ -2722,16 +3820,41 @@
     const have=pts.filter(p=>p.v!==null);
     const best = have.length>1 ? have.reduce((a,p)=>p.v>a.v?p:a, have[0]) : null;
     if(have.length){ h+=`<polyline fill="none" style="stroke:var(--blue)" stroke-width="2.5" points="${have.map(p=>`${x(p.n-1)},${y(p.v)}`).join(" ")}"/>`; have.forEach(p=>{ const top = best && p===best && have.filter(q=>q.v===best.v).length===1; h+=`<circle cx="${x(p.n-1)}" cy="${y(p.v)}" r="5" style="fill:var(--blue)${top?';stroke:var(--gold);stroke-width:3':''}"/><text x="${x(p.n-1)}" y="${y(p.v)-10}" font-size="12" text-anchor="middle" style="fill:var(--ink)" font-weight="700">${p.v}${top?' <tspan style="fill:var(--gold-ink)" font-weight="600">melhor</tspan>':''}</text>`; }); }
+    // As extras corrigidas (US-037): círculo VAZADO na semana em que ela conta, FORA da polilinha — a
+    // curva é da redação da semana, e ligar uma extra nela faria duas redações parecerem uma evolução.
+    // Três na mesma semana não se cobrem: 6px por extra, alternando os lados a partir do ponto da semana.
+    // A que tem parecer com nota incompleta não é desenhada (não há onde pôr o ponto) e vira uma linha
+    // no card: o pai precisa saber que ela existe (US-037 EC-2).
+    const exs = [], semNota = [];
+    WEEKS.filter(m=>!m.final).forEach(m=>{
+      let k = 0;
+      aExtras().filter(z=>z.semana===m.n).sort((a,b)=>(a.at||0)-(b.at||0)).forEach(z=>{
+        const vm = aFichaDe({extra:z.id}), pz = vm && (vm.parecer || vm.parecerAuto);
+        if(!pz) return;
+        if(pz.nota.total===null){ semNota.push(z); return; }
+        exs.push({n:m.n, v:Math.min(1000, Math.max(0, pz.nota.total)), tema:z.tema, p:pz, dx:((k%2)?-1:1)*6*(Math.floor(k/2)+1)});
+        k++;
+      });
+    });
+    exs.forEach(e=>{
+      const cx = x(e.n-1)+e.dx, cy = y(e.v);
+      const notas = CS.map(c=>`${c.toUpperCase()} ${e.p.nota[c]===null?"-":e.p.nota[c]}`).join(" ");
+      h+=`<circle cx="${cx}" cy="${cy}" r="5" stroke-width="2" style="fill:var(--surface);stroke:var(--primaria)"><title>extra · ${esc(e.tema)} · ${notas}</title></circle>`
+        + `<text x="${cx}" y="${cy+17}" font-size="10" text-anchor="middle" style="fill:var(--muted)">extra</text>`;
+    });
     pts.forEach(p=>{ h+=`<text x="${x(p.n-1)}" y="${H-12}" font-size="12" text-anchor="middle" style="fill:var(--muted)">${compact?"S"+p.n:"Semana "+p.n}</text>`; });
     if(!have.length) h+=`<text x="${(L+W-R)/2}" y="${(T+H-B)/2}" font-size="13" text-anchor="middle" style="fill:var(--muted)">${compact?"Nenhuma nota lançada ainda.":"Nenhuma nota lançada ainda. A curva aparece a partir da primeira ficha."}</text>`;
     svg.innerHTML=h;
-    svg.setAttribute("aria-label", have.length ? `Notas por semana: ${have.map(p=>`semana ${p.n} ${p.v}`).join(", ")}` : "Notas por semana: nenhuma nota lançada ainda");
+    svg.setAttribute("aria-label", (have.length ? `Notas por semana: ${have.map(p=>`semana ${p.n} ${p.v}`).join(", ")}` : "Notas por semana: nenhuma nota lançada ainda")
+      + (exs.length ? `; redações extras corrigidas: ${exs.map(e=>`semana ${e.n} ${e.v}`).join(", ")}` : ""));
     const first=have[0], last=have[have.length-1];
     const comp=CS.map(c=>{ const vals=WEEKS.filter(m=>!m.final).map(m=>scoreOf(m.n,c)).filter(v=>v!=="").map(Number); return {c,v:vals.length?vals[vals.length-1]:null,min:vals.length?Math.min(...vals):null}; });
     const weak = have.length>=2 ? comp.filter(k=>k.v!==null&&k.v===k.min&&k.v<160).sort((a,b)=>a.v-b.v)[0] : null;
     const parts=comp.filter(k=>k.v!==null).map(k=>`${k.c.toUpperCase()} ${k.v}${weak&&k===weak?" (ponto fraco)":""}`);
     const delta=first&&last&&first!==last?` · ${last.v-first.v>0?"+":""}${last.v-first.v} da semana ${first.n} para a ${last.n}`:"";
-    document.getElementById("evoLine").textContent = parts.length ? `Última nota por competência: ${parts.join(" · ")}${delta}` : "";
+    const semX = semNota.length ? `${semNota.length} redaç${semNota.length===1?"ão extra":"ões extras"} sem nota completa` : "";
+    const base = parts.length ? `Última nota por competência: ${parts.join(" · ")}${delta}` : "";
+    document.getElementById("evoLine").textContent = [base, semX].filter(Boolean).join(" · ");
   }
 
   // ---- prompts
@@ -2747,10 +3870,28 @@
     const b=apresentada(aw); if(!b) return {};
     const out={}; BRIEF_FIELDS.forEach(([k])=>{ out[k]=b[k]; }); return out;
   }
+  // As extras JÁ CORRIGIDAS da semana, como contexto de LEITURA do preparo semanal (ADR-009 §4, BR-28):
+  // a nota, o ajuste e os tropeços de C1 por tipo. Nunca o texto delas — dobraria o custo e o tempo do
+  // preparo —, e nunca de outra semana, que o validarEntrada recusa. Vale o parecer do pai quando
+  // existe, senão o automático: é a mesma régua de qual parecer a ficha mostra (BR-12).
+  // Recalculado a cada cópia do comando: a extra corrigida depois de o comando ter saído entra na
+  // próxima (US-044 EC-2). Parecer sem competência de ajuste fica fora: o validador o recusaria, e o
+  // comando não pode nascer inválido por causa de um documento estragado no caminho.
+  function extrasPreparo(n){
+    return aExtras().filter(x=>x.semana===n).sort((a,b)=>(a.at||0)-(b.at||0)).map(x=>{
+      const vm = aFichaDe({extra:x.id}), p = vm && (vm.parecer || vm.parecerAuto);
+      if(!p || !CS.includes(p.ajuste.comp)) return null;
+      const nota = {}; CS.forEach(c=>{ nota[c] = p.nota[c]; });
+      return {id:x.id, semana:x.semana, tema:x.tema, nota,
+        ajuste:{comp:p.ajuste.comp, texto:p.ajuste.texto},
+        tropecos:(p.tropecos||[]).map(t=>({tipo:t.tipo, n:(t.casos||[]).length})),
+        fonte:p.fonte.correcao};
+    }).filter(Boolean);
+  }
   function entradaPreparo(n){
     const m=WEEKS[n-1], al=aluno(), d=al.dados||{}, aw=aWeek(n)||{}, c=d.contrato||{}, sched=c.sched||{};
     const grade=r=>Array.from({length:7},(_,i)=>str(sched[r+"-"+i]));
-    const pagos=aPagos(n), total=aTotal(), prox=RANKS.find(x=>x[0]>total);
+    const pagos=aPagos(n), total=aTotal(), prox=RANKS.find(x=>x[0]>total), xs=extrasPreparo(n);
     const anteriores={};
     WEEKS.filter(x=>x.n<n).forEach(x=>{ const f=(al.weeks[x.n]||{}).f||{}; if(!(f.nota||CS.some(k=>f[k])||f.forca||f.ajuste)) return;
       const t=(aWeek(x.n)||{}).tasks||{}; anteriores[x.n]={nota:str(f.nota),c1:str(f.c1),c2:str(f.c2),c3:str(f.c3),c4:str(f.c4),c5:str(f.c5),forca:str(f.forca),ajuste:str(f.ajuste),paragrafo:str(f.paragrafo),rew:!!t.rew}; });
@@ -2765,8 +3906,14 @@
       estudo:aBlocos(n).map(e=>({mat:str(e.mat), materia:aMatLabel(e), outra:str(e.outra), conteudo:str(e.conteudo), min:Number.isInteger(e.min)?e.min:null, dia:Number.isInteger(e.dia)?e.dia:null, legado:!!e.legado, pago:pagos.has(e.id)})),
       repertorios:{ semana:aRepList(n).map(r=>({nome:str(r.nome), oque:str(r.oque), frase:str(r.frase), temas:str(r.temas)})), total:((d.bank)||[]).length },
       contrato:{ encontro:str(c.encontro), encontroDia:str(c.encontroDia), encontroHora:str(c.encontroHora), entrega:str(c.entrega), entregaDia:str(c.entregaDia), plataforma:str(c.plataforma), jogoHoras:str(c.jogoHoras), jogoDepois:str(c.jogoDepois), assPai:!!str(c.assPai).trim(), grade:{estudo:grade("Estudo"), noticia:grade("Notícia"), redacao:grade("Redação")} },
-      xp:{ semana:aWeekXP(n), total, maximo:620, patente:rankFor(total), proxima:prox?{nome:prox[1], faltam:prox[0]-total}:null, anterior:Number.isFinite(al.xpAnterior)?al.xpAnterior:null },
-      anteriores };
+      // 720 e não 620 desde as redações extras: duas por semana a 50 XP entram em aWeekXP(), e o
+      // máximo que o plano (§5) declara subiu com elas. O validarEntrada aceita os dois números por
+      // causa do painel de uma versão anterior, que ainda manda 620 — o daqui manda o de agora.
+      xp:{ semana:aWeekXP(n), total, maximo:720, patente:rankFor(total), proxima:prox?{nome:prox[1], faltam:prox[0]-total}:null, anterior:Number.isFinite(al.xpAnterior)?al.xpAnterior:null },
+      anteriores,
+      // Semana sem extra corrigida não leva a chave: o validarEntrada trata ausente como vazio, e o
+      // comando de uma missão sem extras continua sendo o de sempre, caractere a caractere.
+      ...(xs.length ? {extras:xs} : {}) };
   }
   function buildPrompt(){
     const m=WEEKS[current-1], w=wk(current), t=document.getElementById("ptype").value, extra=document.getElementById("pextra").value.trim();
@@ -2777,7 +3924,12 @@
     // só o que ela não tem — a semana, o tema (obrigatório na 7, que é surpresa) e a redação.
     if(t==="reserva") return `/corrigir-redacao ${current}\nTema: ${m.tema}\n\n${w.redacao?w.redacao:"[COLE A REDAÇÃO AQUI]"}`;
     // Sem cerca de código em volta do JSON: a redação pode ter crases, e a skill lê do primeiro { ao último }.
-    if(t==="preparar") return `/preparar-encontro ${current}\n${JSON.stringify(entradaPreparo(current))}`;
+    // Com o card das extras aberto numa delas, "Preparar o encontro" é o comando DELA: é a redação que
+    // está na tela, e a entrada reduzida é a que a skill espera para uma extra (US-027 AC-1).
+    if(t==="preparar"){
+      const xa = xAberta && document.getElementById("cExtras").open ? aExtraPorId(xAberta) : null;
+      return xa ? comandoExtra(xa) : `/preparar-encontro ${current}\n${JSON.stringify(entradaPreparo(current))}`;
+    }
     if(t==="corrigir"){
       const asp=ASPECTS.filter(a=>state.aspects.includes(a[0])).map(a=>"- "+a[1]).join("\n");
       p=`${ctx}\n\nAvalie a redação abaixo segundo a matriz de referência do ENEM (competências C1 a C5, cada uma de 0 a 200). Avalie apenas os aspectos marcados:\n${asp||"- avaliação geral"}\n\nFormato da resposta:\n1. Para cada aspecto marcado, 2 a 4 linhas com exemplos citados do texto.\n2. UMA força principal (uma frase).\n3. UM ajuste principal para a próxima redação (uma frase), coerente com o foco da semana.\n4. Se eu marquei nota estimada: tabela C1–C5 e total, com uma justificativa curta por competência.\nNão reescreva a redação inteira. Não liste mais de um ajuste principal.${red}`;
@@ -2820,6 +3972,10 @@
   });
   document.getElementById("colarPreparo").addEventListener("click",()=>askCode(`Colar o preparo da semana ${current}`, "Cole o bloco JSON que a skill /preparar-encontro devolveu. Pode colar a resposta inteira: o bloco é achado dentro dela.", text=>{
     const r = decodePreparo(text); if(r.err) return r.err;
+    // Um preparo que traz `extra` é de uma redação extra e tem card próprio (ADR-015 §3): colado aqui
+    // ele entraria na semana inteira — ficha, roteiro e parecer — com a leitura de outra redação.
+    const dx = obj(r.data).extra;
+    if(dx!=null) return `Este preparo é da redação extra «${temaDaExtra(str(dx)) || str(obj(obj(r.data).parecer).tema) || str(dx)}»`;
     const p = normalizePreparo(r.data); if(!p) return "Esse preparo não tem a forma esperada (versão 1, semana de 1 a 7 e a ficha).";
     if(p.semana!==current) return `Esse preparo é da semana ${p.semana}; a aba aberta é a semana ${current}. Troque de aba ou cole o preparo certo.`;
     const k = aplicarPreparo(current, p); save(); render();
@@ -3321,8 +4477,64 @@
     document.getElementById("contaEsperando").innerHTML = esperando.map(p=>`<li><b>${esc(p.peer.name || p.peer.email)}</b><span class="muted">${p.awaiting==="guardian" ? "aguardando o aviso ao responsável" : "aguardando aceitar"}</span></li>`).join("");
     const al = aluno(), conectadoAqui = !!(s.session && conectado() && al.conta);
     document.getElementById("contaConectado").hidden = !conectadoAqui;
-    document.getElementById("contaConectadoTxt").innerHTML = conectadoAqui ? `Conectado a <b>${esc(nomeAluno())}</b> · ${esc(al.perfil.email)}` : "";
+    // Os contadores da correção automática vêm junto do nome: é a linha que ele lê para saber se a
+    // chave está trabalhando — e, quando algo falhou, qual foi o motivo (US-019 AC-2, US-020 AC-2).
+    document.getElementById("contaConectadoTxt").innerHTML = conectadoAqui
+      ? `Conectado a <b>${esc(nomeAluno())}</b> · ${esc(al.perfil.email)}${contagemCorrecao(al.correction).map(t=>` · ${esc(t)}`).join("")}` : "";
     document.getElementById("contaConvites").innerHTML = convites.map(v=>`<li><code>${esc(v.code)}</code><span class="muted">vale até ${dataCurta(v.expiresAt)}</span><button class="quiet" data-cancelar="${esc(v.code)}">Cancelar convite</button></li>`).join("");
+    renderCorrecao();
+  }
+  // ---------- a correção automática: a chave, o interruptor e o teto (US-014, US-015, US-024)
+  // A chave nunca volta do servidor: o que desce é a DATA em que ela foi guardada. A última resposta
+  // da ponte vale sobre o retrato, porque ela é mais nova que a última descida; sem nenhuma das duas,
+  // "sem chave" — é o que o diálogo diz antes do primeiro cadastro.
+  let chaveEm = null;
+  function keyAtDaConta(){
+    if(chaveEm!==null) return chaveEm;
+    const c = Object.values(obj(state.alunos)).map(a=>a.correction).find(x=>x && x.keyAt);
+    return c ? c.keyAt : 0;
+  }
+  // Os avisos por e-mail são da CONTA, e descem dentro do estado de cada aluno: vale o do aluno da
+  // tela e, sem ele, o de qualquer aluno que já tenha descido.
+  function correcaoDaConta(){
+    const c = aluno().correction;
+    if(c) return c;
+    return Object.values(obj(state.alunos)).map(a=>a.correction).find(Boolean) || null;
+  }
+  // As duas linhas de contagem, na ordem em que ele as lê: o que a chave fez, e o que falhou. Três
+  // falhas seguidas trocam a segunda pela frase que nomeia a causa provável — e nada é desligado
+  // sozinho (US-020 EC-2).
+  function contagemCorrecao(c){
+    if(!c) return [];
+    const fora = [];
+    if(c.used || c.total) fora.push(`${c.used} ${c.used===1?"correção automática":"correções automáticas"} esta semana · ${c.total} na missão`);
+    const fs = c.failures || [];
+    if(fs.length >= 3) fora.push("A correção automática está falhando: confira a chave");
+    else if(fs.length){
+      const f = fs[0], motivo = MOTIVOS[str(f.error)] || str(f.error) || "sem motivo";
+      fora.push(`${fs.length} ${fs.length===1?"correção falhou":"correções falharam"} em ${dmDe(f.at)} (${motivo})`);
+    }
+    return fora;
+  }
+  function renderCorrecao(){
+    const bloco = document.getElementById("contaCorrecao");
+    bloco.hidden = !(ONLINE && syncSt && syncSt.session);
+    if(bloco.hidden) return;
+    const keyAt = keyAtDaConta();
+    document.getElementById("chaveStat").textContent = keyAt ? `chave cadastrada em ${dmDe(keyAt)}` : "sem chave";
+    document.getElementById("removerChave").hidden = !keyAt;
+    // A linha do aluno é do aluno DA TELA, e só enquanto a conexão com ele está de pé (US-015 EC-4).
+    const linha = document.getElementById("correcaoAluno"), mostra = alunoConectado();
+    linha.hidden = !mostra;
+    const c = aluno().correction;
+    if(mostra){
+      const on = document.getElementById("correcaoOn"), teto = document.getElementById("correcaoTeto");
+      if(document.activeElement!==on) on.checked = !!(c && c.enabled);
+      if(document.activeElement!==teto) teto.value = String(c ? c.cap : CAP_PADRAO);
+    }
+    const cc = correcaoDaConta(), mail = document.getElementById("avisosEmail");
+    if(document.activeElement!==mail) mail.checked = cc ? cc.emails : true;
+    document.getElementById("avisosEmailOff").hidden = !(cc && cc.emailsOffReason==="bounce");
   }
   // O aluno conectado é uma entrada do mapa, pela regra de adota(): a dele, se o painel já o conhece.
   // `conta` guarda o id da conta dele, e ele passa a ser o aluno da tela.
@@ -3461,6 +4673,9 @@
     }
     if(linha.dataset.frase!==frase){ linha.dataset.frase = frase; linha.innerHTML = frase; }
     linha.hidden = !frase;
+    // A correção automática acompanha o retrato: a conexão que acaba esconde a linha do aluno sem
+    // esperar uma descida — depois dela não vem nenhuma.
+    renderCorrecao();
     const aviso = document.getElementById("pedidosAviso");
     const lista = sessao ? pedidos : [];
     aviso.hidden = !lista.length;
@@ -3478,6 +4693,83 @@
     document.getElementById("entrarConta").addEventListener("click", abrirConta);
     document.getElementById("abreConta").addEventListener("click", abrirConta);
     document.getElementById("pedidosAviso").addEventListener("click", e=>{ if(e.target.closest("#verPedido")) abrirConta(); });
+
+    // ---------- a chave, o interruptor, o teto e os avisos (US-014, US-015, US-024)
+    // Nada disto entra na fila: uma chave que o fornecedor não aceitou, ou um interruptor que não
+    // mudou, não é coisa para ficar esperando a rede sem ele saber (ADR-012). Sem rede os quatro
+    // recusam com o texto e o controle volta ao valor de antes — o que vale é o do servidor.
+    const SEM_REDE_CHAVE = "Para cadastrar a chave é preciso rede";
+    const SEM_REDE_MUDAR = "Para mudar é preciso rede";
+    const erroChave = (r, semRede) => {
+      const e = r && r.error, m = r && r.message;
+      if(e==="offline") return semRede;
+      if(e==="key_rejected") return "A chave não foi aceita pelo fornecedor";
+      if(m==="provider") return "O fornecedor do modelo não respondeu agora. Tente de novo em instantes.";
+      if(e==="no_key") return "Cadastre a chave antes de ligar a correção automática";
+      if(e==="needs_ack") return "Confirme o aviso para ligar a correção automática";
+      return contaMsg(r, "entrar");
+    };
+    document.getElementById("salvarChave").addEventListener("click", async e=>{
+      const campo = document.getElementById("chaveApi"), chave = str(campo.value).trim();
+      if(!chave){ contaErro("Digite a chave do fornecedor do modelo"); campo.focus(); return; }
+      const b = e.currentTarget; b.disabled = true;
+      const r = await SYNC.setApiKey(chave);
+      b.disabled = false;
+      if(!r || !r.ok){ contaErro(erroChave(r, SEM_REDE_CHAVE)); return; }
+      contaErro("");
+      chaveEm = Number(r.keyAt) || Date.now();
+      campo.value = "";
+      renderCorrecao();
+      toast("Chave aceita");
+    });
+    // Tirar a chave desliga a correção automática de TODO aluno dele na hora (US-014 AC-3): a
+    // pergunta nomeia cada um, porque quem apaga precisa saber quantas fichas isto alcança.
+    document.getElementById("removerChave").addEventListener("click", async e=>{
+      const nomes = Object.values(obj(state.alunos)).filter(a=>a.conta).map(a=>a.perfil.nome || NOME_PADRAO);
+      const quem = nomes.length ? nomes.join(", ") : "nenhum aluno conectado agora";
+      if(!confirm(`Remover a chave do fornecedor do modelo?\n\nA correção automática para ${quem} para de funcionar na hora. A correção que já está rodando termina.\n\nVocê pode cadastrar outra chave depois.`)) return;
+      const b = e.currentTarget; b.disabled = true;
+      const r = await SYNC.removeApiKey();
+      b.disabled = false;
+      if(!r || !r.ok){ contaErro(erroChave(r, SEM_REDE_MUDAR)); return; }
+      contaErro("");
+      chaveEm = 0;
+      renderCorrecao();
+      toast("Chave removida");
+    });
+    // O interruptor por aluno. Ligar pede o reconhecimento de uma linha, que é o que o servidor guarda
+    // como `ack` (BR-10): cancelar não muda nada, nem aqui nem lá.
+    const AVISO_ACK = nome => `A folha passada a limpo de ${nome} é enviada ao fornecedor do modelo para ser corrigida.`;
+    async function mandaCorrecao(cb, opts, semRede){
+      const al = aluno();
+      if(!al.conta){ renderCorrecao(); return; }
+      const r = await SYNC.setCorrection(al.conta, opts);
+      if(!r || !r.ok){ contaErro(erroChave(r, semRede)); renderCorrecao(); return; }
+      contaErro("");
+      // O que vale é a resposta do servidor: ele pode ter aparado o teto.
+      al.correction = normCorrection(Object.assign({}, al.correction || {keyAt:keyAtDaConta(), emails:true}, {enabled:r.enabled, cap:r.cap}));
+      save(); renderCorrecao(); renderContaLista(); render();
+    }
+    document.getElementById("correcaoOn").addEventListener("change", async e=>{
+      const cb = e.currentTarget, liga = cb.checked, c = aluno().correction;
+      if(liga && !confirm(AVISO_ACK(nomeAluno()))){ cb.checked = false; return; }
+      await mandaCorrecao(cb, {enabled:liga, cap:(c ? c.cap : CAP_PADRAO), ack:true}, SEM_REDE_MUDAR);
+    });
+    document.getElementById("correcaoTeto").addEventListener("change", async e=>{
+      const campo = e.currentTarget, c = aluno().correction, cap = Number(campo.value);
+      if(!Number.isInteger(cap) || cap < 0 || cap > 20){ contaErro("Entre 0 e 20"); campo.value = String(c ? c.cap : CAP_PADRAO); return; }
+      await mandaCorrecao(campo, {enabled:!!(c && c.enabled), cap, ack:true}, SEM_REDE_MUDAR);
+    });
+    // Os avisos por e-mail são da conta inteira (BR-17). Religar limpa o motivo de terem caído: ele
+    // trocou o endereço, ou consertou a caixa, e quem sabe disso é ele.
+    document.getElementById("avisosEmail").addEventListener("change", async e=>{
+      const cb = e.currentTarget, on = cb.checked;
+      const r = await SYNC.setMailNotices(on);
+      if(!r || !r.ok){ contaErro(erroChave(r, SEM_REDE_MUDAR)); renderCorrecao(); return; }
+      contaErro("");
+      Object.values(obj(state.alunos)).forEach(a=>{ if(a.correction){ a.correction.emails = !!r.emails; if(r.emails) a.correction.emailsOffReason = null; } });
+      save(); renderCorrecao();
+    });
     // Excluir a conta (BR-41, US-030): o que sai do servidor e o que fica, e um código novo no e-mail.
     document.getElementById("excluirConta").addEventListener("click", async ()=>{
       const st = syncSt || {}; if(!st.session) return;
@@ -3578,16 +4870,27 @@
       || Object.values(obj(w.elems)).some(Boolean) || Object.values(obj(w.bchecks)).some(Boolean) || Object.values(obj(w.pre)).some(Boolean) || !!w.entregaVista;
   }
   function partesNotas(s){
-    const index = {alunos:{}, alunoAtual:str(s.alunoAtual)}, notes = {};
+    const index = {alunos:{}, alunoAtual:str(s.alunoAtual)}, notes = {}, extraNotes = {};
     Object.keys(obj(s.alunos)).forEach(k=>{
       const a = s.alunos[k], semanas = Object.keys(obj(a.weeks)).filter(n=>semanaComConteudo(a.weeks[n]));
-      if(!str(a.perfil && a.perfil.email).trim() && !a.conta && !a.dados && !semanas.length) return;
+      const extras = Object.keys(obj(a.extras));
+      if(!str(a.perfil && a.perfil.email).trim() && !a.conta && !a.dados && !semanas.length && !extras.length) return;
       index.alunos[k] = {perfil:{nome:str(a.perfil && a.perfil.nome), email:str(a.perfil && a.perfil.email)}, conta:a.conta || null};
       semanas.forEach(n=>{ (notes[k] || (notes[k] = {}))[n] = a.weeks[n]; });
+      // As anotações POR REDAÇÃO EXTRA (ADR-014 §4), uma parte por extra: o assunto é
+      // `<chave do aluno>/<id da extra>` e a semana é a da extra, que é o que o aparelho dele diz —
+      // sem o metadado dela (a extra chegou antes da parte da semana) vale a semana 1, que é onde a
+      // parte cabe sem recusa. A entrada existe desde o primeiro toque na ficha dela, e uma anotação
+      // esvaziada SOBE VAZIA: parar de mandá-la deixaria o outro aparelho com o texto de antes.
+      const meta = Array.isArray(a.dados && a.dados.extras) ? a.dados.extras : [];
+      extras.forEach(id=>{
+        const x = meta.find(e=>e && e.id===id), n = Number(x && x.semana);
+        extraNotes[`${k}/${id}`] = {[Number.isInteger(n) && n>=1 && n<=8 ? n : 1]: a.extras[id]};
+      });
     });
     // o aluno da tela só viaja se é um aluno do índice: a entrada vazia não pode ser escolhida em outro aparelho
     if(!index.alunos[index.alunoAtual]) index.alunoAtual = "";
-    return {index, notes};
+    return {index, notes, extraNotes};
   }
   // O inverso, pelo normalizeMine() de sempre: o índice diz quem está no painel — quem saiu dele saiu
   // daqui, como no fim de uma conexão — e as notas, o que foi anotado. O que é do aparelho fica: os
@@ -3612,6 +4915,14 @@
     linhas.filter(r=>r.kind==="notes").forEach(r=>{
       const e = s.alunos[str(r.subject)], n = Number(r.week);
       if(e && Number.isInteger(n) && n>=1 && n<=8 && r.body && typeof r.body==="object") e.weeks[n] = r.body;
+    });
+    // As anotações por redação extra: o assunto é `<chave do aluno>/<id>`, e a semana da parte não
+    // escolhe nada aqui — a extra já é a chave, e quem diz a semana dela é o aparelho do aluno.
+    linhas.filter(r=>r.kind==="extra_notes").forEach(r=>{
+      const [chave, id] = str(r.subject).split("/"), e = s.alunos[str(chave)];
+      if(!e || !id || !r.body || typeof r.body!=="object") return;
+      if(!e.extras || typeof e.extras!=="object") e.extras = {};
+      e.extras[id] = r.body;
     });
     return normalizeMine(s);
   }
@@ -3669,7 +4980,10 @@
     const a = state.alunos[key], sr = guessWeek(), vivo = a.conta && a.vivo ? a.vivo : null;
     const xp = vivo ? (Number(vivo.semana)===sr ? vivo.xpSemana : 0) : a.dados ? totalDe(key, ()=>aWeekXP(sr)) : 0;
     const rotulo = rotuloAtividade(vivo || {semana:sr, registros:registrosNa(a.dados, sr)}, sr);
-    return {key, nome:a.perfil.nome || NOME_PADRAO, email:a.perfil.email, xp, rotulo, quando: vivo ? vivo.ultimoEm : (a.exportadoEm || a.importadoEm), codigo:!a.conta};
+    return {key, nome:a.perfil.nome || NOME_PADRAO, email:a.perfil.email, xp, rotulo, quando: vivo ? vivo.ultimoEm : (a.exportadoEm || a.importadoEm), codigo:!a.conta,
+      // O que a correção automática fez por ele, e o que falhou: as mesmas linhas do diálogo da conta,
+      // aqui porque o cartão é onde ele olha primeiro (US-015 AC-4, US-020 AC-2).
+      correcao:contagemCorrecao(a.correction)};
   }
   function renderAlunos(){
     const wrap = document.getElementById("alunos"), el = document.getElementById("alunosChips");
@@ -3680,7 +4994,8 @@
     const dm = t => dataCurta(t).slice(0, 5);
     const chip = x => `<button type="button" data-aluno="${esc(x.key)}" aria-pressed="${x.key===state.alunoAtual}"><b>${esc(x.nome)}</b>`
       + `${homonimo(x) && x.email ? ` <span class="email">${esc(x.email)}</span>` : ""} · ${x.xp} XP nesta semana · <span class="atividade">${x.rotulo}</span>`
-      + `${x.quando ? ` · ${x.codigo ? "código de" : "último registro"} ${dm(x.quando)}` : ""}${x.codigo ? " · por código" : ""}</button>`;
+      + `${x.quando ? ` · ${x.codigo ? "código de" : "último registro"} ${dm(x.quando)}` : ""}${x.codigo ? " · por código" : ""}`
+      + x.correcao.map(t=>` · <span class="correcaoconta">${esc(t)}</span>`).join("") + `</button>`;
     const convite = (v, vencido) => `<span class="convite" data-convite="${esc(v.code)}">Convite <code>${esc(v.code)}</code> · ${vencido ? "venceu em" : "vale até"} ${dm(v.expiresAt)}`
       + `<button type="button" class="quiet" data-cancelar-convite="${esc(v.code)}">Cancelar convite</button></span>`;
     el.innerHTML = lista.map(chip).concat(convites.map(v=>convite(v, false)), expirados.map(v=>convite(v, true))).join("");
@@ -3727,20 +5042,48 @@
     const key = id ? Object.keys(state.alunos).find(k=>state.alunos[k].conta===id) : null;
     if(!key){ if(id) descidaSemDono.set(id, ev); return; }
     descidaSemDono.delete(id);
+    const al = state.alunos[key];
+    // Os pareceres das redações extras dele (os dois, `auto` e `mentor`) e o que o servidor contou da
+    // correção automática. Vêm ANTES da guarda da descida vazia: eles não dependem das partes, e uma
+    // descida que traz só eles — a chave acabou de ser cadastrada, o parecer automático acabou de
+    // voltar — tem de chegar ao cartão e à ficha (US-019 AC-1, US-020 AC-2).
+    let extra = false;
+    if(e.extraFeedback!==undefined){
+      const novo = recebidasExtras(e.extraFeedback);
+      if(JSON.stringify(novo)!==JSON.stringify(al.feedbackExtras)){ al.feedbackExtras = novo; extra = true; }
+    }
+    if(e.correction!==undefined){
+      const novo = normCorrection(e.correction);
+      if(JSON.stringify(novo)!==JSON.stringify(al.correction)){ al.correction = novo; extra = true; }
+    }
     // A primeira busca depois do aceite sai antes de ele subir qualquer coisa e chega vazia. Ela não é um
     // retrato de zero XP: tomá-la por um apagava o que o código importado mostrava e fazia a primeira
     // descida de verdade dizer o total inteiro como "desde o registro anterior"
     // (BUG-20261006-topo-conta-o-xp-inteiro-como-novo).
-    if(!(Array.isArray(e.rows) && e.rows.length) && !e.vivo) return;
-    const al = state.alunos[key];
+    if(!(Array.isArray(e.rows) && e.rows.length) && !e.vivo){
+      if(extra){ aplicandoDeFora = true; try{ render(); renderContaLista(); } finally { aplicandoDeFora = false; } save(); }
+      return;
+    }
     const antes = al.vivo ? al.vivo.xpTotal : (al.dados ? totalDe(key) : null);
-    al.dados = normalizeArthur(montaDados(Array.isArray(e.rows) ? e.rows : []));
+    // Os COMBINADOS de cada extra entram aqui, da anotação deste painel: o aparelho dele manda as
+    // marcas e não os textos (o metadado da extra é só o que o orientador pode ler, UT-971), e a regra
+    // do `normExtras()` solta a marca que não tem item — sem a lista, o ✓ que ele põe num combinado
+    // morreria na carga (IT-203). O texto é dele, que o escreveu e o mandou: nada novo chega por aqui.
+    const cru = montaDados(Array.isArray(e.rows) ? e.rows : []);
+    (cru.extras || []).forEach(x=>{
+      if(Array.isArray(x.combinados) && x.combinados.length) return;
+      const nt = obj(al.extras)[x.id];
+      x.combinados = (nt && Array.isArray(nt.pendencias) ? nt.pendencias : []).map(c=>({id:c.id, texto:c.texto}));
+    });
+    al.dados = normalizeArthur(cru);
     al.vivo = normVivo(e.vivo);
     const agora = al.vivo ? al.vivo.xpTotal : totalDe(key);
     if(antes!=null && agora!==antes) al.xpAnterior = antes;
     al.recebidoEm = tsOuNulo(e.receivedAt) || Date.now();
     aplicandoDeFora = true;
-    try{ render(); } finally { aplicandoDeFora = false; }
+    // `render()` refaz a faixa das extras, o passo do domingo, o card e o gráfico; `renderContaLista()`,
+    // os contadores do aluno conectado dentro do diálogo da conta. Sem recarregar nada (US-023 EC-1).
+    try{ render(); renderContaLista(); } finally { aplicandoDeFora = false; }
     save();
   }
 
@@ -3762,11 +5105,12 @@
 
   // Imprimir abre o que estava recolhido e devolve ao estado anterior depois.
   let printOpened = [];
-  document.querySelectorAll("[data-print]").forEach(b=>b.addEventListener("click",e=>{
-    e.preventDefault(); document.body.dataset.print=b.dataset.print;
+  function imprime(modo){
+    document.body.dataset.print = modo;
     printOpened = [...document.querySelectorAll("details:not([open])")]; printOpened.forEach(d=>{ d.open = true; });
     window.print();
-  }));
+  }
+  document.querySelectorAll("[data-print]").forEach(b=>b.addEventListener("click",e=>{ e.preventDefault(); imprime(b.dataset.print); }));
   // Coluna fixa: 14px do topo se couber na janela; senão, o deslocamento que deixa o fim da coluna visível.
   (function(){ const col=document.getElementById("colArthur"); if(!col) return;
     const med = n => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(n)) || 0;
@@ -3888,7 +5232,7 @@
   // Preenche os <span data-nome> do markup estático com o nome do aluno visível. Roda a cada render e
   // também depois de o diálogo de ajuda montar o corpo, que tem spans próprios.
   function renderNome(){ document.querySelectorAll("[data-nome]").forEach(el=>{ el.textContent = nomeAluno(); }); }
-  function render(){ renderNome(); renderTop(); renderAlunos(); renderTabs(); renderArthur(); renderArthurBrief(); renderPassos(); renderScript(); renderParecer(); renderFinal(); bindForm(); renderRed(); renderChart(); renderContrato(); renderBanco(); renderEstudoBanco(); }
+  function render(){ renderNome(); renderTop(); renderAlunos(); renderTabs(); renderArthur(); renderArthurBrief(); renderAviso(); renderExtras(); renderPassos(); renderScript(); renderParecer(); renderFinal(); bindForm(); renderRed(); renderChart(); renderContrato(); renderBanco(); renderEstudoBanco(); }
   render();
   // O portão do painel hospedado. Sem sessão, o <main> fica escondido e só o diálogo #conta aparece,
   // sem Fechar e sem Esc: não há painel atrás dele. Com sessão, as anotações deste navegador entram e o
