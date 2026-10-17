@@ -1204,7 +1204,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 235 · 16/10/2026</p></div>
+  <div class="in"><p class="versao">versão 245 · 17/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -1586,7 +1586,25 @@
   let syncSt = ONLINE ? SYNC.status() : null;
   // O fim de uma conexão e o parecer que estava na fila para ela chegam juntos: o toast diz os dois, porque
   // um toast novo apaga o anterior (BUG-20261006-parecer-na-fila-some-sem-aviso).
-  let ultimoFim = null, ultimoDescarte = null;
+  // `temasAoEncerrar` é o retrato id→tema tirado no clique de "Desfazer conexão", para o aviso do
+  // descarte poder nomear a redação depois de o aluno já ter saído do painel (ver o clique).
+  let ultimoFim = null, ultimoDescarte = null, temasAoEncerrar = null;
+  // QUAL parecer se perdeu, dito pela redação e não pelo campo. O descarte de uma extra vem
+  // identificado pelo ID dela e NÃO traz `week` — é o `descarte()` do `sync.mjs`, e é de propósito:
+  // uma extra não se nomeia por semana. Ler `p.week` ali punha "o parecer da semana ?" na tela, e a
+  // frase existe justamente para ele saber de qual redação se trata, para poder remandar
+  // (BUG-20261016-painel-diz-semana-interrogacao-no-parecer-da-extra). Quando é ESTE painel que
+  // encerra, a entrada do aluno já saiu quando o aviso é tratado — o aviso chega depois que a chamada
+  // resolve, não dentro dela —, e aí quem nomeia é o retrato `temasAoEncerrar`, tirado no clique
+  // (BUG-20261016-painel-nao-nomeia-a-extra-do-parecer-perdido). Um id que nem o retrato conhece — o
+  // ALUNO encerrou, e nada deste painel passou pelo gesto — cai numa frase sem nome, nunca com
+  // interrogação.
+  function qualParecer(p){
+    const id = str(p && p.extra);
+    if(id){ const tema = temaDaExtra(id) || (temasAoEncerrar && temasAoEncerrar.get(id)) || ""; return tema ? `da redação extra «${tema}»` : "de uma redação extra"; }
+    const n = Math.round(Number(p && p.week));
+    return n >= 1 && n <= 8 ? `da semana ${n}` : "de uma redação";
+  }
   // O aviso dos arquivos avulsos (etapa 2, BR-45, US-033): só aberto do disco. O app de desktop também
   // abre as telas de `file:`, e por isso a guarda é APP antes do protocolo.
   document.getElementById("mudou").hidden = APP || location.protocol !== "file:";
@@ -1611,7 +1629,7 @@
     contrato:{t:"Contrato de rotina de <span data-nome></span>",b:`<p>Cópia somente leitura do contrato preenchido no painel do aluno: encontro, dia de envio, limite de jogo, recompensas por patente e a grade da semana. Se algo precisa mudar, combinem na chamada; a edição é feita lá.</p>`},
     banco:{t:"Banco de repertório de <span data-nome></span>",b:`<p>Os repertórios cadastrados, do mais recente para o mais antigo, com a semana e os temas para que servem. Meta até a prova: 10 no banco, 6 decorados. Use na semana 7 para montar o kit de prova com <span data-nome></span>.</p>`},
     estudo:{t:"Banco de estudo de <span data-nome></span>",b:`<p>Tudo o que foi registrado até aqui, agrupado por semana, da mais recente para a mais antiga — não só a semana selecionada. Cada linha traz matéria, conteúdo, dia, tempo e os textos escritos em cada bloco.</p><p>Os chips filtram por matéria e valem só enquanto a página estiver aberta. Use perto da prova para montar a revisão com <span data-nome></span>: o que foi muito visto, o que ficou de fora. “Imprimir banco de estudo” leva só este card para o papel.</p>`},
-    correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora pelo modelo, no servidor, sem esperar o domingo. Ela só existe no modo conectado, e quem a liga é você: <b>com a sua chave</b>, <b>por aluno</b> e <b>com um teto por semana</b>.</p><ul><li><b>A chave é sua.</b> Ela é guardada no servidor, cifrada, e nunca volta para esta tela: o campo é só de escrita, e o que você lê aqui é a data em que ela foi cadastrada. <b>Salvar chave</b> pergunta ao fornecedor se ela serve antes de guardar — chave recusada não é guardada em lugar nenhum. <b>Remover chave</b> desliga a correção automática de todos os seus alunos na hora; a que estiver rodando termina.</li><li><b>Por aluno, com teto.</b> Ligar pede que você reconheça uma linha: a folha passada a limpo de <span data-nome></span> é enviada ao fornecedor do modelo para ser corrigida. <b>Correções por semana</b> vai de 0 a 20 (o padrão é 2); 0 equivale a desligado, e a ficha de <span data-nome></span> diz <i>0 de 0 nesta semana</i>. O crédito volta na segunda-feira, pelo calendário da missão.</li><li><b>Só a folha passada a limpo é corrigida</b>, nunca o rascunho — é ela que um corretor leria na prova. Sem folha, a ficha de <span data-nome></span> oferece só <b>Pedir correção</b>, que vem para você.</li><li><b>Falha não custa crédito.</b> Correção que não volta, demora demais ou volta com defeito não gasta nada, e a ficha de <span data-nome></span> volta ao estado anterior. O cartão do aluno mostra as últimas falhas com o motivo curto; três seguidas trocam a linha por <i>A correção automática está falhando: confira a chave</i>, e <b>nada é desligado sozinho</b>.</li><li><b>Você recebe uma cópia</b> de todo parecer automático: ele aparece na ficha da redação, em <b>Redações extras</b>, com <i>Parecer automático</i> no cabeçalho. Montando o seu por cima e enviando, é o seu que passa a valer, e o automático fica legível atrás de um toque.</li><li><b>Avisos por e-mail:</b> cada pedido de correção de <span data-nome></span> manda um e-mail para o endereço da sua conta, sem o texto da redação. Desligando aqui, os pedidos continuam aparecendo na faixa do painel e no passo do domingo. <b>Só a recusa imediata do servidor de e-mail é detectada</b> — um endereço que recusa depois, em silêncio, continua marcado como funcionando, e nesse caso os avisos param de chegar sem que o painel saiba. Detectada a recusa, os avisos são desligados e esta linha diz isso.</li></ul><p>O que sai daqui para o fornecedor do modelo: a folha passada a limpo de <span data-nome></span>, o tema e a proposta. Nome, e-mail e o resto do painel não saem.</p>`},
+    correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora pelo modelo, no servidor, sem esperar o domingo. Ela só existe no modo conectado, e quem a liga é você: <b>com a sua chave</b>, <b>por aluno</b> e <b>com um teto por semana</b>.</p><ul><li><b>A chave é sua.</b> Ela é guardada no servidor, cifrada, e nunca volta para esta tela: o campo é só de escrita, e o que você lê aqui é a data em que ela foi cadastrada. <b>Salvar chave</b> pergunta ao fornecedor se ela serve antes de guardar — chave recusada não é guardada em lugar nenhum. <b>Remover chave</b> desliga a correção automática de todos os seus alunos na hora; a que estiver rodando termina.</li><li><b>Por aluno, com teto.</b> Ligar pede que você reconheça uma linha: a folha passada a limpo de <span data-nome></span> é enviada ao fornecedor do modelo para ser corrigida. <b>Correções por semana</b> vai de 0 a 20 (o padrão é 2); 0 equivale a desligado, e a ficha de <span data-nome></span> diz <i>0 de 0 nesta semana</i>. O crédito volta na segunda-feira, pelo calendário da missão.</li><li><b>Só a folha passada a limpo é corrigida</b>, nunca o rascunho — é ela que um corretor leria na prova. Sem folha, a ficha de <span data-nome></span> oferece só <b>Pedir correção</b>, que vem para você.</li><li><b>Falha não custa crédito.</b> Correção que não volta ou demora demais não gasta nada, e a ficha de <span data-nome></span> volta ao estado anterior. <b>A garantia é do servidor</b>, que só conta o crédito quando fecha a correção com um parecer — e o crédito de um parecer que volta numa forma que o app não entende, o que só acontece com um aparelho atrás do servidor, é devolvido ao teto da semana; uma correção devolvida sai também das duas contas do cartão do aluno. Esse cartão mostra as últimas falhas com o motivo curto; três seguidas trocam a linha por <i>A correção automática está falhando: confira a chave</i>, e <b>nada é desligado sozinho</b>.</li><li><b>Você recebe uma cópia</b> de todo parecer automático: ele aparece na ficha da redação, em <b>Redações extras</b>, com <i>Parecer automático</i> no cabeçalho. Montando o seu por cima e enviando, é o seu que passa a valer, e o automático fica legível atrás de um toque.</li><li><b>Avisos por e-mail:</b> cada pedido de correção de <span data-nome></span> manda um e-mail para o endereço da sua conta, sem o texto da redação. Desligando aqui, os pedidos continuam aparecendo na faixa do painel e no passo do domingo. <b>Só a recusa imediata do servidor de e-mail é detectada</b> — um endereço que recusa depois, em silêncio, continua marcado como funcionando, e nesse caso os avisos param de chegar sem que o painel saiba. Detectada a recusa, os avisos são desligados e esta linha diz isso.</li></ul><p>O que sai daqui para o fornecedor do modelo: a folha passada a limpo de <span data-nome></span>, o tema e a proposta. Nome, e-mail e o resto do painel não saem.</p>`},
     extras:{t:"Redações extras",b:`<p>As redações que <span data-nome></span> escreve por conta própria, fora da redação da semana. Cada uma conta na semana em que foi registrada e vale 50 XP, pelas duas primeiras de cada semana.</p><ul><li><b>Você só vê o que foi mandado.</b> Enquanto a correção não é pedida, a redação não aparece aqui — nem o rascunho, nem a folha passada a limpo. Pedida a correção, o que você lê é a versão daquele instante: o texto pode ter mudado depois, e isso não muda o que está nesta tela. Apagada no aparelho de <span data-nome></span>, a linha diz <b>apagada pelo aluno</b> e o texto entregue continua legível.</li><li><b>Sem folha passada a limpo</b> a entrega vem com o rascunho, dito como rascunho, e o parecer sai com <i>lido do rascunho</i>.</li><li><b>Corrigir à mão:</b> preencha a ficha — as cinco notas, uma força, um ajuste — e toque em <b>Montar o parecer</b>. Sai um parecer na mesma forma dos outros três, com o glossário das competências, o ajuste e o que estudar. Montar de novo substitui o anterior.</li><li><b>O ajuste é um só</b>, na competência do foco da semana. Quando o seu texto fala de outra competência, o painel pergunta se o foco desta redação não é outro: <b>Foco desta redação</b> muda só esta.</li><li><b>Com a skill:</b> <b>Copiar o comando</b> leva a proposta e o texto para o Claude Code — a skill não precisa do plano para uma extra — e <b>Colar o preparo</b> traz a ficha e o parecer de volta. O preparo de uma extra não entra na semana, e o da semana não entra aqui.</li><li><b>Combinado com <span data-nome></span>:</b> o que vocês acertarem na chamada. Até 200 caracteres por item; viaja na próxima entrega do parecer. Remover um antes de mandar o tira da lista do outro lado.</li><li><b>O que ficou de fazer</b> mostra as marcas do último código ou da última descida. Você lê e não muda: marcar é gesto de quem escreveu.</li></ul>`},
     evolucao:{t:"Evolução",b:`<p>Nota total por semana, usando a nota da ficha (ou, se você não lançou, a registrada no painel do aluno). Abaixo, a última nota de cada competência. A partir da segunda semana com nota, “ponto fraco” marca a mais baixa delas, quando está abaixo de 160 e no menor valor que já teve. Use o prompt “Analisar a evolução” quando tiver três ou mais semanas lançadas.</p>`},
     conta:{t:"Conta e convites",b:`<p>A conta é opcional. Sem conta, o painel funciona como sempre: você importa o código que o aluno manda. A senha deste painel não muda e não tem relação com a conta.</p><ol><li><b>Entrar:</b> você digita o seu e-mail e recebe um código de 6 dígitos, que vale 10 minutos. Se não chegar, olhe a pasta de spam ou use <b>Corrigir e-mail</b>. Neste computador você entra uma vez só.</li><li><b>Convidar aluno:</b> gera um código de 8 letras e números, que vale 7 dias e serve uma vez. <b>Copiar</b> põe só o código na área de transferência; passe ao aluno por onde quiser. <b>Cancelar convite</b> o desativa na hora.</li><li><b>Aceitar:</b> o aluno digita o código, vê o seu nome e o que você vai ver, e pede a conexão. O pedido aparece aqui com o nome e o e-mail do aluno, com <b>Aceitar</b> e <b>Recusar</b>. Nada chega antes do aceite.</li></ol><p><b>O aluno também convida:</b> se o aluno passar um código gerado no app, digite em <b>Recebeu um código de um aluno?</b>. Você vê o nome e o e-mail e pede a conexão; o aluno lê o que você vai ver e aceita.</p><p><b>Responsável legal:</b> ao aceitar ou pedir, o painel pergunta se você é o responsável legal do aluno. Se não for, e o aluno tiver menos de 18 anos, é o aluno quem informa o e-mail do responsável, que recebe um aviso de quem você é, do que você vê e de como desfazer a conexão; o responsável não aprova nada. A conta de orientador é para quem tem 18 anos ou mais: uma conta criada antes disso pede a confirmação uma vez.</p><p>Se este painel já tem as anotações de um aluno com o mesmo e-mail — ou um aluno só, sem e-mail, que veio de antes —, é essa entrada que passa a ser a do aluno conectado, com tudo o que você já anotou.</p><p><b>Desfazer conexão:</b> qualquer um dos dois desfaz, sem o outro concordar. Quando a conexão acaba, saem deste painel, das cópias automáticas e do servidor o aluno e todas as anotações que você fez — ficha, notas, preparo, parecer, redação colada —, sem prazo de carência. Se for você a desfazer, o painel oferece antes <b>Salvar o arquivo das anotações</b>; esse arquivo é seu, e, restaurado, traz o aluno de volta como aluno por código, sem conexão. Desfazer daqui precisa de rede. Se for o aluno a desfazer, a saída daqui acontece no próximo contato com a rede, e um aviso diz isso.</p><p><b>Vários aparelhos:</b> entrando com a mesma conta em outro computador, as suas anotações vão junto — a ficha, as notas, o preparo colado, a redação transcrita, de todos os alunos, os por código inclusive. O que você preenche num aparece no outro. Um mesmo campo mudado nos dois sem rede fica com a mudança mais recente. Nada disso o aluno vê: o que chega ao aluno é só o que <b>Enviar o parecer</b> entrega. <b>Restaurar anotações</b>, conectado, vale em todos os seus aparelhos.</p><p><b>A lista de alunos:</b> com dois ou mais, os nomes aparecem acima das semanas, em ordem alfabética, cada um com o XP da semana, se houve registro nesta semana e a data do último; tocar num nome abre o painel daquele aluno, e as anotações dos outros ficam como estão. O aluno que chega por código colado leva <b>por código</b>; dois com o mesmo nome mostram o e-mail. Os convites esperando, e os vencidos, vêm depois dos alunos, com <b>Cancelar convite</b>. A lista não muda de ordem pela atividade de ninguém.</p><p><b>Sincronização</b> liga e desliga a conexão neste computador; <b>Sair da conta</b> encerra a sessão e não apaga nada do painel. <b>Excluir conta</b> apaga a sua conta de orientador, as conexões e o que estava no servidor, com um código novo no seu e-mail para confirmar; neste computador as anotações ficam. Se o mesmo e-mail é responsável na Missão Olimpíadas, aquela conta continua: daqui sai só o que é da Missão ENEM.</p>`},
@@ -2124,9 +2142,12 @@
     // As extras (ADR-014 §1 e §2): o METADADO de cada uma vem na parte da semana — é o que o orientador
     // pode ler (BR-15) e o que o aWeekXP() e o resumo precisam — e o RETRATO do que ele mandou vem da
     // entrega dela, uma por extra. A chave é o id; a entrega sozinha já vira item, porque ela pode chegar
-    // antes da parte da semana. O texto capturado entra como `pedido.captura`, a mesma forma que o
-    // código de backup traz, e `auto`/`apagada` dizem que a correção automática rodou e que ele apagou
-    // a redação depois de tê-la mandado (US-040 EC-1) — o retrato fica.
+    // antes da parte da semana. O texto capturado entra na VAGA do gesto que o mandou — `pedido.captura`
+    // ou `auto.captura`, a mesma forma que o código de backup traz —, e `auto`/`apagada` dizem que a
+    // correção automática rodou e que ele apagou a redação depois de tê-la mandado (US-040 EC-1) — o
+    // retrato fica. O `pedido` é só o que ELE pediu ao orientador: a entrega só automática não o
+    // sintetiza, senão o painel do pai contaria como pedido feito a ele um gesto que o filho fez
+    // sozinho (BUG-20261016-painel-conta-correcao-automatica-como-pedido).
     const xs = new Map();
     sem.forEach((b, n)=>{
       if(!Number.isInteger(n) || n<1 || n>8 || !ehObj(b)) return;
@@ -2154,8 +2175,9 @@
       if(b.enunciado!=null) x.enunciado = b.enunciado;
       const cap = ehObj(b.texto) ? b.texto : (b.redacao==null ? null : {redacao:b.redacao});
       const ped = ehObj(b.pedido) ? b.pedido : null, aut = ehObj(b.auto) ? b.auto : null;
-      if(ped || aut) x.pedido = {em:(ped||aut).em, n:ped?ped.n:0, captura:cap, semVersaoLimpo:!!b.semVersaoLimpo};
-      if(aut) x.auto = {em:aut.em};
+      const retrato = {captura:cap, semVersaoLimpo:!!b.semVersaoLimpo};
+      if(ped) x.pedido = Object.assign({em:ped.em, n:ped.n}, retrato);
+      if(aut) x.auto = Object.assign({em:aut.em}, retrato);
       if(ehObj(b.apagada)) x.apagada = {em:b.apagada.em};
       xs.set(id, x);
     });
@@ -2527,6 +2549,14 @@
     if(vm.corrigindo) return "corrigindo";
     if(vm.pedido) return "correção pedida";
     if(vm.limpo && vm.limpo.linhas.length) return "passada a limpo";
+    // O painel não guarda a folha (BR-15), mas guarda o RETRATO dela quando o robô corrigiu:
+    // `auto.captura.linhas` é exatamente o que ele leu. Sem este ramo a extra corrigida sozinha caía
+    // no último, e enquanto a semana não abria o chip dizia `não começada` logo acima de `corrigida
+    // automaticamente em dd/mm` (BUG-20261016-painel-diz-nao-comecada-na-extra-que-o-robo-corrigiu).
+    // Com a semana aberta o `registro` desce e o ramo de baixo já acertava — a fronteira foi medida.
+    // Quando o retrato é um rascunho (`{redacao}`, ele mandou sem passar a limpo) a folha não existe
+    // e o chip não a inventa: `auto` sozinho prova que foi entregue, logo registrada.
+    if(vm.auto) return vm.auto.captura && Array.isArray(vm.auto.captura.linhas) ? "passada a limpo" : "registrada";
     if(vm.registro || (vm.tipo==="semana" && vm.tasks && vm.tasks.red)) return "registrada";
     return temTexto(vm.redacao) ? "rascunho" : "não começada";
   }
@@ -2538,6 +2568,16 @@
   function pendenciasDe(vm){
     const p = vm.parecer || vm.parecerAuto || null, ex = vm.tipo==="extra", its = [];
     const temLimpo = !!(vm.limpo && vm.limpo.linhas.length);
+    // O retrato desta redação já saiu do aparelho dele: o pedido ao orientador, a corrida automática
+    // em curso, ou a corrida automática que já rodou. É a mesma conta do `subiu` de delExtra(), e as
+    // TRÊS valem porque qualquer uma delas fecha os dois passos de baixo — o retrato já foi, e passar
+    // a limpo ou pedir depois não muda o que foi lido. O `auto` entrou aqui com o conserto do
+    // BUG-20261016-painel-conta-correcao-automatica-como-pedido: o painel do pai não tem a folha dele
+    // (BR-15) nem o `corrigindo`, que é local, então era o `pedido` sintetizado da entrega automática
+    // que os fechava — e, honesto o `pedido`, a ficha de uma extra que o robô corrigiu passava a pedir
+    // "Passar a limpo" e "Pedir correção" na janela entre a entrega e a descida do parecer. No app
+    // dele a vaga `auto` não existe na ficha, então nada muda daquele lado.
+    const mandou = !!(vm.pedido || vm.corrigindo || vm.auto);
     if(ex && !vm.registro && temTexto(vm.redacao)) its.push({id:"registrar", titulo:"Registrar a redação", sub:"", porque:"", feita:false, derivada:true});
     // Na extra a folha é o passo seguinte ao registro, e vale até a correção ser pedida ou chegar — com
     // o pedido na mão do orientador, o retrato dele já foi, e passar a limpo depois não muda o que ele
@@ -2545,10 +2585,10 @@
     // ela é o que o plano exige (semanas 5 e 7), depois de a redação estar marcada e até a folha estar
     // finalizada — é a mesma régua do passo do painel Hoje. Sem a redação marcada a folha não é passo:
     // seria uma cobrança parada em duas semanas desde o primeiro dia da missão.
-    if(ex ? (!!vm.registro && !temLimpo && !p && !vm.pedido && !vm.corrigindo) : (!!vm.exigida && !!(vm.tasks && vm.tasks.red) && !(vm.limpo && vm.limpo.fim)))
+    if(ex ? (!!vm.registro && !temLimpo && !p && !mandou) : (!!vm.exigida && !!(vm.tasks && vm.tasks.red) && !(vm.limpo && vm.limpo.fim)))
       its.push({id:"limpo", titulo:"Passar a limpo", sub:"", porque:"", feita:false, derivada:true});
     // A correção automática lê só a folha passada a limpo (ADR-006): sem ela, o caminho é o pedido.
-    if(ex && vm.registro && !p && !vm.pedido && !vm.corrigindo)
+    if(ex && vm.registro && !p && !mandou)
       its.push({id:"corrigir", titulo: vm.autoDisponivel && temLimpo ? "Corrigir agora" : "Pedir correção", sub:"", porque:"", feita:false, derivada:true});
     // "Ler o parecer" é da EXTRA: ali o parecer chega sozinho (pela conta) ou por um código colado
     // numa redação que pode estar em qualquer semana, e sem este item nada na tela diria que ele
@@ -3327,7 +3367,12 @@
     let cab = "";
     if(p){
       const quando = p.geradoEm ? dmDe(p.geradoEm) : "";
-      const nome = p.fonte.correcao==="automatica" ? "Parecer automático" : "Parecer que você montou";
+      // A origem sai da VAGA, nunca de `p.fonte.correcao`
+      // (BUG-20261016-credito-cobrado-por-parecer-que-o-app-recusa): a coerção de `normalizeParecer()`
+      // leva um `fonte.correcao` desconhecido para "skill", e um parecer automático de um servidor mais
+      // novo passava a ser "que você montou". Aqui a vaga já vem do canal — `feedbackExtras[id].auto`
+      // contra `.mentor` ou o que ele montou nas notas —, e é ela que sabe de quem o documento é.
+      const nome = vm.parecer ? "Parecer que você montou" : "Parecer automático";
       cab = `${nome}${quando?` · ${quando}`:""}` + lidoDoRascunho(vm.entregue)
         + (auto ? ` · substitui o parecer automático de ${esc(dmDe(auto.geradoEm))} <button type="button" class="linkish" data-ver-auto>ver o parecer automático</button>` : "");
     }
@@ -3885,7 +3930,11 @@
       return {id:x.id, semana:x.semana, tema:x.tema, nota,
         ajuste:{comp:p.ajuste.comp, texto:p.ajuste.texto},
         tropecos:(p.tropecos||[]).map(t=>({tipo:t.tipo, n:(t.casos||[]).length})),
-        fonte:p.fonte.correcao};
+        // A origem sai da VAGA pela mesma razão do cabeçalho da ficha
+        // (BUG-20261016-credito-cobrado-por-parecer-que-o-app-recusa): `p.fonte.correcao` é coagido
+        // para "skill" quando o aparelho não conhece a forma, e aqui isso diria ao comando que o pai
+        // corrigiu o que o robô corrigiu. Só o parecer que ele montou responde pelo próprio campo.
+        fonte:vm.parecer ? p.fonte.correcao : "automatica"};
     }).filter(Boolean);
   }
   function entradaPreparo(n){
@@ -4606,6 +4655,13 @@
     const semanas = Object.keys(al.weeks).map(Number).filter(n=>{ const w = al.weeks[n]; return Object.values(w.f||{}).some(Boolean) || str(w.redacao).trim() || str(w.ai).trim() || w.prep; }).sort((a,b)=>a-b);
     const quais = !semanas.length ? "" : semanas.length===1 ? `\n\nVocê tem anotações na semana ${semanas[0]}.` : `\n\nVocê tem anotações nas semanas ${semanas.slice(0,-1).join(", ")} e ${semanas.at(-1)}.`;
     if(!confirm(`Desfazer a conexão com ${nome}?\n\nTudo de ${nome} sai deste painel e do servidor na hora: os registros e as suas anotações sobre as redações (ficha, notas, preparo, parecer e redação colada).${quais}\n\nPara guardar uma cópia, cancele e use Salvar o arquivo das anotações antes. O arquivo fica sob a sua responsabilidade.`)) return;
+    // Os temas das extras dele, lidos AGORA — antes do `await`. Depois dele o `removeAluno()` abaixo
+    // já tirou a entrada do aluno, e `qualParecer()` não tem mais onde procurar: o aviso do motor é
+    // tratado DEPOIS que a chamada resolve, não dentro dela
+    // (BUG-20261016-painel-nao-nomeia-a-extra-do-parecer-perdido; medido: a extra está na mão no
+    // clique, `dados.extras` esvazia em 76 ms e o toast só sai em 119 ms). Com isto o pai lê de qual
+    // redação era o parecer que se perdeu, que é para o que a frase existe — ele vai remandar.
+    temasAoEncerrar = new Map(aExtras().map(x=>[x.id, x.tema]));
     const b = e.currentTarget; b.disabled = true;
     const r = await SYNC.endConnection(al.conta);
     b.disabled = false;
@@ -4615,8 +4671,11 @@
     syncSt = SYNC.status();
     render(); renderConta(); renderContaLista();
     ultimoFim = {txt:`A conexão com ${nome} foi encerrada.`, em:Date.now()};
-    toast(ultimoDescarte && Date.now() - ultimoDescarte.em < 3000 ? `${ultimoFim.txt} O parecer da semana ${ultimoDescarte.n} não foi enviado.` : `A conexão com ${nome} foi encerrada`);
+    toast(ultimoDescarte && Date.now() - ultimoDescarte.em < 3000 ? `${ultimoFim.txt} O parecer ${ultimoDescarte.qual} não foi enviado.` : `A conexão com ${nome} foi encerrada`);
     document.getElementById("convidar").focus({preventScroll:true});
+    // O mapa é deste gesto e de mais nada: os avisos do fim chegam nos milissegundos seguintes, e
+    // depois disso um id que ele nomeasse seria de uma extra que o painel já não tem por outra razão.
+    setTimeout(()=>{ temasAoEncerrar = null; }, 3000);
   });
   document.getElementById("convidar").addEventListener("click", async e=>{
     const b = e.currentTarget; b.disabled = true;
@@ -4829,9 +4888,9 @@
       // Um parecer na fila cuja conexão acabou antes de subir: o motor o descarta, e o pai precisa saber.
       // Logo depois do aviso do fim, as duas frases vão juntas: um toast novo apagaria o anterior.
       else if(kind==="discarded"){
-        const n = Number(p.week)||"?", junto = ultimoFim && Date.now() - ultimoFim.em < 3000;
-        ultimoDescarte = {n, em:Date.now()};
-        toast(junto ? `${ultimoFim.txt} O parecer da semana ${n} não foi enviado.` : `O parecer da semana ${n} não foi enviado: a conexão foi encerrada`);
+        const qual = qualParecer(p), junto = ultimoFim && Date.now() - ultimoFim.em < 3000;
+        ultimoDescarte = {qual, em:Date.now()};
+        toast(junto ? `${ultimoFim.txt} O parecer ${qual} não foi enviado.` : `O parecer ${qual} não foi enviado: a conexão foi encerrada`);
       }
       else if(kind==="connected"){
         // aceito aqui, em outro aparelho desta conta, ou pelo aluno (o código era dele): o aviso traz a conta

@@ -1525,7 +1525,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 235 · 16/10/2026</p></div>
+  <div class="in"><p class="versao">versão 245 · 17/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
@@ -1642,9 +1642,12 @@
     // As extras (ADR-014 §1 e §2): o METADADO de cada uma vem na parte da semana — é o que o orientador
     // pode ler (BR-15) e o que o aWeekXP() e o resumo precisam — e o RETRATO do que ele mandou vem da
     // entrega dela, uma por extra. A chave é o id; a entrega sozinha já vira item, porque ela pode chegar
-    // antes da parte da semana. O texto capturado entra como `pedido.captura`, a mesma forma que o
-    // código de backup traz, e `auto`/`apagada` dizem que a correção automática rodou e que ele apagou
-    // a redação depois de tê-la mandado (US-040 EC-1) — o retrato fica.
+    // antes da parte da semana. O texto capturado entra na VAGA do gesto que o mandou — `pedido.captura`
+    // ou `auto.captura`, a mesma forma que o código de backup traz —, e `auto`/`apagada` dizem que a
+    // correção automática rodou e que ele apagou a redação depois de tê-la mandado (US-040 EC-1) — o
+    // retrato fica. O `pedido` é só o que ELE pediu ao orientador: a entrega só automática não o
+    // sintetiza, senão o painel do pai contaria como pedido feito a ele um gesto que o filho fez
+    // sozinho (BUG-20261016-painel-conta-correcao-automatica-como-pedido).
     const xs = new Map();
     sem.forEach((b, n)=>{
       if(!Number.isInteger(n) || n<1 || n>8 || !ehObj(b)) return;
@@ -1672,8 +1675,9 @@
       if(b.enunciado!=null) x.enunciado = b.enunciado;
       const cap = ehObj(b.texto) ? b.texto : (b.redacao==null ? null : {redacao:b.redacao});
       const ped = ehObj(b.pedido) ? b.pedido : null, aut = ehObj(b.auto) ? b.auto : null;
-      if(ped || aut) x.pedido = {em:(ped||aut).em, n:ped?ped.n:0, captura:cap, semVersaoLimpo:!!b.semVersaoLimpo};
-      if(aut) x.auto = {em:aut.em};
+      const retrato = {captura:cap, semVersaoLimpo:!!b.semVersaoLimpo};
+      if(ped) x.pedido = Object.assign({em:ped.em, n:ped.n}, retrato);
+      if(aut) x.auto = Object.assign({em:aut.em}, retrato);
       if(ehObj(b.apagada)) x.apagada = {em:b.apagada.em};
       xs.set(id, x);
     });
@@ -2040,7 +2044,7 @@
     ficha:{t:"A ficha da redação",b:`<p>Esta seção é a <b>ficha</b> da redação aberta: a da semana da aba, ou uma redação extra que você escolheu em <b>Redações</b>. As duas têm os mesmos blocos, e por isso a mesma ficha serve às duas.</p><ul><li><b>A identificação</b>, no topo, diz o que a redação é — <i>Semana 3</i> ou <i>Extra · semana 3</i> —, o tema, de onde veio o tema e quando ela mudou pela última vez.</li><li><b>O estado</b> é a etiqueta logo abaixo, e é sempre um destes oito: <i>não começada</i>, <i>rascunho</i>, <i>registrada</i>, <i>passada a limpo</i>, <i>correção pedida</i>, <i>corrigindo</i>, <i>corrigida</i> e <i>lida</i>. Ele é calculado do que está guardado: você nunca o escolhe.</li><li><b>O foco</b> é a competência que a semana treina, e vale também para as extras daquela semana. Nas semanas 1, 5, 7 e 8 o plano não aponta uma só, e aí o ajuste vai para a competência mais baixa daquela redação.</li><li><b>O que ficou de fazer</b>, no fim, lista o próximo passo e o que a correção pediu. O <b>?</b> daquele bloco explica as regras dele.</li><li><b>Imprimir esta redação</b> leva a ficha inteira para o papel: identificação, folha, notas, parecer e a lista.</li><li>Numa redação extra, <b>Voltar à lista</b> — ou a tecla Esc — devolve você ao catálogo, na linha de onde você veio.</li></ul><p>A redação fica salva por semana e vai no código de backup, então ${oriSpan()} recebe junto. A seção tem dois modos.</p><ul><li><b>Rascunho:</b> você escreve ou cola no campo, e a folha pautada logo abaixo se arruma sozinha, quebrando a linha onde a palavra não cabe. É o rascunho que vale para a correção, para o Copiar redação e para o parecer.</li><li><b>Passar a limpo:</b> uma folha em branco de 30 linhas que não quebra nada por você, com o rascunho em cima para ler. Você decide onde cada linha acaba e onde separar a palavra com hífen; Enter vai para a linha de baixo. A folha é escrita numa letra de mão, e a margem é a letra, não um número de caracteres: um “m” ocupa mais que um “i”, como no papel. A linha recusa o que passa da margem, sem aviso: ela só mostra que encheu. Não dá para colar: a folha se passa à mão. E nada é corrigido enquanto você escreve. A separação das palavras é conferida no domingo, e o que estiver errado chega no parecer.</li></ul><p><b>Linhas:</b> a folha do ENEM tem 30 linhas, e até 7 linhas a redação é zerada. O contador conta as linhas da folha desenhada, na sua <b>largura</b> de linha (o padrão é 68 caracteres) e com o recuo do parágrafo. Os parágrafos são 4 (introdução, dois de desenvolvimento, conclusão com proposta) ou 5, separados no rascunho por uma linha em branco. Para medir a sua largura: em <b>Medir pela minha letra</b>, copie até três linhas de uma folha que você escreveu à mão, letra por letra; a média vira a largura. Uma folha já começada no passar a limpo guarda a largura com que nasceu.</p><p><b>Nas semanas que pedem a folha</b> (a 5 e a 7), você escreve à mão e passa a limpo aqui do jeito que saiu no papel, linha por linha, com as mesmas quebras e os mesmos hífens. Ali a linha aceita até 120 caracteres, porque a linha de verdade pode ser mais longa que a sua média; a que passar da sua largura fica marcada, sem ser recusada. O painel Hoje lembra depois que você marcar a redação.</p><p><b>Finalizar, reabrir, recomeçar:</b> marque a folha como finalizada quando acabar; dá para reabrir. Recomeçar apaga a folha, com Desfazer por 8 segundos. A folha passada a limpo não vale XP e não muda o XP de nenhuma tarefa: o painel ${oriSpan("de")} mostra a folha de ${esc(NOME)} linha por linha, e o resumo diz se ela foi finalizada.</p><p><b>Este campo se comporta como papel:</b> o navegador não sublinha em vermelho, não sugere e não corrige nada do que você escreve, nos dois modos. A correção acontece no encontro, com ${oriSpan()} — errar aqui e descobrir depois é o treino. Teclados do celular ou extensões instaladas no navegador que ignorem isso estão fora do alcance do app.</p><p><b>Com a conexão ao orientador,</b> a redação só chega ao painel quando você toca em <b>Entregar a redação</b>: vai o rascunho como está naquele instante, e a folha passada a limpo, se você começou. O que você mudar depois não chega sozinho — a seção diz <i>você editou depois</i>, e entregar de novo substitui a entrega anterior. Entregar marca a tarefa <i>Redação entregue até sexta</i>, com o XP de sempre, e o bônus quando a entrega é até quinta; se você já tinha marcado à mão, nada se repete. <b>Desmarcar a entrega</b> não desmarca a tarefa nem tira XP, e não muda o que o orientador já viu. Redação feita no papel continua valendo: marque a tarefa à mão, como sempre.</p><p>Na reta final (semana 8) não há redação nova nem folha: releia as das semanas anteriores.</p>`},
     redacoes:{t:"Redações",b:`<p>É o catálogo de tudo o que você escreveu: as oito semanas do plano e cada <b>redação extra</b> que você começou, da mais nova para a mais velha. Tocar numa linha abre a ficha dela ali em cima, em <b>A ficha da redação</b> — não há um segundo editor: é sempre a mesma folha.</p><ul><li><b>Cada linha</b> traz a identificação, o estado, a nota total quando o corretor já deu, e quantas coisas ainda faltam naquela redação.</li><li><b>Os chips</b> filtram por estado: <i>corrigida</i>, <i>com pendências</i>, <i>sem parecer</i>. Os números deles são o mapa da lista inteira e não mudam quando você filtra; <b>Todas</b> traz tudo de volta, e recarregar a página também.</li><li><b>Nova redação extra</b> abre o banco de temas. Dá para começar uma extra de 14/09 até o fim da quarta 4/11; depois disso as que já existem continuam inteiras — você termina, passa a limpo, pede a correção e lê o parecer.</li><li><b>A semana 8</b> aparece como linha de texto, sem botão: na reta final não há redação nova.</li><li><b>Imprimir a lista</b> leva uma linha por redação para o papel, com o filtro ignorado: sai a lista toda.</li></ul><p>Cada extra registrada vale <b>50 XP</b>, pelas duas primeiras de cada semana. Do dia da prova em diante o catálogo fica só para ler e imprimir.</p>`},
     temas:{t:"Banco de temas",b:`<p>Os temas vêm embutidos no próprio arquivo: nada é buscado na internet, e o banco funciona offline. São dois grupos.</p><ul><li><b>Prováveis ${ENEM.getFullYear()}:</b> as apostas desta edição, em três faixas — alta, média e baixa. Cada uma tem a proposta escrita na forma da prova, o eixo e um repertório para começar.</li><li><b>Edições anteriores:</b> os temas que já caíram, com o enunciado oficial, do mais recente para o mais antigo.</li></ul><p>Tema que uma semana do plano já treina <b>não aparece aqui</b>: ele vai cair na redação daquela semana. O que você já treinou numa extra continua na lista, marcado com <i>já treinado</i> — repetir é decisão sua, e treinar o mesmo tema duas vezes é um jeito legítimo de medir a evolução.</p><p><b>Tema livre</b> é para um tema da escola, do cursinho ou seu: até 200 caracteres, e a ficha nasce sem proposta — você escreve direto na folha.</p><p>A redação extra nasce na semana de hoje e fica nela para sempre, mesmo que você termine de escrever na semana seguinte: é por isso que o XP e o foco dela são os daquela semana.</p>`},
-    correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora, sem esperar o domingo. Ela existe só quando ${oriSpan()} liga a chave para você e quando o seu app está conectado à conta: no modo local o caminho é <b>Pedir correção</b>, e o parecer chega pelo WhatsApp como sempre.</p><ul><li><b>Só a folha passada a limpo é corrigida.</b> É ela que um corretor leria na prova, com as suas quebras de linha e os seus hífens. Enquanto a folha não existir, a ficha pede <i>Passar a limpo</i> e o botão não aparece.</li><li><b>Créditos por semana:</b> ${oriSpan()} escolhe quantas correções por semana você pode pedir (o padrão é 2). A ficha diz quantas sobraram; os créditos voltam na segunda-feira.</li><li><b>Se não funcionar, não custa nada:</b> correção que falha, demora demais ou volta com defeito não gasta crédito, e a ficha volta ao estado anterior para você tentar de novo ou pedir a ${oriSpan("")} correção.</li><li><b>O que sai daqui:</b> a sua folha passada a limpo e o tema vão para o fornecedor do modelo que corrige, e uma cópia do parecer vai para o painel ${oriSpan("de")}: toda correção automática sua aparece lá. O rascunho não sai.</li></ul><p>O parecer automático tem a mesma forma do que ${oriSpan()} manda, e diz na primeira linha que é automático. Chegando depois um parecer ${oriSpan("de")}, esse passa a valer, e o automático fica guardado atrás de um toque.</p>`},
+    correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora, sem esperar o domingo. Ela existe só quando ${oriSpan()} liga a chave para você e quando o seu app está conectado à conta: no modo local o caminho é <b>Pedir correção</b>, e o parecer chega pelo WhatsApp como sempre.</p><ul><li><b>Só a folha passada a limpo é corrigida.</b> É ela que um corretor leria na prova, com as suas quebras de linha e os seus hífens. Enquanto a folha não existir, a ficha pede <i>Passar a limpo</i> e o botão não aparece.</li><li><b>Créditos por semana:</b> ${oriSpan()} escolhe quantas correções por semana você pode pedir (o padrão é 2). A ficha diz quantas sobraram; os créditos voltam na segunda-feira.</li><li><b>Se não funcionar, não custa nada:</b> correção que falha ou demora demais não gasta crédito, e a ficha volta ao estado anterior para você tentar de novo ou pedir a ${oriSpan("")} correção. Quem garante isso é o servidor, que só conta o crédito quando a correção volta. <b>E a que volta num formato que este app não entende também não custa:</b> o crédito volta para a semana, e a ficha diz isso na hora.</li><li><b>O que sai daqui:</b> a sua folha passada a limpo e o tema vão para o fornecedor do modelo que corrige, e uma cópia do parecer vai para o painel ${oriSpan("de")}: toda correção automática sua aparece lá. O rascunho não sai.</li></ul><p>O parecer automático tem a mesma forma do que ${oriSpan()} manda, e diz na primeira linha que é automático. Chegando depois um parecer ${oriSpan("de")}, esse passa a valer, e o automático fica guardado atrás de um toque.</p>`},
     parecer:{t:"Parecer da redação",b:`<p>É a correção da sua redação escrita para <b>você</b>, não para o corretor: a nota com o que cada competência mede, <b>uma</b> coisa que ficou boa, <b>um</b> ajuste para esta semana (e como conferir sem ajuda), os tropeços de português com a regra e onde apareceram no seu texto, o que fica anotado para as próximas redações e o que estudar.</p><ul><li><b>Como chega:</b> ${oriSpan()} manda pelo WhatsApp uma mensagem com um código. Toque em <b>Colar o parecer</b> e cole a mensagem inteira: o código é achado dentro dela. O parecer entra na semana dele e a aba muda para lá.</li><li><b>Para que serve:</b> vocês leem no encontro de domingo, e depois ele fica aqui, por semana, para você reler antes de escrever a próxima. Troque de semana nas abas para ver os anteriores.</li><li><b>O que ficou de fazer</b> é o último bloco do parecer: a reescrita do parágrafo e os exercícios do ajuste, cada um com uma caixa para marcar ali mesmo. O <b>?</b> daquele bloco explica as regras dele.</li><li><b>Um ajuste só, de propósito.</b> A lista das próximas redações é mapa, não tarefa: quem tenta corrigir oito coisas não corrige nenhuma.</li><li><b>Os links</b> vêm de uma lista conferida à mão. Se algum não abrir, avise ${oriSpan()}.</li></ul><p>O parecer não vale XP e não vai na mensagem <b>Copiar resumo e código</b> (${oriSpan()} já o tem); vai só no arquivo de backup. Restaurar um backup que não tem pareceres mantém os que estão aqui.</p>${ONLINE?`<p><b>Com a conexão ao orientador</b> não há código para colar: quando o orientador toca em <b>Enviar o parecer</b>, o parecer e a mensagem da semana chegam sozinhos, na semana a que pertencem, com um aviso — a tela não muda de lugar, e no domingo o painel Hoje oferece <b>Ler o parecer</b>. A mensagem aparece acima do parecer, em <b>Mensagem de</b>, só para ler; ela também não vale XP e não vai no resumo. Um envio novo substitui os dois, e as marcas do que ficou de fazer continuam onde o exercício é o mesmo. O que você marca ali chega sozinho ao painel do orientador. Com a sincronização desligada, <b>Colar o parecer</b> funciona como sempre.</p>`:""}`},
     fazer:{t:"O que ficou de fazer",b:`<p>É a última parte do parecer: <b>tudo o que a correção pediu</b>, reunido em um lugar só, para você não ter de garimpar tarefa dentro de um texto que foi escrito como diagnóstico. São no máximo três itens: o <b>parágrafo para reescrever</b> e os <b>um ou dois exercícios</b> do ajuste da semana.</p><ul><li><b>Só isto entra na lista.</b> "Para estudar" é link para quando sobrar tempo, "Para as próximas redações" é mapa, e os "Como conferir" são para usar <i>enquanto</i> você reescreve. Nada disso vira tarefa: o plano é <b>um ajuste por semana</b>.</li><li><b>A reescrita vale 30 XP</b> — é a mesma tarefa <i>Parágrafo reescrito até segunda</i> da lista de Semanas. Marcar aqui marca lá, e marcar lá marca aqui: é uma tarefa só, em duas telas.</li><li><b>Os exercícios não valem XP.</b> Marcar um é registro, não pontuação: serve para você ver o que falta e para ${oriSpan()} ver no domingo que foi feito. O XP da semana e o teto de 720 não mudam por causa deles.</li><li><b>Item deixado em branco não é cobrado depois.</b> A lista é desta semana e fica nesta semana: nada vermelho, nenhum aviso, nenhuma dívida na semana seguinte. Se você fizer na quarta-feira seguinte, é só voltar na aba dela e marcar.</li></ul><p>Errou o toque? Desmarcar salva na hora e não tira XP nenhum — aqui XP nunca é descontado.</p>`},
     sequencia:{t:"O foguinho: dias perfeitos seguidos",b:`<p>O foguinho conta os <b>dias perfeitos seguidos</b>. Ele fica <b>gelado</b> enquanto o dia de hoje não está completo e <b>acende em ouro</b> quando fecha. O número ao lado é a sequência; quando ela não é a sua melhor, aparece também <code>· melhor: N</code> — esse recorde nunca some, mesmo que a sequência recomece.</p><p><b>O que é um dia perfeito é você quem decide</b>, na grade do contrato de rotina. Vale o que a grade marcou para aquele dia, entre as duas coisas que o painel registra por dia:</p><ul><li><b>Notícia</b> naquele dia da grade: precisa marcar a notícia do dia.</li><li><b>Estudo</b> naquele dia da grade: precisa registrar um bloco de estudo com aquele dia.</li><li>Dia sem nada marcado na grade é descanso que <i>você</i> combinou: ele conta como perfeito e mantém a corrente.</li></ul><p>Enquanto a linha <b>Notícia</b> da grade estiver vazia, vale o plano: notícia todo dia.</p><p>O foguinho <b>não vale XP</b> — o preço de cada coisa continua na lista de tarefas da semana. Ele é só o retrato da sua constância.</p>`},
@@ -2685,6 +2689,14 @@
     if(vm.corrigindo) return "corrigindo";
     if(vm.pedido) return "correção pedida";
     if(vm.limpo && vm.limpo.linhas.length) return "passada a limpo";
+    // O painel não guarda a folha (BR-15), mas guarda o RETRATO dela quando o robô corrigiu:
+    // `auto.captura.linhas` é exatamente o que ele leu. Sem este ramo a extra corrigida sozinha caía
+    // no último, e enquanto a semana não abria o chip dizia `não começada` logo acima de `corrigida
+    // automaticamente em dd/mm` (BUG-20261016-painel-diz-nao-comecada-na-extra-que-o-robo-corrigiu).
+    // Com a semana aberta o `registro` desce e o ramo de baixo já acertava — a fronteira foi medida.
+    // Quando o retrato é um rascunho (`{redacao}`, ele mandou sem passar a limpo) a folha não existe
+    // e o chip não a inventa: `auto` sozinho prova que foi entregue, logo registrada.
+    if(vm.auto) return vm.auto.captura && Array.isArray(vm.auto.captura.linhas) ? "passada a limpo" : "registrada";
     if(vm.registro || (vm.tipo==="semana" && vm.tasks && vm.tasks.red)) return "registrada";
     return temTexto(vm.redacao) ? "rascunho" : "não começada";
   }
@@ -2696,6 +2708,16 @@
   function pendenciasDe(vm){
     const p = vm.parecer || vm.parecerAuto || null, ex = vm.tipo==="extra", its = [];
     const temLimpo = !!(vm.limpo && vm.limpo.linhas.length);
+    // O retrato desta redação já saiu do aparelho dele: o pedido ao orientador, a corrida automática
+    // em curso, ou a corrida automática que já rodou. É a mesma conta do `subiu` de delExtra(), e as
+    // TRÊS valem porque qualquer uma delas fecha os dois passos de baixo — o retrato já foi, e passar
+    // a limpo ou pedir depois não muda o que foi lido. O `auto` entrou aqui com o conserto do
+    // BUG-20261016-painel-conta-correcao-automatica-como-pedido: o painel do pai não tem a folha dele
+    // (BR-15) nem o `corrigindo`, que é local, então era o `pedido` sintetizado da entrega automática
+    // que os fechava — e, honesto o `pedido`, a ficha de uma extra que o robô corrigiu passava a pedir
+    // "Passar a limpo" e "Pedir correção" na janela entre a entrega e a descida do parecer. No app
+    // dele a vaga `auto` não existe na ficha, então nada muda daquele lado.
+    const mandou = !!(vm.pedido || vm.corrigindo || vm.auto);
     if(ex && !vm.registro && temTexto(vm.redacao)) its.push({id:"registrar", titulo:"Registrar a redação", sub:"", porque:"", feita:false, derivada:true});
     // Na extra a folha é o passo seguinte ao registro, e vale até a correção ser pedida ou chegar — com
     // o pedido na mão do orientador, o retrato dele já foi, e passar a limpo depois não muda o que ele
@@ -2703,10 +2725,10 @@
     // ela é o que o plano exige (semanas 5 e 7), depois de a redação estar marcada e até a folha estar
     // finalizada — é a mesma régua do passo do painel Hoje. Sem a redação marcada a folha não é passo:
     // seria uma cobrança parada em duas semanas desde o primeiro dia da missão.
-    if(ex ? (!!vm.registro && !temLimpo && !p && !vm.pedido && !vm.corrigindo) : (!!vm.exigida && !!(vm.tasks && vm.tasks.red) && !(vm.limpo && vm.limpo.fim)))
+    if(ex ? (!!vm.registro && !temLimpo && !p && !mandou) : (!!vm.exigida && !!(vm.tasks && vm.tasks.red) && !(vm.limpo && vm.limpo.fim)))
       its.push({id:"limpo", titulo:"Passar a limpo", sub:"", porque:"", feita:false, derivada:true});
     // A correção automática lê só a folha passada a limpo (ADR-006): sem ela, o caminho é o pedido.
-    if(ex && vm.registro && !p && !vm.pedido && !vm.corrigindo)
+    if(ex && vm.registro && !p && !mandou)
       its.push({id:"corrigir", titulo: vm.autoDisponivel && temLimpo ? "Corrigir agora" : "Pedir correção", sub:"", porque:"", feita:false, derivada:true});
     // "Ler o parecer" é da EXTRA: ali o parecer chega sozinho (pela conta) ou por um código colado
     // numa redação que pode estar em qualquer semana, e sem este item nada na tela diria que ele
@@ -3380,12 +3402,18 @@
     // a hora, porque ali só existe um caminho de correção.
     if(ex){
       const dela = dmSe(p.geradoEm), velho = vm.parecer && vm.parecerAuto ? dmSe(vm.parecerAuto.geradoEm) : "";
+      // Quem diz a origem é a VAGA, nunca `p.fonte.correcao`
+      // (BUG-20261016-credito-cobrado-por-parecer-que-o-app-recusa): `normalizeParecer()` coage um
+      // `fonte.correcao` que não conhece para "skill", então um parecer automático enriquecido por um
+      // servidor mais novo era atribuído ao pai. A vaga sai do CANAL pelo caminho conectado
+      // (`guardaParecerExtra(x, p, aut)`) e do campo só no caminho colado, onde "do pai" é a verdade —
+      // é ela que sabe de onde o documento veio depois de qualquer coerção.
       // A origem da leitura entra só no parecer de quem corrige à mão, e isso é mais estreito do que a
       // linha do painel de propósito: o corretor automático recusa a extra sem folha passada a limpo
       // (BR-06), então um parecer automático nunca saiu do rascunho — e o `pedido` guardado aqui pode
       // ser o carimbo de um pedido ANTERIOR, de quando ainda não havia folha. A guarda é o que mantém a
       // frase verdadeira nos dois casos.
-      const cab = p.fonte.correcao==="automatica" ? `Parecer automático${dela?` · ${dela}`:""}`
+      const cab = !vm.parecer ? `Parecer automático${dela?` · ${dela}`:""}`
         : `Parecer ${orientador("de")}${dela?` · ${dela}`:""}` + lidoDoRascunho(vm.pedido);
       stat.innerHTML = esc(cab) + (velho ? ` · substitui o parecer automático de ${esc(velho)} <button type="button" class="linkish" data-ver-auto>ver o parecer automático</button>` : "");
       if(velho){
@@ -3826,13 +3854,25 @@
   // A corrida que o servidor fechou como falha: a ficha volta ao estado de antes e o crédito não foi
   // gasto (US-020 AC-1, ADR-010). Quem sabe disso é `status().correction.runs`, e não um evento: um
   // app fechado no meio da corrida descobre pelo retrato da abertura.
+  // E o pedido que o servidor recusou ANTES de virar corrida — o interruptor desligado, a chave que
+  // saiu, os créditos da semana gastos, a conexão encerrada: não há corrida para falhar, e por isso
+  // `runs` nunca fala dele. Quem o desarma é o `pushedCorrections` do retrato, que diz quais
+  // empurrões deste aparelho ainda estão de pé; sem nenhum, sem corrida no livro e com o `run` vazio,
+  // o `corrigindo` é órfão e a ficha ficaria em "Corrigindo…" para sempre, com `Corrigir agora` e
+  // `Pedir correção` escondidos os dois (BUG-20261016-extra-presa-em-corrigindo-depois-de-recusa-na-fila).
+  // O `run` vazio é parte da conta: um `corrigindo` que nasceu com corrida nunca sai por aqui. E é o
+  // retrato que resolve, não um evento — é esta a metade que vale na versão hospedada, onde o aviso
+  // do motor pode nascer antes de a tela estar ouvindo.
   function corridasFalhadas(){
     const c = syncSt && syncSt.correction;
     if(!c || !c.runs) return;
+    const empurradas = new Set(Array.isArray(syncSt.pushedCorrections) ? syncSt.pushedCorrections : []);
     let mudou = false;
     (state.extras || []).forEach(x=>{
-      const r = x.corrigindo && c.runs[x.id];
-      if(r && r.state==="failed"){ delete x.corrigindo; mudou = true; }
+      if(!x.corrigindo) return;
+      const r = c.runs[x.id];
+      if(r && r.state==="failed"){ delete x.corrigindo; mudou = true; return; }
+      if(!r && !x.corrigindo.run && !empurradas.has(x.id)){ delete x.corrigindo; mudou = true; }
     });
     if(mudou) commit();
   }
@@ -3876,7 +3916,14 @@
     // Numa semana que não exige a folha ela só existe depois do rascunho; numa que exige, a fonte é o
     // papel e ela vale mesmo com o rascunho vazio (ADR-002). A extra sempre oferece a folha.
     if(redModoSem!==chave){ redModo = "rasc"; redModoSem = chave; }
-    const temRasc = !!(a.redacao||"").trim(), oferece = !final && (ex || a.exigida || temRasc);
+    // "Tem rascunho?" é `temTexto()` e nunca `.trim()` nu: o invisível que vem colado do WhatsApp
+    // (largura zero, juntadores, juntador de palavra) não é texto escrito, e `trim()` não o come. O
+    // chip da ficha e a lista do que ficou de fazer já descartam esses caracteres desde
+    // BUG-20261015-largura-zero-vira-rascunho, e as contas desta tela ficaram atrás: as leituras da
+    // mesma pergunta têm de concordar, senão o aviso promete uma coisa e o contador diz outra, e
+    // numa semana que não exige a folha o rádio de passar a limpo aparece sobre nada
+    // (BUG-20261016-aviso-da-redacao-some-com-invisivel).
+    const temRasc = temTexto(a.redacao), oferece = !final && (ex || a.exigida || temRasc);
     if(!oferece) redModo = "rasc";
     const limpo = redModo==="limpo";
     document.getElementById("redModo").hidden = final;
@@ -3901,7 +3948,7 @@
     // Esvaziar ou começar o rascunho muda o que se oferece (o rádio e o aviso): só aí a seção é refeita.
     // Também depois da entrega: editar depois de entregar é o "você editou depois", mesmo no mesmo milissegundo.
     ta.oninput = ()=>{ a.redacao = ta.value; a.redEm = depoisDe(Math.max(Number(a.limpo && a.limpo.em)||0, Number(a.entrega && a.entrega.em)||0)); save(); redSaved[chave] = storeOK ? new Date() : null;
-      if(!!ta.value.trim()!==temRasc){ renderRed(); renderSummaries(); fichaSeguiu(); return; }
+      if(temTexto(ta.value)!==temRasc){ renderRed(); renderSummaries(); fichaSeguiu(); return; }
       stats(); renderSummaries(); grow(ta); renderEntrega(); };
     // O contador e a folha saem da MESMA lista (uma chamada de folhaLinhas por tecla): o número é o da
     // última linha escrita na folha, por construção (ADR-005).
@@ -3947,7 +3994,12 @@
     const ex = alvoRedacao().tipo==="extra";
     const n = current, meta = WEEKS[n-1], w = wk(n), e = w.entrega, sessao = ONLINE && !!(syncSt && syncSt.session);
     const btn = document.getElementById("entregar");
-    btn.hidden = ex || !(conectado() && !meta.final && !!(w.redacao||"").trim());
+    // "Tem redação para entregar?" é a MESMA pergunta que o chip e o contador respondem, e a resposta
+    // é o temTexto(): o invisível que vem colado do WhatsApp não é redação escrita. Com o .trim() nu o
+    // botão entrava na tela ao lado de "não começada" e de "Nada escrito ainda.", e entregar dali valia
+    // +100 XP (+30 do bônus até quinta), fechava tasks.red e subia um corpo vazio pela ponte
+    // (BUG-20261016-entregar-aparece-sobre-rascunho-invisivel).
+    btn.hidden = ex || !(conectado() && !meta.final && temTexto(w.redacao));
     const info = document.getElementById("entregaInfo"), des = document.getElementById("desmarcarEntrega");
     const mostra = !ex && sessao && !meta.final && !!e;
     info.hidden = !mostra; des.hidden = !(mostra && !e.desmarcada);
@@ -3972,7 +4024,9 @@
   let entregando = false;
   async function entregar(){
     const n = current, meta = WEEKS[n-1], w = wk(n);
-    if(!conectado() || entregando || meta.final || !(w.redacao||"").trim()) return;
+    // A guarda repete a conta do botão, com o mesmo temTexto(): o botão escondido ainda é clicável por
+    // teclado e por script, e é aqui que o gesto para.
+    if(!conectado() || entregando || meta.final || !temTexto(w.redacao)) return;
     const em = Date.now();
     const corpo = {redacao:w.redacao, limpo:w.limpo ? JSON.parse(JSON.stringify(w.limpo)) : null, em};
     const antes = {red:!!w.tasks.red, early:!!w.tasks.early, entrega:w.entrega};
@@ -4167,7 +4221,9 @@
     const a = alvoRedacao(), chave = fichaKey(), final = a.tipo==="semana" && WEEKS[a.semana-1].final;
     if(limpoFocoKey!==chave){ limpoFocoKey = chave; limpoFoco = limpoEstado(a)==="andamento" ? Math.min(a.limpo.linhas.length, FOLHA.linhas-1) : 0; }
     if(final || document.getElementById("redLimpo").hidden) return;
-    const temRasc = !!(a.redacao||"").trim();
+    // `temTexto()` pela mesma razão do `renderRed()`: com só invisível no rascunho, a folha de
+    // referência saía vazia sob a legenda "Seu rascunho, só para ler".
+    const temRasc = temTexto(a.redacao);
     document.getElementById("limpoRef").innerHTML = temRasc
       ? `<p class="cap">Seu rascunho, só para ler</p>${folhaHTML(linhasDe(a.redacao), {cols:larg(), min:0, marca:false})}`
       : `<p class="cap">Nesta semana a fonte é a sua folha de papel: copie dela, linha por linha.</p>`;
@@ -5344,11 +5400,19 @@
     if(e.parecer!=null){
       p = normalizeParecer(e.parecer);
       if(p && p.extra!==id) p = null;
-      // A correção voltou com defeito (US-018 EC-2): a ficha volta ao estado de antes e diz o que
-      // aconteceu. O crédito não foi gasto — o servidor só o conta com um parecer válido.
+      // A correção voltou com defeito (US-018 EC-2): a ficha volta ao estado de antes, o crédito é
+      // DEVOLVIDO e a frase diz isso (BUG-20261016-credito-cobrado-por-parecer-que-o-app-recusa, XC4b).
+      // Há duas noções de "parecer válido" aqui: a do servidor, que cobra o crédito quando fecha a
+      // corrida em `done`, e a do aparelho, que é `normalizeParecer()` mais a conferência de que o
+      // parecer é desta extra — estritas de propósito. Esta frase só aparece quando as duas divergem,
+      // e aí o crédito saiu por um parecer que ninguém leu; sem a devolução, duas voltas assim
+      // esgotariam a semana no teto padrão de 2. Quem descobre a corrida é o servidor, pelo id da
+      // extra: o aparelho não a nomeia, e a função é idempotente, então pedir de novo não cunha nada.
+      // Fora do modo conectado não há crédito nenhum a devolver, e o pedido não sai.
       if(!p && aut){
         if(x.corrigindo) delete x.corrigindo;
-        correcaoRecusa.set(id, "A correção não voltou num formato que o app entende. Tente de novo ou peça a correção.");
+        if(ONLINE && conectado()) SYNC.refundCorrection(id);
+        correcaoRecusa.set(id, "A correção não voltou num formato que o app entende — e o crédito volta para a semana. Tente de novo ou peça a correção.");
         if(JSON.stringify(x)!==antes) commit(); else { renderFicha(); renderCatalogo(); }
         return;
       }
@@ -6335,7 +6399,7 @@
   // A correção automática entra na assinatura: o crédito, a chave e as corridas mudam o bloco da ficha
   // e o catálogo sem que nada daqui seja gravado, e é por este retrato que eles reagem sem recarregar
   // (US-016 EC-1, US-020 AC-1). O estado da conexão também: encerrada, a linha do pedido muda.
-  function assinaEnvio(){ const s = syncSt || {}; return JSON.stringify([conectado(), nomeOrientador(), (s.sent && s.sent.weeks) || {}, s.sent && s.sent.live && s.sent.live.abre, s.correction || null, s.connection && s.connection.state]); }
+  function assinaEnvio(){ const s = syncSt || {}; return JSON.stringify([conectado(), nomeOrientador(), (s.sent && s.sent.weeks) || {}, s.sent && s.sent.live && s.sent.live.abre, s.correction || null, s.connection && s.connection.state, s.pushedCorrections || null]); }
   if(ONLINE){
     document.getElementById("entrarConta").addEventListener("click", abrirConta);
     document.getElementById("conectar").addEventListener("click", abrirConta);
@@ -6388,8 +6452,19 @@
     // Os avisos do motor saem uma vez cada; a tela ainda guarda os que já mostrou nesta sessão.
     syncOn("sync-notice", p=>{
       const kind = str(p && p.kind), chave = kind + ":" + str(p && p.id);
-      if(avisados.has(chave)) return;
-      avisados.add(chave);
+      // O descarte não tem id: cada um é um gesto perdido, e cada um é dito. Sem a isenção todos
+      // colapsariam na mesma chave `"discarded:"` e só o primeiro da sessão passaria — o painel já
+      // isenta pelo mesmo motivo.
+      if(kind!=="discarded"){ if(avisados.has(chave)) return; avisados.add(chave); }
+      // QUAL gesto se perdeu vem no aviso (`op`), nunca do estado. Ler o estado era o que fazia a
+      // reabertura com rede dizer a frase errada: `main.mjs` guarda o aviso enquanto a janela carrega
+      // e o entrega no `did-finish-load`, que é SEMPRE depois de `corridasFalhadas()` ter desarmado o
+      // `corrigindo` na abertura — garantido, não uma corrida
+      // (BUG-20261016-aviso-do-descarte-troca-a-correcao-pelo-pedido; medido: fila vazia em 225 ms,
+      // limpeza em 457 ms, aviso em 541 ms). O estado continua sendo lido para DESARMAR a ficha, que é
+      // outra pergunta: ali o que importa é se sobrou um `corrigindo` órfão, não quem o pôs.
+      const xDesc = kind==="discarded" ? extraPorId(str(p && p.extra)) : null;
+      const corrigia = str(p && p.op)==="correct";
       syncSt = SYNC.status(); renderConta(); aoMudarEnvio();
       if(kind==="session-ended") toast("Sua sessão foi encerrada");
       else if(kind==="refused"){
@@ -6403,6 +6478,19 @@
         toast(`A conexão com ${str(p.peer && (p.peer.name || p.peer.email)) || "o seu orientador"} foi encerrada`);
         if(p && p.id) SYNC.ackNotice(p.id);
         renderEntrega(); renderParecer();
+      }
+      // O motor descartou um gesto de redação extra: o servidor o recusou de vez (o interruptor
+      // desligado, a chave que saiu, os créditos da semana gastos) ou a conexão acabou antes de ele
+      // subir. O `corrigindo` gravado no toque não tem corrida nenhuma atrás — sai daqui, senão a
+      // ficha fica presa em "Corrigindo…" com os dois caminhos de saída escondidos. A razão não vem
+      // no aviso, e a ficha a diz melhor do que um toast: o que o toast carrega é que não aconteceu e
+      // que não custou. O pedido ao orientador NÃO é desfeito — a conexão encerrada troca o caminho,
+      // não apaga o gesto (US-022 EC-3).
+      else if(kind==="discarded"){
+        if(xDesc && xDesc.corrigindo){ delete xDesc.corrigindo; commit(); }
+        renderFicha(); renderParecer(); renderCatalogo();
+        toast(corrigia ? "A correção automática não aconteceu. Nenhum crédito foi usado."
+          : "O pedido de correção não foi enviado.");
       }
     });
     // O parecer e a mensagem que o orientador enviou (ADR-006): entram na semana deles, sem mover a tela.
@@ -6586,6 +6674,10 @@
   (function(){ const c=document.getElementById("redacoesChips"); const upd=fila(c); new MutationObserver(upd).observe(c,{childList:true}); new ResizeObserver(upd).observe(c); })();
   (function(){ fila(document.querySelector(".nav"))(); })();
   document.addEventListener("click",e=>{ const a=e.target.closest("[data-open-sec]"); if(a){ e.preventDefault(); openAndGo(a.dataset.openSec); } });
+  // O retrato da ABERTURA desarma o "Corrigindo…" que ficou de uma sessão anterior, antes do primeiro
+  // desenho. Esperar o primeiro `sync-status` não basta: ele pode chegar igual ao retrato que a tela
+  // já leu na carga, e aí `aoMudarEnvio()` não roda e a ficha abre presa.
+  if(ONLINE) corridasFalhadas();
   commit();
   quarentena = loadIssue==="corrompido";
   if(loadIssue) storeAlert(loadIssue);
