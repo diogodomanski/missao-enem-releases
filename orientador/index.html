@@ -1210,7 +1210,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 253 · 18/10/2026</p></div>
+  <div class="in"><p class="versao">versão 255 · 19/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -2965,14 +2965,19 @@
           : "Copie o comando e cole no Claude Code aberto na pasta do projeto. Ele corrige a redação e monta as perguntas do encontro."
             // Duas frases, porque são dois estados e a diferença importa no domingo: sem nada, a
             // redação não chegou mesmo; com a folha passada a limpo entregue e o campo vazio, ela
-            // CHEGOU — o que falta é o texto digitado, que é o que os leitores cegos leem (o passo 3
-            // da preparar-encontro). Dizer "não chegou" com a folha na tela logo abaixo passou a ser
-            // falso no instante em que a entrega só-folha virou possível
-            // (BUG-20261018-folha-passada-a-limpo-sem-rascunho-nao-tem-como-ser-entregue). O conselho
-            // continua o mesmo nos dois casos, e sai de cena quando a correção souber ler a folha
-            // (BACKLOG, "A correção pela folha quando não há rascunho").
+            // CHEGOU. Dizer "não chegou" com a folha na tela logo abaixo passou a ser falso no
+            // instante em que a entrega só-folha virou possível
+            // (BUG-20261018-folha-passada-a-limpo-sem-rascunho-nao-tem-como-ser-entregue).
+            //
+            // E o CONSELHO saiu do caso da folha em 19/10/2026, como este comentário previa: a
+            // correção aprendeu a ler a folha (ADR-001 de `correcao-pela-folha`), então mandar colar
+            // a transcrição "para a correção" passou a ser falso — e era justamente a transcrição à
+            // mão que o item existia para tirar do domingo. Sem folha o conselho continua: ali ela é
+            // o único caminho. Não se oferece aqui a opção de transcrever de qualquer jeito (uma
+            // transcrição colada no campo passa a valer no lugar da folha, porque é o `redacao` que
+            // a entrada manda): o passo diz o PRÓXIMO passo, e o próximo é copiar o comando.
             + (tem && !cheio(w.redacao)
-              ? (folhaDele ? " Chegou a folha passada a limpo, mas não o texto digitado: para a correção, cole a transcrição em Redação da semana antes."
+              ? (folhaDele ? " Chegou a folha passada a limpo, e é por ela que a correção vai ler."
                              : " A redação ainda não chegou: se veio por foto, cole a transcrição em Redação da semana antes.")
               : ""),
         rotulo: esperando ? "Colar o preparo" : "Copiar o comando",
@@ -3969,7 +3974,8 @@
       redacao:str(wk(n).redacao),
       // A folha dele, sempre: a skill conta as linhas do rascunho na largura DELE, o mesmo número do
       // cabeçalho do card. A cópia passada a limpo só quando existe, para a skill conferir a
-      // translineação (ADR-010); a correção de reserva nunca a leva.
+      // translineação (ADR-010). A correção de reserva leva a folha desde 19/10/2026, mas pelo
+      // texto do comando e com o marcador, não por esta chave (ADR-001 de `correcao-pela-folha`).
       folha:{largura:aLarg(), recuo:aRecuo()},
       ...(aw.limpo ? {limpo:{linhas:aw.limpo.linhas.slice(), largura:aw.limpo.larg, estado:aw.limpo.fim?"finalizada":"andamento", exigida:!!m.limpo}} : {}),
       semanaAluno:{ tasks:obj(aw.tasks), days:Array.isArray(aw.days)?aw.days.slice(0,7).map(x=>x?1:0):[0,0,0,0,0,0,0], scores:obj(aw.scores), brief:briefPreparo(aw) },
@@ -3992,7 +3998,29 @@
     let p="";
     // O comando da skill de correção de reserva: a skill lê foco e repertório do plano, então aqui vai
     // só o que ela não tem — a semana, o tema (obrigatório na 7, que é surpresa) e a redação.
-    if(t==="reserva") return `/corrigir-redacao ${current}\nTema: ${m.tema}\n\n${w.redacao?w.redacao:"[COLE A REDAÇÃO AQUI]"}`;
+    //
+    // Sem transcrição, a FOLHA PASSADA A LIMPO dele vira o texto do comando (ADR-001 de
+    // `correcao-pela-folha`). Nas semanas 5 e 7 o plano manda escrever no papel, então não há
+    // transcrição por desenho — e até 19/10/2026 este comando oferecia `[COLE A REDAÇÃO AQUI]`
+    // justamente nas duas semanas em que a folha é o artefato, devolvendo ao orientador a
+    // transcrição à mão que o modo conectado existe para tirar dele.
+    //
+    // O marcador não é enfeite: é ele que faz a skill pôr a frase de `CONDICAO_FOLHA` na linha
+    // `Condição:` do leitor cego, dizendo que a divisão de palavra no fim da linha não é avaliada
+    // por ele. Sem o marcador o leitor cobraria em C1 o mesmo corte que o parecer vai cobrar, e o
+    // aluno perderia ponto duas vezes pelo mesmo desvio.
+    //
+    // É `aWeek()` e não `wk()`: a folha é do ALUNO, e `wk()` é a semana do painel. A troca errada
+    // está registrada como o primeiro ataque de 18/10 em
+    // BUG-20261018-folha-passada-a-limpo-sem-rascunho-nao-tem-como-ser-entregue — a tela não muda,
+    // que é o sintoma certo para o objeto errado.
+    if(t==="reserva"){
+      const fl=(aWeek(current)||{}).limpo, ls=fl&&Array.isArray(fl.linhas)?fl.linhas.map(x=>String(x||"")):[];
+      const corpo = temTexto(w.redacao) ? w.redacao
+        : ls.some(x=>x.trim()) ? `FOLHA PASSADA A LIMPO\n\n${ls.join("\n")}`
+        : "[COLE A REDAÇÃO AQUI]";
+      return `/corrigir-redacao ${current}\nTema: ${m.tema}\n\n${corpo}`;
+    }
     // Sem cerca de código em volta do JSON: a redação pode ter crases, e a skill lê do primeiro { ao último }.
     // Com o card das extras aberto numa delas, "Preparar o encontro" é o comando DELA: é a redação que
     // está na tela, e a entrada reduzida é a que a skill espera para uma extra (US-027 AC-1).

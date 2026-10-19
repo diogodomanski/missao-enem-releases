@@ -1,4 +1,4 @@
-const VERSAO = "253-52865dcc";
+const VERSAO = "255-9b658876";
 const ARQUIVOS = ["./aluno/index.html","./orientador/index.html","./escolha/index.html","./online.js","./aluno.webmanifest","./orientador.webmanifest","./icon.png"];
 // O service worker da versão hospedada (etapa 2, US-031). O `scripts/build-web.mjs` escreve na
 // frente deste arquivo as duas constantes que ele lê — `VERSAO` (o carimbo e o resumo do que foi
