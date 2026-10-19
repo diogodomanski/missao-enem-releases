@@ -684,7 +684,13 @@
   .conexao{margin:0;font-size:14px;color:var(--muted)}
   .conexao b{color:var(--ink);font-weight:600}
   .contaTopo .flag{margin:6px 0 0}
-  .sync-chk{display:inline-flex;align-items:center;gap:8px;font-size:14px;min-height:38px;cursor:pointer}
+  /* `flex-direction:row` é obrigatório aqui, como em `.chk label` e `.elems label`: o seletor de
+     elemento `label` deste arquivo impõe `column` (é o rótulo de campo do painel, que no app do
+     aluno é a classe `.f` e por isso não alcança `<label>` por tag). Sem ele a caixa de marcar sai
+     ACIMA do rótulo, com o texto quebrado em duas linhas — e o interruptor da correção automática,
+     que é o terceiro gesto de três, deixa de parecer um gesto
+     (BUG-20261018-caixa-de-marcar-do-painel-fica-acima-do-rotulo). */
+  .sync-chk{display:inline-flex;flex-direction:row;align-items:center;gap:8px;font-size:14px;min-height:38px;cursor:pointer}
   .sync-chk input{width:20px;height:20px;margin:0;accent-color:var(--blue);flex:0 0 auto}
   /* e-mail e nome vêm de fora e podem não ter espaço: quebram em qualquer ponto, sem empurrar o diálogo */
   #conta .db{overflow-wrap:anywhere}
@@ -1204,7 +1210,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 245 · 17/10/2026</p></div>
+  <div class="in"><p class="versao">versão 253 · 18/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -2940,6 +2946,10 @@
   function passosDoDomingo(){
     const m = WEEKS[current-1], w = wk(current), nome = nomeAluno(), tem = !!aluno().dados;
     const cheio = v => !!(v && String(v).trim());
+    // A folha é DELE e vem da entrega, então sai de `aWeek()`; `w` aqui é a semana do painel (ficha,
+    // anotações, preparo) e nunca teve folha nenhuma. Confundir os dois foi o primeiro erro deste
+    // conserto, e a tela não mudou — o que é o sintoma certo para um objeto errado.
+    const dele = aWeek(current), folhaDele = !!(dele && dele.limpo && dele.limpo.linhas && dele.limpo.linhas.length);
     const lista = [alunoConectado() ? passoRecebida(nome) : {
       id:"importar", tit:`Importar o que ${nome} mandou`, feito: tem && !backupStale(current), rotulo:"Importar",
       como: tem ? "O código que está aqui é anterior a esta semana: peça o novo antes da chamada."
@@ -2953,7 +2963,18 @@
         como: esperando
           ? "Cole o comando no Claude Code aberto na pasta do projeto. Quando ele responder, copie a resposta inteira e traga de volta aqui."
           : "Copie o comando e cole no Claude Code aberto na pasta do projeto. Ele corrige a redação e monta as perguntas do encontro."
-            + (tem && !cheio(w.redacao) ? " A redação ainda não chegou: se veio por foto, cole a transcrição em Redação da semana antes." : ""),
+            // Duas frases, porque são dois estados e a diferença importa no domingo: sem nada, a
+            // redação não chegou mesmo; com a folha passada a limpo entregue e o campo vazio, ela
+            // CHEGOU — o que falta é o texto digitado, que é o que os leitores cegos leem (o passo 3
+            // da preparar-encontro). Dizer "não chegou" com a folha na tela logo abaixo passou a ser
+            // falso no instante em que a entrega só-folha virou possível
+            // (BUG-20261018-folha-passada-a-limpo-sem-rascunho-nao-tem-como-ser-entregue). O conselho
+            // continua o mesmo nos dois casos, e sai de cena quando a correção souber ler a folha
+            // (BACKLOG, "A correção pela folha quando não há rascunho").
+            + (tem && !cheio(w.redacao)
+              ? (folhaDele ? " Chegou a folha passada a limpo, mas não o texto digitado: para a correção, cole a transcrição em Redação da semana antes."
+                             : " A redação ainda não chegou: se veio por foto, cole a transcrição em Redação da semana antes.")
+              : ""),
         rotulo: esperando ? "Colar o preparo" : "Copiar o comando",
         fn: esperando ? ()=>document.getElementById("colarPreparo").click() : copiarComando,
       });
@@ -4570,12 +4591,23 @@
     bloco.hidden = !(ONLINE && syncSt && syncSt.session);
     if(bloco.hidden) return;
     const keyAt = keyAtDaConta();
-    document.getElementById("chaveStat").textContent = keyAt ? `chave cadastrada em ${dmDe(keyAt)}` : "sem chave";
     document.getElementById("removerChave").hidden = !keyAt;
     // A linha do aluno é do aluno DA TELA, e só enquanto a conexão com ele está de pé (US-015 EC-4).
     const linha = document.getElementById("correcaoAluno"), mostra = alunoConectado();
     linha.hidden = !mostra;
     const c = aluno().correction;
+    // A linha de estado conta os DOIS fatos, porque liberar a correção são três gestos — chave, teto
+    // e interruptor — e até 18/10/2026 ela só falava do primeiro: com a chave salva e o teto posto o
+    // painel parecia pronto, enquanto o aluno lia "Correção automática não disponível"
+    // (BUG-20261018-painel-parece-configurado-com-a-correcao-desligada). A chave é da conta e o
+    // interruptor é de um aluno, daí a segunda metade só entrar com a linha dele na tela.
+    // Sem chave a segunda metade não entra: "sem chave · desligada para Ana" daria duas razões para
+    // a mesma coisa e deixaria o pai sem saber qual resolver primeiro. Sem chave, a chave é a
+    // resposta inteira.
+    const paraEle = !(keyAt && mostra) ? ""
+      : c && c.enabled ? ` · ligada para ${nomeAluno()}, ${c.cap} por semana`
+      : ` · desligada para ${nomeAluno()}`;
+    document.getElementById("chaveStat").textContent = (keyAt ? `chave cadastrada em ${dmDe(keyAt)}` : "sem chave") + paraEle;
     if(mostra){
       const on = document.getElementById("correcaoOn"), teto = document.getElementById("correcaoTeto");
       if(document.activeElement!==on) on.checked = !!(c && c.enabled);
@@ -4799,7 +4831,12 @@
     // O interruptor por aluno. Ligar pede o reconhecimento de uma linha, que é o que o servidor guarda
     // como `ack` (BR-10): cancelar não muda nada, nem aqui nem lá.
     const AVISO_ACK = nome => `A folha passada a limpo de ${nome} é enviada ao fornecedor do modelo para ser corrigida.`;
-    async function mandaCorrecao(cb, opts, semRede){
+    // `aviso` lê a correção JÁ NORMALIZADA com a resposta do servidor, nunca o que foi digitado: o
+    // servidor apara o teto, e um toast que repetisse o número pedido mentiria justamente no caso em
+    // que o retorno importa. Salvar a chave sempre avisou; o interruptor e o teto não avisavam nada,
+    // e dois dos três gestos de liberar a correção eram mudos
+    // (BUG-20261018-painel-parece-configurado-com-a-correcao-desligada).
+    async function mandaCorrecao(cb, opts, semRede, aviso){
       const al = aluno();
       if(!al.conta){ renderCorrecao(); return; }
       const r = await SYNC.setCorrection(al.conta, opts);
@@ -4808,16 +4845,19 @@
       // O que vale é a resposta do servidor: ele pode ter aparado o teto.
       al.correction = normCorrection(Object.assign({}, al.correction || {keyAt:keyAtDaConta(), emails:true}, {enabled:r.enabled, cap:r.cap}));
       save(); renderCorrecao(); renderContaLista(); render();
+      if(aviso) toast(aviso(al.correction));
     }
     document.getElementById("correcaoOn").addEventListener("change", async e=>{
       const cb = e.currentTarget, liga = cb.checked, c = aluno().correction;
       if(liga && !confirm(AVISO_ACK(nomeAluno()))){ cb.checked = false; return; }
-      await mandaCorrecao(cb, {enabled:liga, cap:(c ? c.cap : CAP_PADRAO), ack:true}, SEM_REDE_MUDAR);
+      await mandaCorrecao(cb, {enabled:liga, cap:(c ? c.cap : CAP_PADRAO), ack:true}, SEM_REDE_MUDAR,
+        x => `Correção automática ${x.enabled ? "ligada" : "desligada"} para ${nomeAluno()}`);
     });
     document.getElementById("correcaoTeto").addEventListener("change", async e=>{
       const campo = e.currentTarget, c = aluno().correction, cap = Number(campo.value);
       if(!Number.isInteger(cap) || cap < 0 || cap > 20){ contaErro("Entre 0 e 20"); campo.value = String(c ? c.cap : CAP_PADRAO); return; }
-      await mandaCorrecao(campo, {enabled:!!(c && c.enabled), cap, ack:true}, SEM_REDE_MUDAR);
+      await mandaCorrecao(campo, {enabled:!!(c && c.enabled), cap, ack:true}, SEM_REDE_MUDAR,
+        x => `Teto de ${x.cap} ${x.cap===1 ? "correção" : "correções"} por semana`);
     });
     // Os avisos por e-mail são da conta inteira (BR-17). Religar limpa o motivo de terem caído: ele
     // trocou o endereço, ou consertou a caixa, e quem sabe disso é ele.

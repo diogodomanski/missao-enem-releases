@@ -1311,8 +1311,9 @@
       <div class="lines" id="limpoStat"></div>
       <div class="actions mt"><button id="limpoFim" hidden>Marcar como finalizada</button><button id="limpoReabrir" hidden>Reabrir a folha</button><button class="quiet" id="limpoZerar" hidden>Recomeçar</button></div>
     </div>
-    <!-- A entrega (modo conectado, ADR-002, ADR-009). Só existe conectado, nas semanas 1–7 e com o
-         rascunho escrito: o que vai é o retrato do gesto, e editar depois não muda o que o orientador vê.
+    <!-- A entrega (modo conectado, ADR-002, ADR-009). Só existe conectado, nas semanas 1–7 e com algo
+         escrito — o rascunho ou a folha passada a limpo: o que vai é o retrato do gesto, e editar
+         depois não muda o que o orientador vê.
          Entregar marca a tarefa da redação (e o bônus, até quinta); desmarcar a entrega não desmarca nada. -->
     <div class="entrega mt" id="entregaCaixa" hidden>
       <div class="alert info" id="entregaAviso" hidden><p>Agora a redação só chega a <b id="entregaAvisoNome"></b> quando você tocar em <b>Entregar a redação</b>. Até lá o rascunho fica só aqui, e o que você mudar depois de entregar só chega se você entregar de novo.</p><div class="actions"><button id="entregaEntendi">Entendi</button></div></div>
@@ -1525,7 +1526,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 245 · 17/10/2026</p></div>
+  <div class="in"><p class="versao">versão 253 · 18/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
@@ -2494,7 +2495,26 @@
     migrate(s);
     return s;
   }
-  function anyScore(s,k,f){ return Object.values(s.weeks).some(w=>w.scores && w.scores[k]!=null && w.scores[k]!=="" && f(Number(w.scores[k]))); }
+  // A nota de uma redação tem TRÊS moradas no estado, e as quatro medalhas de nota leem as três: a
+  // grade "Nota da correção externa" da semana, que ele digita no encontro (`weeks[n].scores`); o
+  // parecer da semana, que o pai manda e que no modo conectado desce sozinho (`pareceres[n].nota`);
+  // e o parecer de cada redação extra, dele ou do corretor automático
+  // (`extras[].parecer|parecerAuto.nota`).
+  // Até 18/10/2026 só a primeira contava, e o aluno lia "160" embaixo de "C2" no parecer com a
+  // medalha "C2 ≥ 160" apagada ao lado (BUG-20261018-nota-do-parecer-nao-acende-medalha). A extra
+  // ficava de fora por qualquer caminho, embora o critério escrito diga "em uma redação" e ela seja
+  // uma desde as redações extras.
+  // A chave do total troca de nome entre as duas formas — `nota` na grade, `total` no parecer —, e é
+  // a única diferença que esta função reconcilia. Ler não escreve nada: a grade continua sendo
+  // preenchida só por ele, e o código de backup não muda.
+  function anyScore(s,k,f){
+    const vale = v => v!=null && v!=="" && !Number.isNaN(Number(v)) && f(Number(v));
+    if(Object.values(s.weeks).some(w=>w.scores && vale(w.scores[k]))) return true;
+    const pk = k==="nota" ? "total" : k;
+    const naNota = p => !!(p && p.nota && vale(p.nota[pk]));
+    if(Object.values(obj(s.pareceres)).some(naNota)) return true;
+    return (Array.isArray(s.extras) ? s.extras : []).some(x=>x && (naNota(x.parecer) || naNota(x.parecerAuto)));
+  }
   // Quantas redações extras ele REGISTROU na missão inteira: é o que a medalha conta, e ela lê o
   // estado passado (BADGES.test recebe um estado), nunca `state` direto — é assim que o Desfazer de um
   // Zerar e a conta do resumo leem a mesma função.
@@ -3913,8 +3933,13 @@
     document.getElementById("redWeek").textContent = `semana ${a.semana}`;
     document.getElementById("redTema").textContent = final ? "Sem redação nova na reta final. Use a semana 7 para reler a última." : `Tema: ${ex ? a.obj.tema : meta.theme}`;
     // O modo é da ficha em que foi escolhido: qualquer troca de semana ou de redação volta ao rascunho.
-    // Numa semana que não exige a folha ela só existe depois do rascunho; numa que exige, a fonte é o
-    // papel e ela vale mesmo com o rascunho vazio (ADR-002). A extra sempre oferece a folha.
+    // Numa semana que não exige a folha ela existe depois do rascunho OU enquanto houver folha escrita;
+    // numa que exige, a fonte é o papel e ela vale mesmo com o rascunho vazio (ADR-002). A extra sempre
+    // oferece a folha. A segunda metade do OU é o que impede a folha órfã: sem ela, apagar o rascunho
+    // numa semana que não exige a folha escondia a folha já escrita — que continuava inteira em
+    // `weeks[n].limpo`, sem caminho nenhum até ela
+    // (BUG-20261018-folha-escrita-some-quando-o-rascunho-e-apagado). É dado preso, não dado perdido, e
+    // o aluno não tinha como saber que ele estava lá.
     if(redModoSem!==chave){ redModo = "rasc"; redModoSem = chave; }
     // "Tem rascunho?" é `temTexto()` e nunca `.trim()` nu: o invisível que vem colado do WhatsApp
     // (largura zero, juntadores, juntador de palavra) não é texto escrito, e `trim()` não o come. O
@@ -3923,7 +3948,7 @@
     // mesma pergunta têm de concordar, senão o aviso promete uma coisa e o contador diz outra, e
     // numa semana que não exige a folha o rádio de passar a limpo aparece sobre nada
     // (BUG-20261016-aviso-da-redacao-some-com-invisivel).
-    const temRasc = temTexto(a.redacao), oferece = !final && (ex || a.exigida || temRasc);
+    const temRasc = temTexto(a.redacao), oferece = !final && (ex || a.exigida || temRasc || limpoEscritas(a.limpo) > 0);
     if(!oferece) redModo = "rasc";
     const limpo = redModo==="limpo";
     document.getElementById("redModo").hidden = final;
@@ -3931,11 +3956,18 @@
     document.querySelectorAll('input[name="redModo"]').forEach(r=>{ r.checked = r.value===redModo; });
     document.getElementById("redRasc").hidden = limpo;
     document.getElementById("redLimpo").hidden = !limpo;
+    // A cadeia do aviso lê `oferece`, e NÃO `!temRasc`: as duas eram a mesma coisa enquanto a aba só
+    // existia com rascunho, e deixaram de ser quando a folha escrita passou a bastar. Pedir o rascunho
+    // ao lado da aba que está na tela é frase falsa — e ela já estava no ar na ficha de uma redação
+    // EXTRA, que sempre oferece a aba: com o rascunho vazio, o aviso mandava escrever o rascunho
+    // "para depois passar a limpo" ao lado do caminho aberto. O ramo de copiar o rascunho pede o
+    // rascunho pela mesma razão: na folha órfã não há rascunho nenhum para copiar. Nenhuma frase nova
+    // para esses estados — eles não pedem nada do aluno.
     const aviso = document.getElementById("redAviso");
     aviso.textContent = final ? ""
       : a.exigida ? "Nesta semana a folha é a cópia da sua folha de papel, linha por linha: escreva à mão e passe a limpo aqui do jeito que saiu, com as mesmas quebras de linha e os mesmos hífens."
-      : !temRasc ? "Escreva o rascunho primeiro: depois dá para passar a limpo, linha por linha, numa folha em branco."
-      : limpo ? "Copie o rascunho na folha em branco: você decide onde cada linha acaba e onde separar a palavra."
+      : !oferece ? "Escreva o rascunho primeiro: depois dá para passar a limpo, linha por linha, numa folha em branco."
+      : limpo && temRasc ? "Copie o rascunho na folha em branco: você decide onde cada linha acaba e onde separar a palavra."
       : "";
     aviso.hidden = !aviso.textContent;
     const ta = document.getElementById("redText"); if(document.activeElement!==ta) ta.value = a.redacao||""; ta.disabled = final || soLeitura();
@@ -3985,8 +4017,9 @@
   // O último instante da quinta da semana n: entregar até ali marca também o bônus. Vale a hora do
   // gesto, mesmo quando ele sobe depois (US-023 EC-11).
   function fimDaQuinta(n){ const d = dataDe(n, 3); return new Date(d.getFullYear(), d.getMonth(), d.getDate()+1).getTime() - 1; }
-  // O botão só existe conectado, nas semanas 1–7 e com o rascunho escrito; a linha do que foi entregue,
-  // com a sessão. O aviso de uma vez diz a regra nova a quem conectou: a redação só vai entregue.
+  // O botão só existe conectado, nas semanas 1–7 e com redação para entregar — rascunho escrito ou
+  // folha passada a limpo; a linha do que foi entregue, com a sessão. O aviso de uma vez diz a regra
+  // nova a quem conectou: a redação só vai entregue.
   function renderEntrega(){
     // A entrega é da redação DA SEMANA: a extra vai ao orientador por "Pedir correção", e o que ele lê
     // é o retrato daquele gesto (ADR-014 §2). Numa ficha de extra a caixa da entrega inteira sai da tela
@@ -3999,7 +4032,19 @@
     // botão entrava na tela ao lado de "não começada" e de "Nada escrito ainda.", e entregar dali valia
     // +100 XP (+30 do bônus até quinta), fechava tasks.red e subia um corpo vazio pela ponte
     // (BUG-20261016-entregar-aparece-sobre-rascunho-invisivel).
-    btn.hidden = ex || !(conectado() && !meta.final && temTexto(w.redacao));
+    // "Tem redação para entregar?" é texto no rascunho OU, na semana que exige a folha, linha escrita
+    // nela. O segundo caso é o que a semana 5 e a 7 produzem por desenho — escrever no papel, marcar a
+    // tarefa à mão, passar a limpo —, e sem ele o aluno fazia tudo o que a tela pedia e não tinha gesto
+    // nenhum: no modo conectado a entrega é o único caminho pelo qual a folha chega
+    // (BUG-20261018-folha-passada-a-limpo-sem-rascunho-nao-tem-como-ser-entregue).
+    // Uma regra só, em qualquer semana. A guarda `meta.limpo &&` que nasceu em 18/10 existia porque fora
+    // da semana exigida a folha sem rascunho era órfã e INVISÍVEL na tela, e um gesto sobre conteúdo
+    // escondido é a forma de BUG-20261016-entregar-aparece-sobre-rascunho-invisivel. A folha órfã
+    // passou a se ver (`oferece`, em renderRed()), e a objeção caiu com ela: hoje UM caractere no
+    // rascunho já revela o botão, e a folha inteira era menos entregável que uma letra.
+    // A conta do botão e a de `oferece` continuam andando juntas: aparece gesto para o que a tela mostra.
+    const temQueEntregar = temTexto(w.redacao) || limpoEscritas(w.limpo) > 0;
+    btn.hidden = ex || !(conectado() && !meta.final && temQueEntregar);
     const info = document.getElementById("entregaInfo"), des = document.getElementById("desmarcarEntrega");
     const mostra = !ex && sessao && !meta.final && !!e;
     info.hidden = !mostra; des.hidden = !(mostra && !e.desmarcada);
@@ -4024,9 +4069,10 @@
   let entregando = false;
   async function entregar(){
     const n = current, meta = WEEKS[n-1], w = wk(n);
-    // A guarda repete a conta do botão, com o mesmo temTexto(): o botão escondido ainda é clicável por
-    // teclado e por script, e é aqui que o gesto para.
-    if(!conectado() || entregando || meta.final || !temTexto(w.redacao)) return;
+    // A guarda repete a conta do botão — texto no rascunho ou folha escrita, em qualquer semana: o
+    // botão escondido ainda é clicável por teclado e por script, e é aqui que o gesto para. As duas
+    // contas têm de dizer a mesma coisa, senão o botão promete o que a guarda recusa.
+    if(!conectado() || entregando || meta.final || !(temTexto(w.redacao) || limpoEscritas(w.limpo) > 0)) return;
     const em = Date.now();
     const corpo = {redacao:w.redacao, limpo:w.limpo ? JSON.parse(JSON.stringify(w.limpo)) : null, em};
     const antes = {red:!!w.tasks.red, early:!!w.tasks.early, entrega:w.entrega};
@@ -4211,7 +4257,11 @@
     const a = alvoRedacao(), est = limpoEstado(a), k = limpoEscritas(a.limpo);
     document.getElementById("limpoStat").textContent = est==="vazia" ? `Folha em branco · largura ${limpoLarg(a)}`
       : `Folha ${est==="finalizada"?"finalizada":"em andamento"} · ${nLinhas(k)} · largura ${limpoLarg(a)}`;
-    document.getElementById("limpoNota").hidden = !(a.limpo && (a.redEm||0) > a.limpo.em);
+    // O aviso é do Abandono-B (ele EDITA o rascunho depois da folha, e a folha fica velha em relação
+    // a ele). Sem rascunho nenhum ele não tem a quem apontar: `redEm > limpo.em` continua verdadeiro
+    // quando o rascunho foi APAGADO depois da folha, e a frase mandava procurar um rascunho novo que
+    // a aba ao lado mostra vazia (BUG-20261018-folha-orfa-aponta-um-rascunho-que-nao-existe).
+    document.getElementById("limpoNota").hidden = !(a.limpo && temTexto(a.redacao) && (a.redEm||0) > a.limpo.em);
     document.getElementById("limpoFim").hidden = est!=="andamento";
     document.getElementById("limpoReabrir").hidden = est!=="finalizada";
     document.getElementById("limpoZerar").hidden = est==="vazia";
@@ -4221,12 +4271,20 @@
     const a = alvoRedacao(), chave = fichaKey(), final = a.tipo==="semana" && WEEKS[a.semana-1].final;
     if(limpoFocoKey!==chave){ limpoFocoKey = chave; limpoFoco = limpoEstado(a)==="andamento" ? Math.min(a.limpo.linhas.length, FOLHA.linhas-1) : 0; }
     if(final || document.getElementById("redLimpo").hidden) return;
-    // `temTexto()` pela mesma razão do `renderRed()`: com só invisível no rascunho, a folha de
-    // referência saía vazia sob a legenda "Seu rascunho, só para ler".
-    const temRasc = temTexto(a.redacao);
-    document.getElementById("limpoRef").innerHTML = temRasc
-      ? `<p class="cap">Seu rascunho, só para ler</p>${folhaHTML(linhasDe(a.redacao), {cols:larg(), min:0, marca:false})}`
-      : `<p class="cap">Nesta semana a fonte é a sua folha de papel: copie dela, linha por linha.</p>`;
+    // A legenda sai da SEMANA e não do rascunho: "a fonte é a sua folha de papel" é a frase das semanas
+    // 5 e 7, e lida por `!temRasc` ela vazava para toda folha sem rascunho — a extra com o rascunho
+    // vazio e a folha órfã da semana 3 (BUG-20261018-folha-escrita-some-quando-o-rascunho-e-apagado).
+    // Fora da semana exigida a fonte é o rascunho dele, e a folha de referência o mostra como está,
+    // vazio inclusive: é o que diz que o rascunho não está mais lá. O `min` é 1 e não 0 porque uma
+    // folha de ZERO linhas não se lê como vazia — ela não se lê de jeito nenhum: o `min:0` desenhava
+    // a legenda sobre o nada, e o estado órfão ficava parecendo região que não carregou
+    // (BUG-20261018-folha-orfa-aponta-um-rascunho-que-nao-existe). O zero é mais velho que a folha
+    // órfã e era inofensivo enquanto este ramo exigia rascunho: havia sempre linha para desenhar.
+    // Uma linha, e não as 30 das outras chamadas de folhaHTML: com rascunho de verdade nada muda
+    // (já há linha), e sem ele as 30 empurrariam a folha que ele veio escrever uma tela para baixo.
+    document.getElementById("limpoRef").innerHTML = a.exigida
+      ? `<p class="cap">Nesta semana a fonte é a sua folha de papel: copie dela, linha por linha.</p>`
+      : `<p class="cap">Seu rascunho, só para ler</p>${folhaHTML(linhasDe(a.redacao), {cols:larg(), min:1, marca:false})}`;
     if(!limpoFolha.firstChild) limpoFolha.innerHTML = `<div class="sheet-wrap"><ol class="sheet">${Array.from({length:FOLHA.linhas},(_,i)=>
       `<li><span class="sheet-n">${i+1}</span><input type="text" class="sheet-t" data-limpo="${i}" aria-label="Linha ${i+1}" spellcheck="false" autocorrect="off" autocapitalize="off" autocomplete="off" enterkeyhint="next" tabindex="-1"><span class="sheet-vh" id="limpoVh${i}" hidden> passou da sua largura</span></li>`).join("")}</ol></div>`;
     const linhas = a.limpo ? a.limpo.linhas : [], fim = limpoEstado(a)==="finalizada";
