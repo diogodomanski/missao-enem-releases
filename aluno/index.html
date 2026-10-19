@@ -183,6 +183,12 @@
   .alert.info{background:var(--blue-soft);color:var(--blue-ink);border:1px solid var(--blue)}
   #updateBanner{margin:0 0 12px}
   #updateBanner p{margin:0}
+  /* A manchete: a primeira frase da faixa, em <b> de bloco a 16px, como o <b> do .promo — o outro
+     anúncio do sistema. Sem cor própria: --blue-ink já é a tinta da faixa, e um segundo tom ali seria
+     acento. O corpo vem depois, no 14px de .alert, num nó de texto que começa pelo espaço: o
+     textContent de #updateSay continua, caractere a caractere, a frase inteira — é o que as suítes e a
+     documentação citam (faixaDiz() nos dois apps). */
+  #updateBanner p b{display:block;font-size:16px;margin-bottom:2px}
   #updateBanner .actions{margin-top:8px;align-items:center}
   /* Os dois botões são `quiet`, que nasce em --muted: cinza-neblina sobre azul suave é cinza fora do
      tom da superfície, e no escuro chega perto de parecer desabilitado. Sobre superfície colorida o
@@ -668,6 +674,19 @@
   .today .item.ok > span{opacity:var(--dim);text-decoration:line-through}
   /* O que vem depois do próximo passo é informação, não decisão: uma linha de texto, sem botão e sem chip. */
   .today .later{margin-top:10px;font-size:13px;opacity:var(--tl);overflow-wrap:anywhere}
+  /* Lembretes no celular (ADR-001 de lembretes): uma linha quieta depois da linha do tempo — é onde ir,
+     não o que fazer, então nem item nem botão de ação. O `.linkish` herda a tinta do painel; a regra
+     `.today button` (fundo branco, 700) perde para estas três classes. */
+  .today .lembretes{margin:12px 0 0;font-size:13px;opacity:var(--tl)}
+  .today .lembretes .linkish{background:none;border:0;color:inherit;font-size:13px;font-weight:500;padding:0}
+  .lembrete{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:6px 10px;padding:8px 0;border-top:1px solid var(--line)}
+  .lembrete:first-child{border-top:0;padding-top:0}
+  .lembrete .lt{min-width:0;font-size:14px}
+  .lembrete .lt b{font-weight:600}
+  .lembrete .lt small{display:block;color:var(--muted);font-size:12px}
+  .lembrete input[type=time]{width:auto}
+  .lembrete a{grid-column:3;display:inline-flex;align-items:center;min-height:44px;padding:0 4px;white-space:nowrap} /* a prova não tem hora: o link fica na coluna dos outros */
+  @media (max-width:480px){.lembrete{grid-template-columns:minmax(0,1fr) auto}.lembrete a{grid-column:1/-1;justify-self:start;min-height:36px}}
   /* Foguinho: dias perfeitos seguidos. Aceso em ouro (a cor da conquista) quando o dia de hoje já
      fechou; gelado — só contorno, número apagado — enquanto não. É o único ícone do sistema, e é
      desenhado aqui dentro: nada vem de fora. Tocar nele abre a regra do que é um dia perfeito. */
@@ -913,6 +932,11 @@
     .foot button{padding:12px 14px}
     .today .item{min-height:44px}
     .today button{min-height:44px}
+    /* A linha dos lembretes: os 44px vêm do min-height de cima, não do padding de `.linkish`; a margem
+       devolve o que o botão cresce, para a linha continuar discreta. Acima está a linha do tempo, que
+       não se toca; abaixo, o padding do painel. */
+    .today .lembretes .linkish{padding:0;margin:-12px 0}
+    .lembrete a{min-height:44px}
     /* Os dois links da linha de texto do card da semana. A linha do `.muted` mede 18,85px (13px × 1,45):
        13px de padding em cima e embaixo dão 44,85 — os 10px de antes davam 38,85. A margem negativa
        devolve o que o padding acrescenta, e o desenho não muda. `inline-block` para o link não quebrar
@@ -1213,6 +1237,7 @@
     <div class="list" id="todayList"></div>
     <p class="later" id="todayLater" hidden></p>
     <div class="tl" id="timeline"></div>
+    <p class="lembretes" id="lembretesLinha"><button class="linkish" id="lembretesAbre">Lembretes no celular</button></p>
   </section>
 
   <section class="hero" tabindex="-1">
@@ -1526,11 +1551,12 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 255 · 19/10/2026</p></div>
+  <div class="in"><p class="versao">versão 260 · 19/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
 <dialog id="ob" class="ob"><div class="dh"><h2 id="obTitle"></h2><button id="obSkip" class="quiet">Pular</button></div><div class="db"><p class="step" id="obStep"></p><div id="obBody"></div><div class="actions"><button class="primary" id="obNext"></button></div></div></dialog>
+<dialog id="lembretes" aria-labelledby="lembretesTitle"><div class="dh"><h2 id="lembretesTitle">Lembretes no celular</h2><button class="help" data-help="lembretes" aria-label="Ajuda: lembretes no celular">?</button></div><div class="db"><p class="muted">Cada linha abre o Google Agenda com o evento pronto, repetindo até o fim da missão. Ajuste a hora, toque em Adicionar e salve lá. O aviso toca como a sua agenda está configurada — em geral, 30 minutos antes.</p><div id="lembretesLista"></div><div class="actions"><button class="quiet" id="lembretesFechar">Fechar</button></div></div></dialog>
 <dialog id="help"><div class="dh"><h2 id="helpTitle"></h2><button id="helpClose" aria-label="Fechar">Fechar</button></div><div class="db" id="helpBody"></div></dialog>
 <!-- O ajudante de medir: as linhas digitadas aqui servem só para a conta e nunca são gravadas — o
      diálogo se esvazia ao fechar. -->
@@ -2049,6 +2075,7 @@
     parecer:{t:"Parecer da redação",b:`<p>É a correção da sua redação escrita para <b>você</b>, não para o corretor: a nota com o que cada competência mede, <b>uma</b> coisa que ficou boa, <b>um</b> ajuste para esta semana (e como conferir sem ajuda), os tropeços de português com a regra e onde apareceram no seu texto, o que fica anotado para as próximas redações e o que estudar.</p><ul><li><b>Como chega:</b> ${oriSpan()} manda pelo WhatsApp uma mensagem com um código. Toque em <b>Colar o parecer</b> e cole a mensagem inteira: o código é achado dentro dela. O parecer entra na semana dele e a aba muda para lá.</li><li><b>Para que serve:</b> vocês leem no encontro de domingo, e depois ele fica aqui, por semana, para você reler antes de escrever a próxima. Troque de semana nas abas para ver os anteriores.</li><li><b>O que ficou de fazer</b> é o último bloco do parecer: a reescrita do parágrafo e os exercícios do ajuste, cada um com uma caixa para marcar ali mesmo. O <b>?</b> daquele bloco explica as regras dele.</li><li><b>Um ajuste só, de propósito.</b> A lista das próximas redações é mapa, não tarefa: quem tenta corrigir oito coisas não corrige nenhuma.</li><li><b>Os links</b> vêm de uma lista conferida à mão. Se algum não abrir, avise ${oriSpan()}.</li></ul><p>O parecer não vale XP e não vai na mensagem <b>Copiar resumo e código</b> (${oriSpan()} já o tem); vai só no arquivo de backup. Restaurar um backup que não tem pareceres mantém os que estão aqui.</p>${ONLINE?`<p><b>Com a conexão ao orientador</b> não há código para colar: quando o orientador toca em <b>Enviar o parecer</b>, o parecer e a mensagem da semana chegam sozinhos, na semana a que pertencem, com um aviso — a tela não muda de lugar, e no domingo o painel Hoje oferece <b>Ler o parecer</b>. A mensagem aparece acima do parecer, em <b>Mensagem de</b>, só para ler; ela também não vale XP e não vai no resumo. Um envio novo substitui os dois, e as marcas do que ficou de fazer continuam onde o exercício é o mesmo. O que você marca ali chega sozinho ao painel do orientador. Com a sincronização desligada, <b>Colar o parecer</b> funciona como sempre.</p>`:""}`},
     fazer:{t:"O que ficou de fazer",b:`<p>É a última parte do parecer: <b>tudo o que a correção pediu</b>, reunido em um lugar só, para você não ter de garimpar tarefa dentro de um texto que foi escrito como diagnóstico. São no máximo três itens: o <b>parágrafo para reescrever</b> e os <b>um ou dois exercícios</b> do ajuste da semana.</p><ul><li><b>Só isto entra na lista.</b> "Para estudar" é link para quando sobrar tempo, "Para as próximas redações" é mapa, e os "Como conferir" são para usar <i>enquanto</i> você reescreve. Nada disso vira tarefa: o plano é <b>um ajuste por semana</b>.</li><li><b>A reescrita vale 30 XP</b> — é a mesma tarefa <i>Parágrafo reescrito até segunda</i> da lista de Semanas. Marcar aqui marca lá, e marcar lá marca aqui: é uma tarefa só, em duas telas.</li><li><b>Os exercícios não valem XP.</b> Marcar um é registro, não pontuação: serve para você ver o que falta e para ${oriSpan()} ver no domingo que foi feito. O XP da semana e o teto de 720 não mudam por causa deles.</li><li><b>Item deixado em branco não é cobrado depois.</b> A lista é desta semana e fica nesta semana: nada vermelho, nenhum aviso, nenhuma dívida na semana seguinte. Se você fizer na quarta-feira seguinte, é só voltar na aba dela e marcar.</li></ul><p>Errou o toque? Desmarcar salva na hora e não tira XP nenhum — aqui XP nunca é descontado.</p>`},
     sequencia:{t:"O foguinho: dias perfeitos seguidos",b:`<p>O foguinho conta os <b>dias perfeitos seguidos</b>. Ele fica <b>gelado</b> enquanto o dia de hoje não está completo e <b>acende em ouro</b> quando fecha. O número ao lado é a sequência; quando ela não é a sua melhor, aparece também <code>· melhor: N</code> — esse recorde nunca some, mesmo que a sequência recomece.</p><p><b>O que é um dia perfeito é você quem decide</b>, na grade do contrato de rotina. Vale o que a grade marcou para aquele dia, entre as duas coisas que o painel registra por dia:</p><ul><li><b>Notícia</b> naquele dia da grade: precisa marcar a notícia do dia.</li><li><b>Estudo</b> naquele dia da grade: precisa registrar um bloco de estudo com aquele dia.</li><li>Dia sem nada marcado na grade é descanso que <i>você</i> combinou: ele conta como perfeito e mantém a corrente.</li></ul><p>Enquanto a linha <b>Notícia</b> da grade estiver vazia, vale o plano: notícia todo dia.</p><p>O foguinho <b>não vale XP</b> — o preço de cada coisa continua na lista de tarefas da semana. Ele é só o retrato da sua constância.</p>`},
+    lembretes:{t:"Lembretes no celular",b:`<p>Cada linha é um <b>link</b> que abre o Google Agenda com um evento já montado, repetindo até o fim da missão: a notícia todo dia, o bloco de estudo de segunda a sexta, a redação no dia da entrega, o encontro no dia e na hora do contrato, e a prova. Você escolhe quais quer: toque só nesses, ajuste a hora antes e salve na agenda.</p><ul><li><b>A hora</b> vem do seu contrato (a grade e a hora do encontro), e você pode trocar antes de adicionar. A hora não fica gravada aqui: serve só para montar o evento.</li><li><b>O aviso</b> é o da sua agenda, em geral 30 minutos antes. Para mudar ou tirar, é no Google Agenda, no próprio evento.</li><li><b>Mudou o contrato?</b> O evento já criado não muda: apague a série na agenda e adicione de novo.</li><li>Nada sai do app até você tocar no link, e lembrete não vale XP.</li></ul>`},
     medalhas:{t:"Medalhas",b:`<p>As medalhas automáticas destravam sozinhas a partir das notas e dos registros. As duas marcadas com "confirmada no encontro" você toca para marcar, depois que vocês confirmarem no encontro.</p>`},
     resumo:{t:"Resumo e backup",b:`${ONLINE?`<p><b>Com a conexão ao seu orientador,</b> o botão daqui vira <b>Enviar a semana</b>: um toque abre a semana no painel, sem copiar nada. O que você registra já sobe sozinho; enviar só antecipa o dia em que os registros da semana aparecem no painel, que sem isso abrem sozinhos no dia do encontro do contrato. Desse dia em diante a semana já está aberta, e o botão passa a dizer <b>Mandar o que você registrou até agora</b>: o toque não abre nada, só manda na hora o que você acabou de registrar. <b>Depois de enviada, a semana não fecha de novo</b> — o que você registrar nela continua chegando. Sem rede, o envio fica guardado e sai quando a rede voltar. <b>Copiar resumo e código</b> continua no bloco Backup, para quando você quiser mandar pelo WhatsApp mesmo assim.</p><p>A linha no topo da tela diz em que pé está o envio: <b>Tudo enviado</b>, <b>Enviando…</b>, quantos registros esperam a rede ou <b>Não foi possível enviar</b>, com <b>Tentar de novo</b>. Tocar nela mostra exatamente o que o seu orientador recebeu.</p>`:""}<p><b>Copiar resumo e código</b> põe as duas coisas na área de transferência de uma vez: o resumo da semana selecionada, para ler, e embaixo dele o código de backup, para importar no painel. Cole tudo numa mensagem só, antes do encontro.</p><p><b>O código</b> leva tudo o que está aqui: contrato, semanas, redações, folhas, briefings e banco — das notícias, só a que você vai apresentar em cada semana; as guardadas vão no arquivo de backup — e o seu nome, <b>${esc(NOME)}</b>, que é como o painel ${oriSpan("de")} chama estes dados. É o que entra no painel e o que restaura o seu progresso em outro aparelho. ${APP?"Mande a mensagem toda semana: é ela que leva o que você fez para o painel do orientador.":"O progresso fica salvo só neste navegador, então mande a mensagem toda semana."}</p><p><b>Atualizar</b> refaz o texto com os dados de agora. Quase sempre nada muda: o resumo já se refaz sozinho a cada coisa que você marca. Ele serve para quando a página ficou aberta desde ontem, ou se o texto parecer atrasado em relação ao que você registrou.</p><p><b>${APP?"Salvar arquivo…":"Baixar arquivo de backup"}</b> é para quando o código ficar grande demais para uma mensagem: mande o arquivo .txt junto com o resumo.</p>${APP?`<p><b>No aplicativo o progresso não fica no navegador:</b> ele mora num banco de dados na pasta de dados do seu usuário${FOLDER?` (<code>${esc(FOLDER)}</code>)`:""} — <code>%APPDATA%\\Missão ENEM</code> no Windows e <code>~/.config/missao-enem</code> no Linux. <b>Abrir pasta dos dados</b> abre essa pasta no gerenciador de arquivos. Desinstalar ou atualizar o app não mexe nela.</p><p><b>Cópias automáticas:</b> na primeira vez que o app salva em cada dia, ele guarda ali uma cópia do estado anterior, em JSON — o mesmo formato do arquivo de backup, então uma cópia também serve para mandar ${oriSpan("a")}. Ficam as <b>14 mais recentes</b>. Restaurar uma cópia pede confirmação mostrando os dois lados e deixa 8 segundos de Desfazer.</p>`:""}`},
     conexao:{t:"Conectar ao orientador",b:`<p>Conectar é opcional. Sem conta, o app funciona como sempre: você copia o resumo e o código e manda pelo WhatsApp.</p><ol><li><b>Entrar:</b> você digita o seu e-mail e o app manda um código de 6 dígitos para esse endereço. O código vale 10 minutos; se não chegar, olhe na pasta de spam ou use <b>Corrigir e-mail</b>. Não há senha, e neste computador você entra uma vez só.</li><li><b>Convite:</b> o seu orientador gera no painel um código de 8 letras e números e passa para você. Você digita, e o app mostra quem convidou e o que vai ser compartilhado.</li><li><b>Pedir conexão:</b> o pedido vai para o orientador, que aceita ou recusa. Só depois do aceite alguma coisa sai daqui.</li></ol><p><b>Ou convide você:</b> em <b>Convidar orientador</b> o app gera um código seu. O orientador digita no painel, vê o seu nome e o seu e-mail e pede a conexão; você lê o que vai ser compartilhado e aceita.</p><p><b>Idade:</b> o modo online é para estudantes a partir de 16 anos, e a data de nascimento é perguntada uma vez. Se você tem menos de 18 e o orientador não é o seu responsável legal, o seu responsável recebe um e-mail dizendo quem é o orientador, o que aparece no painel e como desfazer a conexão; o responsável não aprova nada.</p><p><b>O que o orientador passa a ver:</b> os totais ao vivo (XP da semana, XP total, patente e se houve registro), os registros de cada semana a partir do dia do encontro ou de quando você enviar a semana, o seu contrato de rotina e a redação que você <b>entregar</b> — o rascunho nunca chega lá. O orientador também guarda anotações próprias sobre as suas redações.</p><p><b>Vários aparelhos:</b> entrando com o mesmo e-mail no celular e no computador, a missão é uma só nos dois — registros, contrato, bancos, rascunhos, a folha passada a limpo, pareceres e mensagens. O que você marca num aparece no outro sem recarregar. Na primeira entrada num aparelho que já tinha outra missão, o app mostra as duas, com o XP, o banco e o último registro de cada uma, e pergunta qual vale; nada sobe nem é trocado antes de você escolher, e a que sai do lugar fica numa cópia automática. O tema, a pré-visualização das notas, as seções abertas e a aba da semana são de cada aparelho e não viajam.</p><p><b>Desfazer conexão</b> fica na janela que abre ao tocar na linha da conexão: vale na hora, mesmo sem rede, sem precisar de ninguém. O orientador deixa de ver os seus registros, e as anotações sobre você saem do painel. Tudo o que é seu — registros, pareceres, mensagens — continua aqui, e a conta continua entrada. Qualquer um dos dois pode desfazer.</p><p><b>Sincronização</b>, no bloco Backup, liga e desliga o envio: desligada, o app volta a ser o de antes. <b>Sair da conta</b> encerra a sessão neste computador e não apaga nada do que está aqui. <b>Excluir conta</b> apaga a conta e tudo o que subiu do servidor, com um código novo no seu e-mail para confirmar; neste computador nada muda.</p>`},
@@ -2891,14 +2918,87 @@
   document.addEventListener("click",e=>{ const b=e.target.closest("[data-help]"); if(!b) return; const h=HELP[b.dataset.help]; document.getElementById("helpTitle").textContent=h.t; document.getElementById("helpBody").innerHTML=h.b; renderNome(); dlg.showModal(); });
   document.getElementById("helpClose").addEventListener("click",()=>dlg.close());
   dlg.addEventListener("click",e=>{ if(e.target===dlg) dlg.close(); });
+  // ---------- lembretes no celular (ADR-001 de lembretes): um link do Google Agenda por lembrete.
+  // Nada aqui grava: a hora é ajuste da sessão (`horasLembrete`), o link é montado na hora e é o
+  // Arthur quem o toca — a tela não faz pedido de rede. O `.ics` do item do backlog não entra no app
+  // do Google Agenda do Android (a ADR mede), e o link entra direto no editor de evento.
+  const horasLembrete = {};
+  // A primeira hora de um texto livre do contrato: "14h–15h" → "14:00", "19h30"/"19:30" → "19:30",
+  // "às 19" → "19:00". Sem número que seja hora ("no ônibus", "2026") devolve o padrão.
+  function horaDe(texto, padrao){
+    const m = /(?:^|[^\d])(\d{1,2})(?:\s*[:h]\s*(\d{2})?)?(?!\d)/.exec(String(texto||""));
+    if(!m) return padrao;
+    const h = Number(m[1]), mi = m[2] ? Number(m[2]) : 0;
+    return (h>23 || mi>59) ? padrao : `${String(h).padStart(2,"0")}:${String(mi).padStart(2,"0")}`;
+  }
+  // A primeira célula da linha da grade (seg → dom) que tem uma hora.
+  function horaCelula(linha, padrao){
+    const g = state.contrato.sched || {};
+    for(let i=0;i<7;i++){ const h = horaDe(g[linha+"-"+i], null); if(h) return h; }
+    return padrao;
+  }
+  const carimboAgenda = d => { const p=n=>String(n).padStart(2,"0"); return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}00`; };
+  const ateFimDe = d => carimboAgenda(d).slice(0,8) + "T235959";
+  // Hora local flutuante (sem Z nem fuso): o aparelho dele decide, e as duas cidades estão em UTC−3.
+  function linkAgenda({titulo, inicio, minutos, rrule, detalhes}){
+    const q = new URLSearchParams({action:"TEMPLATE", text:titulo, dates:`${carimboAgenda(inicio)}/${carimboAgenda(new Date(inicio.getTime() + minutos*6e4))}`, details:detalhes||""});
+    if(rrule) q.set("recur", "RRULE:"+rrule);
+    return "https://calendar.google.com/calendar/render?" + q.toString();
+  }
+  const BYDAY = ["MO","TU","WE","TH","FR","SA","SU"];
+  function proximoDia(dias, de){ for(let k=0;k<7;k++){ const d = new Date(de); d.setDate(d.getDate()+k); if(dias.includes(diaDe(d))) return d; } return null; }
+  function comHora(d, hhmm){ const [h,mi] = hhmm.split(":").map(Number); const x = new Date(d); x.setHours(h, mi, 0, 0); return x; }
+  // As cinco definições, a partir do contrato e das datas da missão. Linha cuja última ocorrência já
+  // passou não entra; os dias de reserva (sexta, domingo) são os mesmos do painel Hoje.
+  function lembretesDoDia(){
+    const hoje = new Date(todayMs()), c = state.contrato;
+    const entrega = dayIdx(c,"entrega")>=0 ? dayIdx(c,"entrega") : 4, encontro = dayIdx(c,"encontro")>=0 ? dayIdx(c,"encontro") : 6;
+    const L = [];
+    const serie = (id, titulo, quando, dias, fim, padrao, minutos, detalhes) => {
+      const inicio = proximoDia(dias, hoje); if(inicio && inicio<=fim) L.push({id, titulo, quando, dias, inicio, fim, padrao, minutos, detalhes});
+    };
+    serie("noticia", "Notícia do dia", "todo dia", [0,1,2,3,4,5,6], ENEM, horaCelula("Notícia","12:30"), 15, "10 minutos de notícia: podcast ou leitura. Marque no Missão ENEM.");
+    serie("estudo", "Bloco de estudo", "segunda a sexta", [0,1,2,3,4], dataDe(8,4), horaCelula("Estudo","14:00"), 60, "Um bloco de estudo. Registre no Missão ENEM.");
+    serie("redacao", "Redação da semana", DAY_LONG[entrega], [entrega], dataDe(7,entrega), horaCelula("Redação","16:00"), 60, "O dia de mandar a redação da semana.");
+    serie("encontro", `Encontro com ${orientador()}`, DAY_LONG[encontro], [encontro], dataDe(7,encontro), horaDe(c.encontroHora,"19:00"), 40, "A chamada da semana: leitura em voz alta, correção e briefing.");
+    if(hoje<=ENEM) L.push({id:"prova", titulo:"ENEM · 1º dia (redação)", quando:"8/11", dias:null, inicio:ENEM, fim:ENEM, padrao:"13:30", minutos:330, detalhes:"Portões fecham às 13h. Documento com foto, canetas pretas transparentes, água. 2º dia: 15/11.", fixa:true});
+    return L;
+  }
+  function hrefLembrete(l, hhmm){
+    const rrule = l.fixa ? "" : l.dias.length===7 ? `FREQ=DAILY;UNTIL=${ateFimDe(l.fim)}` : `FREQ=WEEKLY;BYDAY=${l.dias.map(d=>BYDAY[d]).join(",")};UNTIL=${ateFimDe(l.fim)}`;
+    return linkAgenda({titulo:l.titulo, inicio:comHora(l.inicio, hhmm), minutos:l.minutos, rrule, detalhes:l.detalhes});
+  }
+  function renderLembretes(){
+    const lista = document.getElementById("lembretesLista"), L = lembretesDoDia();
+    lista.innerHTML = L.map(l => { const h = l.fixa ? l.padrao : (horasLembrete[l.id] || l.padrao);
+      return `<div class="lembrete" data-l="${l.id}"><div class="lt"><b>${esc(l.titulo)}</b><small>${esc(l.quando)}${l.fixa?` · ${h}`:""}</small></div>${l.fixa?"":`<input type="time" value="${h}" data-hora="${l.id}" aria-label="Hora: ${esc(l.titulo)}">`}<a href="${esc(hrefLembrete(l, h))}" target="_blank" rel="noopener" data-link="${l.id}">Adicionar na agenda</a></div>`; }).join("")
+      || `<p class="muted">A missão acabou: não há mais o que lembrar.</p>`;
+    lista.querySelectorAll("[data-hora]").forEach(inp => inp.addEventListener("input", () => {
+      if(!/^\d{2}:\d{2}$/.test(inp.value)) return;
+      horasLembrete[inp.dataset.hora] = inp.value;
+      const l = L.find(x=>x.id===inp.dataset.hora); lista.querySelector(`[data-link="${l.id}"]`).href = hrefLembrete(l, inp.value);
+    }));
+  }
+  const lembretesDlg = document.getElementById("lembretes");
+  document.getElementById("lembretesAbre").addEventListener("click", () => { renderLembretes(); lembretesDlg.showModal(); });
+  document.getElementById("lembretesFechar").addEventListener("click", () => lembretesDlg.close());
+  lembretesDlg.addEventListener("click", e => { if(e.target===lembretesDlg) lembretesDlg.close(); });
   function contratoForm(open){ const f=document.getElementById("contratoForm"), b=document.getElementById("toggleContrato"); f.hidden = !open; b.textContent = open ? "Fechar" : "Editar"; b.setAttribute("aria-expanded", String(open)); }
   document.getElementById("toggleContrato").addEventListener("click",()=>contratoForm(document.getElementById("contratoForm").hidden));
 
   // ---------- weeks
+  // A fila não pode mexer sob o dedo: trocar o innerHTML zera o scrollLeft, então ele é devolvido na
+  // hora (síncrono, antes de o MutationObserver da fila ler), e revealTab() só corre quando a SEMANA
+  // mudou — e no primeiro desenho. Um render que não troca a semana (marcar um dia, a gravação de
+  // outra aba) deixa a fila onde ele a pôs: em 20/09/2026, 12 de 12 toques caíam na aba errada
+  // porque a fila voltava para a ativa entre a mira e o toque (BACKLOG fila-de-abas).
+  let abaRevelada = null;
   function renderTabs(){
-    document.getElementById("tabs").innerHTML = WEEKS.map(m=>`<button role="tab" id="tab-${m.n}" data-n="${m.n}" class="${m.n===current?'active':''} ${weekXP(m.n)>=(m.final?300:500)?'full':''}" aria-selected="${m.n===current}" tabindex="${m.n===current?0:-1}" aria-controls="week" aria-label="Semana ${m.n} · ${weekXP(m.n)} XP" style="--gap:${Math.max(0,3-String(weekXP(m.n)).length)}ch">S${m.n} · ${weekXP(m.n)} XP</button>`).join("");
+    const tabs = document.getElementById("tabs"), rolada = tabs.scrollLeft;
+    tabs.innerHTML = WEEKS.map(m=>`<button role="tab" id="tab-${m.n}" data-n="${m.n}" class="${m.n===current?'active':''} ${weekXP(m.n)>=(m.final?300:500)?'full':''}" aria-selected="${m.n===current}" tabindex="${m.n===current?0:-1}" aria-controls="week" aria-label="Semana ${m.n} · ${weekXP(m.n)} XP" style="--gap:${Math.max(0,3-String(weekXP(m.n)).length)}ch">S${m.n} · ${weekXP(m.n)} XP</button>`).join("");
+    tabs.scrollLeft = rolada;
     document.getElementById("week").setAttribute("aria-labelledby","tab-"+current);
-    revealTab();
+    if(abaRevelada!==current){ abaRevelada = current; revealTab(); }
   }
   // Rola a fila de abas (só ela, nunca a página) até a aba ativa aparecer inteira, fora do esmaecido da borda.
   function revealTab(){
@@ -4972,6 +5072,7 @@
     }
     later.textContent = rotulos.length ? "Depois: " + rotulos.join(" · ") : "";
     later.hidden = !rotulos.length;
+    document.getElementById("lembretesLinha").hidden = daysLeft<=0;
     // \u00AD = hífen suave: só quebra a palavra quando a célula é estreita demais.
     // Montada do zero a partir dos dias do contrato; o que vem depois vence. Assim "sábado" como encontro
     // dá sex Briefing · sáb Encontro, e nunca dois Encontros (o modelo antigo já nascia com domingo preenchido).
@@ -5807,6 +5908,18 @@
     return false;
   }
 
+  // A frase da faixa em duas partes: a manchete num <b> de bloco (o desenho do .promo, regra em
+  // base.css) e o corpo num nó de texto que começa pelo espaço — assim o textContent de #updateSay
+  // continua sendo, caractere a caractere, a frase inteira que a documentação e as suítes citam.
+  // Nada de innerHTML: o número da versão vem do atualizador, e aqui ele é texto.
+  function faixaDiz(say, manchete, corpo){
+    const b = document.createElement("b");
+    b.textContent = manchete;
+    say.textContent = "";
+    say.append(b);
+    if(corpo) say.append(" " + corpo);
+  }
+
   function renderUpdate(){
     const faixa = document.getElementById("updateBanner");
     if(!faixa || !(APP || WEB)) return;
@@ -5820,25 +5933,23 @@
       // o botão de fechar diz "Entendi" e não "Na próxima abertura" — prometer uma instalação que
       // não vai acontecer seria pior do que não avisar.
       if(updateFalha.kind==="appimage"){
-        say.textContent = "Versão nova disponível, mas este AppImage não pode se atualizar sozinho (o arquivo não tem permissão de escrita).";
+        faixaDiz(say, "Versão nova disponível, mas este AppImage não pode se atualizar sozinho", "(o arquivo não tem permissão de escrita).");
         link.textContent = "Baixar a versão nova";
       }else if(updateFalha.kind==="instalar"){
         // Ele clicou e nada aconteceu. É o único silêncio indefensável do atualizador — o sintoma é
         // clicar de novo —, e acontece de verdade: no AppImage a instalação troca o arquivo no
         // lugar, e quem apagou ou moveu o arquivo depois de abrir não tem o que trocar.
-        say.textContent = updateFalha.version
-          ? `Não foi possível instalar a versão ${updateFalha.version}. Você pode baixá-la à mão.`
-          : "Não foi possível instalar a versão nova. Você pode baixá-la à mão.";
+        faixaDiz(say, `Não foi possível instalar a versão ${updateFalha.version || "nova"}.`, "Você pode baixá-la à mão.");
         link.textContent = "Baixar a versão nova";
       }else if(updateFalha.version){
         // O erro chegou depois de o servidor já ter dito o número: dá para ser específico.
-        say.textContent = `Versão ${updateFalha.version} disponível, mas o download não terminou. Você pode baixá-la à mão.`;
+        faixaDiz(say, `Versão ${updateFalha.version} disponível, mas o download não terminou.`, "Você pode baixá-la à mão.");
         link.textContent = "Baixar a versão nova";
       }else{
         // O caso comum, e o que aconteceu com a versão 48: a checagem quebrou antes de saber se há
         // versão nova. Dizer "a versão nova" aqui seria prometer o que ninguém conferiu, então o
         // rótulo do link muda junto com a frase.
-        say.textContent = "A atualização automática não funcionou desta vez. Você pode conferir se há versão nova na página de downloads.";
+        faixaDiz(say, "A atualização automática não funcionou desta vez.", "Você pode conferir se há versão nova na página de downloads.");
         link.textContent = "Abrir a página de downloads";
       }
       link.href = updateFalha.url || "#";
@@ -5854,7 +5965,7 @@
     depois.hidden = false;
     if(updateEscondida){ faixa.hidden = true; return; }
     if(updatePronta){
-      say.textContent = `Versão ${updatePronta.version} pronta. Reiniciar agora ou na próxima abertura?`;
+      faixaDiz(say, `Versão ${updatePronta.version} pronta.`, "Reiniciar agora ou na próxima abertura?");
       // O clique não devolvia nada: quando funciona a janela some, quando falha ficava tudo igual.
       // O estado fica num `let` e não no botão porque o render roda de novo a cada formulário que
       // abre ou fecha, e reescrever o rótulo ali apagaria o aviso no meio da instalação.
@@ -5868,7 +5979,7 @@
       // Durante o download não há o que decidir, então não há botão: a faixa é só o aviso de que
       // algo está em andamento. Sem ela, ~125 MB passavam em silêncio entre abrir o app e a versão
       // ficar pronta — numa linha ruim, minutos sem nada na tela.
-      say.textContent = `Baixando a versão ${updateBaixando.version || "nova"}…`;
+      faixaDiz(say, `Baixando a versão ${updateBaixando.version || "nova"}…`);
       prog.value = updateBaixando.percent;
       prog.hidden = false;
       acoes.hidden = true;

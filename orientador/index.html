@@ -183,6 +183,12 @@
   .alert.info{background:var(--blue-soft);color:var(--blue-ink);border:1px solid var(--blue)}
   #updateBanner{margin:0 0 12px}
   #updateBanner p{margin:0}
+  /* A manchete: a primeira frase da faixa, em <b> de bloco a 16px, como o <b> do .promo — o outro
+     anúncio do sistema. Sem cor própria: --blue-ink já é a tinta da faixa, e um segundo tom ali seria
+     acento. O corpo vem depois, no 14px de .alert, num nó de texto que começa pelo espaço: o
+     textContent de #updateSay continua, caractere a caractere, a frase inteira — é o que as suítes e a
+     documentação citam (faixaDiz() nos dois apps). */
+  #updateBanner p b{display:block;font-size:16px;margin-bottom:2px}
   #updateBanner .actions{margin-top:8px;align-items:center}
   /* Os dois botões são `quiet`, que nasce em --muted: cinza-neblina sobre azul suave é cinza fora do
      tom da superfície, e no escuro chega perto de parecer desabilitado. Sobre superfície colorida o
@@ -1210,7 +1216,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 255 · 19/10/2026</p></div>
+  <div class="in"><p class="versao">versão 260 · 19/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -2841,11 +2847,18 @@
     return [`8 semanas`, `${xp} XP`, reds?`${reds} redaç${reds===1?"ão":"ões"}`:"", best?`melhor nota ${best.v} (semana ${best.n})`:"", days?`${days} dia${days===1?"":"s"} de notícia`:""].filter(Boolean).join(" · ");
   }
   // A aba fica verde quando o encontro produziu o que importa: uma força, um ajuste ou anotações.
+  // A fila não pode mexer sob o dedo: trocar o innerHTML zera o scrollLeft, então ele é devolvido na
+  // hora (síncrono, antes de o MutationObserver da fila ler), e revealTab() só corre quando a SEMANA
+  // mudou — e no primeiro desenho. Um render que não troca a semana (marcar um dia, a gravação de
+  // outra aba) deixa a fila onde ele a pôs: em 20/09/2026, 12 de 12 toques caíam na aba errada
+  // porque a fila voltava para a ativa entre a mira e o toque (BACKLOG fila-de-abas).
+  let abaRevelada = null;
   function renderTabs(){
-    const ws=aluno().weeks;
-    document.getElementById("tabs").innerHTML=WEEKS.map(m=>{ const f=ws[m.n]&&ws[m.n].f, has=f&&(f.forca||f.ajuste||f.notas); return `<button role="tab" id="tab-${m.n}" data-n="${m.n}" aria-selected="${m.n===current}" aria-controls="painelSemana" tabindex="${m.n===current?0:-1}" class="${m.n===current?'active':''} ${has?'has':''}">Semana ${m.n}</button>`; }).join("");
+    const ws=aluno().weeks, tabs = document.getElementById("tabs"), rolada = tabs.scrollLeft;
+    tabs.innerHTML=WEEKS.map(m=>{ const f=ws[m.n]&&ws[m.n].f, has=f&&(f.forca||f.ajuste||f.notas); return `<button role="tab" id="tab-${m.n}" data-n="${m.n}" aria-selected="${m.n===current}" aria-controls="painelSemana" tabindex="${m.n===current?0:-1}" class="${m.n===current?'active':''} ${has?'has':''}">Semana ${m.n}</button>`; }).join("");
+    tabs.scrollLeft = rolada;
     document.getElementById("painelSemana").setAttribute("aria-labelledby","tab-"+current);
-    revealTab();
+    if(abaRevelada!==current){ abaRevelada = current; revealTab(); }
   }
   // Rola a fila de abas (só ela, nunca a página) até a aba ativa aparecer inteira, fora do esmaecido da borda.
   function revealTab(){
@@ -4231,6 +4244,18 @@
     return false;
   }
 
+  // A frase da faixa em duas partes: a manchete num <b> de bloco (o desenho do .promo, regra em
+  // base.css) e o corpo num nó de texto que começa pelo espaço — assim o textContent de #updateSay
+  // continua sendo, caractere a caractere, a frase inteira que a documentação e as suítes citam.
+  // Nada de innerHTML: o número da versão vem do atualizador, e aqui ele é texto.
+  function faixaDiz(say, manchete, corpo){
+    const b = document.createElement("b");
+    b.textContent = manchete;
+    say.textContent = "";
+    say.append(b);
+    if(corpo) say.append(" " + corpo);
+  }
+
   function renderUpdate(){
     const faixa = document.getElementById("updateBanner");
     if(!faixa || !(APP || WEB)) return;
@@ -4244,25 +4269,23 @@
       // o botão de fechar diz "Entendi" e não "Na próxima abertura" — prometer uma instalação que
       // não vai acontecer seria pior do que não avisar.
       if(updateFalha.kind==="appimage"){
-        say.textContent = "Versão nova disponível, mas este AppImage não pode se atualizar sozinho (o arquivo não tem permissão de escrita).";
+        faixaDiz(say, "Versão nova disponível, mas este AppImage não pode se atualizar sozinho", "(o arquivo não tem permissão de escrita).");
         link.textContent = "Baixar a versão nova";
       }else if(updateFalha.kind==="instalar"){
         // Ele clicou e nada aconteceu. É o único silêncio indefensável do atualizador — o sintoma é
         // clicar de novo —, e acontece de verdade: no AppImage a instalação troca o arquivo no
         // lugar, e quem apagou ou moveu o arquivo depois de abrir não tem o que trocar.
-        say.textContent = updateFalha.version
-          ? `Não foi possível instalar a versão ${updateFalha.version}. Você pode baixá-la à mão.`
-          : "Não foi possível instalar a versão nova. Você pode baixá-la à mão.";
+        faixaDiz(say, `Não foi possível instalar a versão ${updateFalha.version || "nova"}.`, "Você pode baixá-la à mão.");
         link.textContent = "Baixar a versão nova";
       }else if(updateFalha.version){
         // O erro chegou depois de o servidor já ter dito o número: dá para ser específico.
-        say.textContent = `Versão ${updateFalha.version} disponível, mas o download não terminou. Você pode baixá-la à mão.`;
+        faixaDiz(say, `Versão ${updateFalha.version} disponível, mas o download não terminou.`, "Você pode baixá-la à mão.");
         link.textContent = "Baixar a versão nova";
       }else{
         // O caso comum, e o que aconteceu com a versão 48: a checagem quebrou antes de saber se há
         // versão nova. Dizer "a versão nova" aqui seria prometer o que ninguém conferiu, então o
         // rótulo do link muda junto com a frase.
-        say.textContent = "A atualização automática não funcionou desta vez. Você pode conferir se há versão nova na página de downloads.";
+        faixaDiz(say, "A atualização automática não funcionou desta vez.", "Você pode conferir se há versão nova na página de downloads.");
         link.textContent = "Abrir a página de downloads";
       }
       link.href = updateFalha.url || "#";
@@ -4278,7 +4301,7 @@
     depois.hidden = false;
     if(updateEscondida){ faixa.hidden = true; return; }
     if(updatePronta){
-      say.textContent = `Versão ${updatePronta.version} pronta. Reiniciar agora ou na próxima abertura?`;
+      faixaDiz(say, `Versão ${updatePronta.version} pronta.`, "Reiniciar agora ou na próxima abertura?");
       // O clique não devolvia nada: quando funciona a janela some, quando falha ficava tudo igual.
       // O estado fica num `let` e não no botão porque o render roda de novo a cada formulário que
       // abre ou fecha, e reescrever o rótulo ali apagaria o aviso no meio da instalação.
@@ -4292,7 +4315,7 @@
       // Durante o download não há o que decidir, então não há botão: a faixa é só o aviso de que
       // algo está em andamento. Sem ela, ~125 MB passavam em silêncio entre abrir o app e a versão
       // ficar pronta — numa linha ruim, minutos sem nada na tela.
-      say.textContent = `Baixando a versão ${updateBaixando.version || "nova"}…`;
+      faixaDiz(say, `Baixando a versão ${updateBaixando.version || "nova"}…`);
       prog.value = updateBaixando.percent;
       prog.hidden = false;
       acoes.hidden = true;
