@@ -748,6 +748,15 @@
   .modo input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
   .modo label:has(input:checked){background:var(--green-soft);color:var(--green);border-color:transparent;font-weight:700}
   .modo label:has(input:focus-visible){outline:3px solid var(--blue);outline-offset:2px}
+  /* Em alto contraste o sistema troca as cores de fundo e as três pílulas ficam iguais: o que sobra
+     como "isto está marcado" é um contorno. Vale para os dois grupos `.modo` — a folha e o humor do
+     bloco são o mesmo componente e a mesma linguagem de marcado, e escopar mais estreito deixaria a
+     folha sem o contorno (ADR-001 de humor-do-bloco). */
+  @media (forced-colors: active){ .modo label:has(input:checked){outline:2px solid currentColor;outline-offset:-2px} }
+  /* A marca de como foi estudar: o rótulo `.f` e a dica colam no grupo, e a dica tem a medida das
+     outras frases de ajuda do app. */
+  #estudoForm > p.f{margin:12px 0 4px}
+  #eHumorDica{margin:6px 0 0;max-width:72ch}
   #redAviso{margin:8px 0 0;max-width:72ch}
   /* Passar a limpo. A referência (o rascunho desenhado) gruda sob a barra e rola por dentro, para ele
      copiar sem perder o lugar; o campo em foco para abaixo dela, nunca atrás. Os campos são a linha da
@@ -1236,6 +1245,9 @@
     <div class="actions" id="todayActions"></div>
     <div class="list" id="todayList"></div>
     <p class="later" id="todayLater" hidden></p>
+    <!-- Markup estático, como o #todayLater: o Hoje se redesenha a cada commit() e um nó recriado
+         levaria o foco ao <body>. A linha é quieta — sem botão, sem XP, sem animação. -->
+    <p class="later" id="todayHumor" hidden></p>
     <div class="tl" id="timeline"></div>
     <p class="lembretes" id="lembretesLinha"><button class="linkish" id="lembretesAbre">Lembretes no celular</button></p>
   </section>
@@ -1473,6 +1485,14 @@
         <label class="f">Tempo<select id="eMin"></select></label>
         <label class="f">Data<input type="date" id="eData"></label>
       </div>
+      <!-- Como foi estudar: uma marca opcional, três níveis, do pior ao melhor (ADR-001 de humor-do-bloco).
+           Fica entre o Tempo/Data e o "O que é": depois dos campos que identificam o bloco e antes do campo
+           longo, que é onde ele para de preencher. Nada vem marcado, e tocar a marcada limpa — rádio nativo
+           não desmarca por clique, então quem limpa é o ouvinte abaixo. Não vale XP e nunca bloqueia salvar.
+           As pílulas são geradas de HUMOR, como as opções de #eMat saem de MATERIAS. -->
+      <p class="f">Como foi estudar</p>
+      <div class="modo" id="eHumor" role="radiogroup" aria-label="Como foi estudar"></div>
+      <p class="muted" id="eHumorDica">Pesou: chato ou difícil · Ok · Fluiu: foi bem. A marca aparece no painel <span data-orientador="de">do orientador</span>.</p>
       <!-- A nota e a sua pré-visualização dividem a mesma linha acima de 480px e empilham abaixo dela.
            A barra de marcadores fica LOGO ABAIXO do campo, e cada botão é a marca que ele aplica em vez
            do nome dela: `B` em negrito, `I` inclinado, `S` riscado — a forma do botão demonstra o que ele
@@ -1513,6 +1533,10 @@
       <div class="chips" id="estudoChips" role="group" aria-label="Filtrar por matéria" hidden></div>
     </div>
     <div class="outras" id="estudoOutras" hidden></div>
+    <!-- A leitura por matéria: uma linha por matéria que tem alguma marca, sobre a missão inteira.
+         Fica entre os chips e os grupos de semana porque é leitura do banco todo, e o cabeçalho de
+         cada grupo é da semana. Texto, nunca gráfico e nunca botão. -->
+    <div class="humor" id="estudoHumor" hidden></div>
     <div id="estudoList" class="mt"></div>
   </section>
 
@@ -1551,7 +1575,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 260 · 19/10/2026</p></div>
+  <div class="in"><p class="versao">versão 267 · 21/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
@@ -1746,6 +1770,12 @@
   // Existem para o código de backup caber numa mensagem: ver "Campos de uma linha têm maxlength" no CLAUDE.md.
   const LIM = {conteudo:200, outra:40, oque:10000, onde:300, minMax:180};
   const ESTUDO_PAGOS = 5, ESTUDO_XP = 20;
+
+  // ---------- como foi estudar: a escala de três níveis do bloco (ADR-001 de humor-do-bloco)
+  // Do pior ao melhor. O slug é o valor GRAVADO e a etiqueta que a linha mostra; o rótulo é o texto da
+  // pílula. A marca é opcional: bloco sem ela é bloco sem ela, nunca um quarto estado.
+  // ESTE LITERAL É IGUAL NO PAINEL DO ORIENTADOR E NO enem.mjs DA SKILL — scripts/check-weeks.mjs reprova se divergir.
+  const HUMOR = [["pesou","Pesou"],["ok","Ok"],["fluiu","Fluiu"]];
 
   // ---------- banco de temas das redações extras (ADR-004 e ADR-013 de redacoes-extras)
   // GERADO PELO BUILD a partir de .agents/skills/planejar-temas/assets/temas-extras-2026.json, o
@@ -2064,10 +2094,10 @@
     contrato:{t:"Contrato de rotina",b:`<p>É o acordo que <b>você</b> propõe e ${oriSpan()} valida. Preencha uma vez no kickoff e ajuste quando a rotina mudar.</p><ul><li><b>Encontro:</b> dia e hora fixos da chamada semanal (ex.: domingo, 19h).</li><li><b>Envio da redação:</b> dia limite para mandar a redação (sexta vale 100 XP; quinta dá +30).</li><li><b>Plataforma de correção:</b> onde a redação será corrigida (app MEC Enem, escola, outra).</li><li><b>Jogo por dia / só depois de:</b> seu limite de videogame nos dias de semana e a condição para liberar (ex.: depois de registrar o bloco de estudo do dia).</li><li><b>Recompensas:</b> o que você ganha ao chegar em cada patente. Combine com ${oriSpan()} e com quem mora com você.</li></ul>`},
     semana:{t:"Como preencher a grade da semana",b:`<p>A grade é o seu horário típico. Cada linha é uma atividade, cada coluna um dia. Em cada célula escreva <b>quando</b> ou <b>quanto tempo</b>:</p><ul><li><b>Escola:</b> horário das aulas. Ex.: <code>7h–12h</code>.</li><li><b>Estudo:</b> o seu bloco de estudo por conta própria (matéria que você escolhe). Ex.: <code>14h–15h</code>. Cada bloco registrado vale 20 XP.</li><li><b>Redação:</b> o dia e hora em que você escreve a redação da semana. Ex.: <code>qui 15h–16h</code>.</li><li><b>Notícia:</b> quando você ouve ou lê 10 min de notícia. Ex.: <code>no ônibus</code>.</li><li><b>Jogo:</b> quanto tempo de videogame naquele dia. Ex.: <code>1h30</code>.</li><li><b>Livre:</b> o que sobra: amigos, esporte, nada. Ex.: <code>noite</code>.</li></ul><p>Deixe vazio o que não acontece naquele dia. Use “Preencher um exemplo” para ver uma semana pronta e só ajustar.</p><p>A grade também é o que define o seu <b>dia perfeito</b>: o foguinho do painel Hoje acende quando você faz o que a grade pediu para aquele dia. Dia deixado em branco é descanso combinado e mantém a sequência.</p>`},
     tarefas:{t:"Tarefas da semana",b:`<ul><li><b>Redação entregue até sexta (100):</b> enviou a redação do tema da semana para a correção e para ${oriSpan()}. Até quinta ganha +30.</li><li><b>Leitura em voz alta (40):</b> no encontro, leu a redação inteira e conversou sobre ela.</li><li><b>Parágrafo reescrito (30):</b> reescreveu até segunda o parágrafo combinado no encontro.</li><li><b>Briefing (50):</b> apresentou em 3 min uma notícia usando a ficha de briefing.</li><li><b>Simulado da escola (80):</b> fez o simulado do Elite daquela semana.</li><li><b>Missão especial (40):</b> a tarefa extra descrita no topo da semana.</li><li><b>Blocos de estudo (20 cada, até 5):</b> sessões de estudo de qualquer matéria, registradas com matéria e conteúdo.</li><li><b>Notícia do dia (10 por dia):</b> 10 min de podcast ou leitura. Os 7 dias dão +50.</li><li><b>Repertórios (15 cada, até 2):</b> cadastre no banco; conta automaticamente.</li><li><b>Nota da correção:</b> lance as 5 competências que o corretor deu; o total soma sozinho.</li></ul>`},
-    blocos:{t:"Blocos de estudo",b:`<p>Um bloco é <b>uma sessão de estudo</b> que você fez nesta semana, da matéria que você quiser — química, matemática, história, o que estiver pedindo. Não é a redação: é o seu estudo normal para a escola e para a prova.</p><p>Todo bloco se registra no <b>Banco de estudo</b> — é uma lista só, a da missão inteira, e esta linha aqui é o quanto dela é desta semana. O link <b>Registrar no banco de estudo</b> leva direto para o formulário, já na semana desta aba; o botão <b>Registrar bloco</b> do painel Hoje faz o mesmo. Preencha:</p><ul><li><b>Matéria</b> e <b>Conteúdo</b>: os dois únicos obrigatórios. Ex.: Química · Estequiometria. Se a matéria não estiver na lista, escolha “Outra” e escreva qual.</li><li><b>Tempo</b> e <b>Data</b>: o tempo é opcional; a data não. Ela já vem com <b>hoje</b>, e é dela que saem a semana e o dia do bloco — registrar hoje o que você estudou ontem é só voltar um dia no calendário. A linha acima do formulário mostra em que semana o bloco vai cair, e muda junto com a data.</li><li><b>O que é, com as suas palavras</b>: o campo que mais vale a pena. Explicar com as suas palavras é o que faz lembrar na hora da prova.</li><li><b>Onde isso aparece na vida real</b>: o gancho que transforma matéria em repertório.</li></ul><p>Cada bloco vale <b>20 XP</b>, nos <b>5 primeiros da semana</b>. Do sexto em diante o bloco continua guardado — marcado com “sem XP” — porque estudar a mais nunca pode valer menos.</p><p><b>Editar</b> e <b>Apagar</b> ficam na linha de cada bloco, dentro do banco.</p>`},
+    blocos:{t:"Blocos de estudo",b:`<p>Um bloco é <b>uma sessão de estudo</b> que você fez nesta semana, da matéria que você quiser — química, matemática, história, o que estiver pedindo. Não é a redação: é o seu estudo normal para a escola e para a prova.</p><p>Todo bloco se registra no <b>Banco de estudo</b> — é uma lista só, a da missão inteira, e esta linha aqui é o quanto dela é desta semana. O link <b>Registrar no banco de estudo</b> leva direto para o formulário, já na semana desta aba; o botão <b>Registrar bloco</b> do painel Hoje faz o mesmo. Preencha:</p><ul><li><b>Matéria</b> e <b>Conteúdo</b>: os dois únicos obrigatórios. Ex.: Química · Estequiometria. Se a matéria não estiver na lista, escolha “Outra” e escreva qual.</li><li><b>Tempo</b> e <b>Data</b>: o tempo é opcional; a data não. Ela já vem com <b>hoje</b>, e é dela que saem a semana e o dia do bloco — registrar hoje o que você estudou ontem é só voltar um dia no calendário. A linha acima do formulário mostra em que semana o bloco vai cair, e muda junto com a data.</li><li><b>Como foi estudar</b>: uma marca <b>opcional</b> de como aquela sessão foi para você — <b>Pesou</b> (chato ou difícil), <b>Ok</b>, <b>Fluiu</b> (foi bem). Toque de novo na marcada para limpar. A marca <b>não muda o XP</b> e não impede salvar; aparece no painel ${oriSpan("de")} para virar pauta do domingo, e bloco sem marca fica sem marca mesmo.</li><li><b>O que é, com as suas palavras</b>: o campo que mais vale a pena. Explicar com as suas palavras é o que faz lembrar na hora da prova.</li><li><b>Onde isso aparece na vida real</b>: o gancho que transforma matéria em repertório.</li></ul><p>Cada bloco vale <b>20 XP</b>, nos <b>5 primeiros da semana</b>. Do sexto em diante o bloco continua guardado — marcado com “sem XP” — porque estudar a mais nunca pode valer menos.</p><p><b>Editar</b> e <b>Apagar</b> ficam na linha de cada bloco, dentro do banco.</p>`},
     briefing:{t:"Ficha de briefing",b:`<p>Guarde aqui as notícias da semana que valerem a pena — quantas quiser. <b>Uma delas é a que você vai apresentar</b> no domingo, <b>sem ler</b>, em até 3 minutos (a pauta sugerida aparece ao lado do título). Ela vem primeiro, com a etiqueta <b>Vou apresentar</b>; as outras ficam guardadas logo abaixo, recolhidas no tema, e abrem com um toque.</p><ul><li><b>Nova notícia</b> abre mais uma ficha. A primeira da semana já nasce como a que você vai apresentar; as seguintes nascem guardadas.</li><li><b>Apresentar esta</b>, numa guardada, troca a escolha: ela passa para o topo e a anterior vira guardada. Dá para trocar quando quiser, até depois do encontro.</li><li><b>Apagar</b> tira na hora e deixa 8 segundos de Desfazer. Apagando a que você ia apresentar, a mais antiga das guardadas assume.</li><li><b>O que conta é a apresentada:</b> é ela que o painel Hoje pede para preencher, que entra no resumo e que o painel ${oriSpan("de")} mostra inteira, como a ficha de ${esc(NOME)} para o domingo. Das guardadas o resumo diz só quantas são, e elas não vão na mensagem: o arquivo de backup é que leva todas.</li><li><b>XP não muda:</b> o briefing vale 50 XP uma vez, marcado depois de apresentar. Guardar mais notícias não vale mais nem menos.</li></ul><p>Cada ficha tem os mesmos campos:</p><ul><li><b>Fonte:</b> de onde veio (site, podcast, jornal).</li><li><b>O que aconteceu:</b> uma frase, sem opinião.</li><li><b>Por que importa:</b> qual é a consequência.</li><li><b>Quem ganha / quem perde:</b> países, grupos, empresas.</li><li><b>E o Brasil?</b> como o país é afetado ou se posiciona.</li><li><b>Serve de repertório para:</b> em que tipo de tema de redação essa notícia poderia ser citada.</li><li><b>Pergunta que eu não sei responder:</b> leve uma dúvida real para discutir com ${oriSpan()}.</li></ul>`},
     banco:{t:"Banco de repertório",b:`<p>Repertório é o que você cita para provar um argumento: autor, lei, dado, obra, fato histórico. O banco guarda os seus, prontos para usar.</p><ul><li><b>Nome:</b> ex.: <code>Hannah Arendt</code>, <code>Lei 10.639/2003</code>, <code>IBGE 2023</code>.</li><li><b>O que é:</b> uma linha para lembrar do que se trata.</li><li><b>Frase pronta:</b> a frase já escrita como você usaria na redação.</li><li><b>Serve para temas de:</b> palavras-chave para achar depois (ex.: desinformação, democracia).</li></ul><p>Dois novos por semana valem 15 XP cada. Meta até a prova: 10 no banco, 6 decorados.</p>`},
-    estudo:{t:"Banco de estudo",b:`<p>O banco é o seu caderno de revisão e o lugar onde os blocos se registram: <b>tudo</b> o que você estudou fica aqui, junto, para reler antes da prova. O card de cada semana conta quanto daquela semana já foi; a lista é esta.</p><p>O formulário diz, em cima, <b>em que semana</b> o bloco entra — é a semana que estiver aberta em Semanas. Chegou por engano na semana errada? Volte às Semanas, abra a aba certa e registre por lá.</p><ul><li><b>Agrupado por semana</b>, da mais nova para a mais velha, com o total de blocos e de minutos de cada uma.</li><li><b>Os chips de matéria</b> filtram a lista: tocar em <code>Química</code> deixa só Química na tela; <code>Todas</code> traz tudo de volta. O filtro vale para esta visita — recarregar volta para Todas.</li><li><b>Editar</b> conserta um bloco já salvo; <b>Apagar</b> tira na hora e deixa 8 segundos de Desfazer.</li></ul><p>Do <b>sexto bloco</b> de uma semana em diante a linha vem marcada com “sem XP”: os 20 XP valem para os cinco primeiros, mas o bloco continua guardado — é para revisar que ele existe.</p><p><b>A nota (“O que é, com as suas palavras”) aceita formatação do WhatsApp</b>, até 10.000 caracteres. São os mesmos marcadores que você já usa lá:</p><ul><li><code>*negrito*</code>, <code>_itálico_</code>, <code>~tachado~</code>.</li><li>Linha começando com <code>- </code> ou <code>* </code> vira item de lista; começando com <code>1. </code> vira lista numerada, e o Enter continua a numeração sozinho (Enter num item vazio encerra a lista).</li><li><b>Os botões abaixo do campo</b> põem os marcadores por você, e cada um é a marca que ele aplica: <code>B</code> negrito, <code>I</code> itálico, <code>S</code> tachado, e os dois desenhos de lista — com marcadores e numerada. Parando o mouse em cima, cada botão diz o nome.</li><li>Pelo teclado, a mesma coisa: <b>Ctrl+B</b> negrito, <b>Ctrl+I</b> itálico, <b>Ctrl+Shift+X</b> tachado. Ctrl+Z desfaz a marcação inteira de uma vez.</li><li>A <b>pré-visualização</b> ao lado mostra como a nota vai ficar no banco. O <b>olho</b>, no fim da barra, esconde e mostra: escondida, o campo passa a ocupar a largura inteira do formulário. O painel lembra a sua escolha neste aparelho.</li></ul><p>Para o marcador aparecer como texto, ponha um <b>espaço depois do marcador</b>: <code>* isto</code> sai com o asterisco à mostra. Conta e nome com <code>_</code> no meio (<code>2*3*4</code>, <code>snake_case</code>) já saem literais sozinhos. Notas antigas que tenham <code>*</code> ou <code>_</code> passam a sair formatadas onde a regra se aplica — abra o bloco e a pré-visualização mostra antes de salvar.</p>`},
+    estudo:{t:"Banco de estudo",b:`<p>O banco é o seu caderno de revisão e o lugar onde os blocos se registram: <b>tudo</b> o que você estudou fica aqui, junto, para reler antes da prova. O card de cada semana conta quanto daquela semana já foi; a lista é esta.</p><p>O formulário diz, em cima, <b>em que semana</b> o bloco entra — é a semana que estiver aberta em Semanas. Chegou por engano na semana errada? Volte às Semanas, abra a aba certa e registre por lá.</p><ul><li><b>Agrupado por semana</b>, da mais nova para a mais velha, com o total de blocos e de minutos de cada uma.</li><li><b>Os chips de matéria</b> filtram a lista: tocar em <code>Química</code> deixa só Química na tela; <code>Todas</code> traz tudo de volta. O filtro vale para esta visita — recarregar volta para Todas.</li><li><b>Editar</b> conserta um bloco já salvo; <b>Apagar</b> tira na hora e deixa 8 segundos de Desfazer.</li></ul><p><b>Como foi estudar</b>, acima dos grupos, soma as marcas de cada matéria na missão inteira: <code>Física · 4 pesou · 1 ok · 2 sem registro</code>. Os blocos que você salvou sem marcar entram em <b>sem registro</b> — nunca como “Ok” —, e matéria sem marca nenhuma não ganha linha. A leitura segue o chip escolhido.</p><p>Quando os <b>3 blocos</b> mais recentes de uma matéria forem todos <b>Pesou</b>, o painel Hoje põe uma linha dizendo isso — sem botão e sem XP, só para você levar ao domingo. A linha desaparece quando o bloco seguinte daquela matéria não pesar.</p><p>Do <b>sexto bloco</b> de uma semana em diante a linha vem marcada com “sem XP”: os 20 XP valem para os cinco primeiros, mas o bloco continua guardado — é para revisar que ele existe.</p><p><b>A nota (“O que é, com as suas palavras”) aceita formatação do WhatsApp</b>, até 10.000 caracteres. São os mesmos marcadores que você já usa lá:</p><ul><li><code>*negrito*</code>, <code>_itálico_</code>, <code>~tachado~</code>.</li><li>Linha começando com <code>- </code> ou <code>* </code> vira item de lista; começando com <code>1. </code> vira lista numerada, e o Enter continua a numeração sozinho (Enter num item vazio encerra a lista).</li><li><b>Os botões abaixo do campo</b> põem os marcadores por você, e cada um é a marca que ele aplica: <code>B</code> negrito, <code>I</code> itálico, <code>S</code> tachado, e os dois desenhos de lista — com marcadores e numerada. Parando o mouse em cima, cada botão diz o nome.</li><li>Pelo teclado, a mesma coisa: <b>Ctrl+B</b> negrito, <b>Ctrl+I</b> itálico, <b>Ctrl+Shift+X</b> tachado. Ctrl+Z desfaz a marcação inteira de uma vez.</li><li>A <b>pré-visualização</b> ao lado mostra como a nota vai ficar no banco. O <b>olho</b>, no fim da barra, esconde e mostra: escondida, o campo passa a ocupar a largura inteira do formulário. O painel lembra a sua escolha neste aparelho.</li></ul><p>Para o marcador aparecer como texto, ponha um <b>espaço depois do marcador</b>: <code>* isto</code> sai com o asterisco à mostra. Conta e nome com <code>_</code> no meio (<code>2*3*4</code>, <code>snake_case</code>) já saem literais sozinhos. Notas antigas que tenham <code>*</code> ou <code>_</code> passam a sair formatadas onde a regra se aplica — abra o bloco e a pré-visualização mostra antes de salvar.</p>`},
     ficha:{t:"A ficha da redação",b:`<p>Esta seção é a <b>ficha</b> da redação aberta: a da semana da aba, ou uma redação extra que você escolheu em <b>Redações</b>. As duas têm os mesmos blocos, e por isso a mesma ficha serve às duas.</p><ul><li><b>A identificação</b>, no topo, diz o que a redação é — <i>Semana 3</i> ou <i>Extra · semana 3</i> —, o tema, de onde veio o tema e quando ela mudou pela última vez.</li><li><b>O estado</b> é a etiqueta logo abaixo, e é sempre um destes oito: <i>não começada</i>, <i>rascunho</i>, <i>registrada</i>, <i>passada a limpo</i>, <i>correção pedida</i>, <i>corrigindo</i>, <i>corrigida</i> e <i>lida</i>. Ele é calculado do que está guardado: você nunca o escolhe.</li><li><b>O foco</b> é a competência que a semana treina, e vale também para as extras daquela semana. Nas semanas 1, 5, 7 e 8 o plano não aponta uma só, e aí o ajuste vai para a competência mais baixa daquela redação.</li><li><b>O que ficou de fazer</b>, no fim, lista o próximo passo e o que a correção pediu. O <b>?</b> daquele bloco explica as regras dele.</li><li><b>Imprimir esta redação</b> leva a ficha inteira para o papel: identificação, folha, notas, parecer e a lista.</li><li>Numa redação extra, <b>Voltar à lista</b> — ou a tecla Esc — devolve você ao catálogo, na linha de onde você veio.</li></ul><p>A redação fica salva por semana e vai no código de backup, então ${oriSpan()} recebe junto. A seção tem dois modos.</p><ul><li><b>Rascunho:</b> você escreve ou cola no campo, e a folha pautada logo abaixo se arruma sozinha, quebrando a linha onde a palavra não cabe. É o rascunho que vale para a correção, para o Copiar redação e para o parecer.</li><li><b>Passar a limpo:</b> uma folha em branco de 30 linhas que não quebra nada por você, com o rascunho em cima para ler. Você decide onde cada linha acaba e onde separar a palavra com hífen; Enter vai para a linha de baixo. A folha é escrita numa letra de mão, e a margem é a letra, não um número de caracteres: um “m” ocupa mais que um “i”, como no papel. A linha recusa o que passa da margem, sem aviso: ela só mostra que encheu. Não dá para colar: a folha se passa à mão. E nada é corrigido enquanto você escreve. A separação das palavras é conferida no domingo, e o que estiver errado chega no parecer.</li></ul><p><b>Linhas:</b> a folha do ENEM tem 30 linhas, e até 7 linhas a redação é zerada. O contador conta as linhas da folha desenhada, na sua <b>largura</b> de linha (o padrão é 68 caracteres) e com o recuo do parágrafo. Os parágrafos são 4 (introdução, dois de desenvolvimento, conclusão com proposta) ou 5, separados no rascunho por uma linha em branco. Para medir a sua largura: em <b>Medir pela minha letra</b>, copie até três linhas de uma folha que você escreveu à mão, letra por letra; a média vira a largura. Uma folha já começada no passar a limpo guarda a largura com que nasceu.</p><p><b>Nas semanas que pedem a folha</b> (a 5 e a 7), você escreve à mão e passa a limpo aqui do jeito que saiu no papel, linha por linha, com as mesmas quebras e os mesmos hífens. Ali a linha aceita até 120 caracteres, porque a linha de verdade pode ser mais longa que a sua média; a que passar da sua largura fica marcada, sem ser recusada. O painel Hoje lembra depois que você marcar a redação.</p><p><b>Finalizar, reabrir, recomeçar:</b> marque a folha como finalizada quando acabar; dá para reabrir. Recomeçar apaga a folha, com Desfazer por 8 segundos. A folha passada a limpo não vale XP e não muda o XP de nenhuma tarefa: o painel ${oriSpan("de")} mostra a folha de ${esc(NOME)} linha por linha, e o resumo diz se ela foi finalizada.</p><p><b>Este campo se comporta como papel:</b> o navegador não sublinha em vermelho, não sugere e não corrige nada do que você escreve, nos dois modos. A correção acontece no encontro, com ${oriSpan()} — errar aqui e descobrir depois é o treino. Teclados do celular ou extensões instaladas no navegador que ignorem isso estão fora do alcance do app.</p><p><b>Com a conexão ao orientador,</b> a redação só chega ao painel quando você toca em <b>Entregar a redação</b>: vai o rascunho como está naquele instante, e a folha passada a limpo, se você começou. O que você mudar depois não chega sozinho — a seção diz <i>você editou depois</i>, e entregar de novo substitui a entrega anterior. Entregar marca a tarefa <i>Redação entregue até sexta</i>, com o XP de sempre, e o bônus quando a entrega é até quinta; se você já tinha marcado à mão, nada se repete. <b>Desmarcar a entrega</b> não desmarca a tarefa nem tira XP, e não muda o que o orientador já viu. Redação feita no papel continua valendo: marque a tarefa à mão, como sempre.</p><p>Na reta final (semana 8) não há redação nova nem folha: releia as das semanas anteriores.</p>`},
     redacoes:{t:"Redações",b:`<p>É o catálogo de tudo o que você escreveu: as oito semanas do plano e cada <b>redação extra</b> que você começou, da mais nova para a mais velha. Tocar numa linha abre a ficha dela ali em cima, em <b>A ficha da redação</b> — não há um segundo editor: é sempre a mesma folha.</p><ul><li><b>Cada linha</b> traz a identificação, o estado, a nota total quando o corretor já deu, e quantas coisas ainda faltam naquela redação.</li><li><b>Os chips</b> filtram por estado: <i>corrigida</i>, <i>com pendências</i>, <i>sem parecer</i>. Os números deles são o mapa da lista inteira e não mudam quando você filtra; <b>Todas</b> traz tudo de volta, e recarregar a página também.</li><li><b>Nova redação extra</b> abre o banco de temas. Dá para começar uma extra de 14/09 até o fim da quarta 4/11; depois disso as que já existem continuam inteiras — você termina, passa a limpo, pede a correção e lê o parecer.</li><li><b>A semana 8</b> aparece como linha de texto, sem botão: na reta final não há redação nova.</li><li><b>Imprimir a lista</b> leva uma linha por redação para o papel, com o filtro ignorado: sai a lista toda.</li></ul><p>Cada extra registrada vale <b>50 XP</b>, pelas duas primeiras de cada semana. Do dia da prova em diante o catálogo fica só para ler e imprimir.</p>`},
     temas:{t:"Banco de temas",b:`<p>Os temas vêm embutidos no próprio arquivo: nada é buscado na internet, e o banco funciona offline. São dois grupos.</p><ul><li><b>Prováveis ${ENEM.getFullYear()}:</b> as apostas desta edição, em três faixas — alta, média e baixa. Cada uma tem a proposta escrita na forma da prova, o eixo e um repertório para começar.</li><li><b>Edições anteriores:</b> os temas que já caíram, com o enunciado oficial, do mais recente para o mais antigo.</li></ul><p>Tema que uma semana do plano já treina <b>não aparece aqui</b>: ele vai cair na redação daquela semana. O que você já treinou numa extra continua na lista, marcado com <i>já treinado</i> — repetir é decisão sua, e treinar o mesmo tema duas vezes é um jeito legítimo de medir a evolução.</p><p><b>Tema livre</b> é para um tema da escola, do cursinho ou seu: até 200 caracteres, e a ficha nasce sem proposta — você escreve direto na folha.</p><p>A redação extra nasce na semana de hoje e fica nela para sempre, mesmo que você termine de escrever na semana seguinte: é por isso que o XP e o foco dela são os daquela semana.</p>`},
@@ -2103,7 +2133,7 @@
   const OB = [
     {t:"Boas-vindas à Missão ENEM",b:`<p>Este é o seu painel até a redação do ENEM, em <b>8 de novembro</b>. Ele mostra o que fazer a cada dia, guarda o que você produz e transforma isso em XP.</p><p>${APP?"Tudo fica salvo neste computador":"Tudo fica salvo neste navegador"}. Nada vai para a internet.</p>`},
     {t:"Como ganhar XP",b:`<p>Cada coisa feita vale pontos: notícia do dia (10), bloco de estudo <b>registrado</b> (20, nos cinco primeiros da semana), briefing (50), redação da semana (100), simulado (80). O XP acumulado sobe sua patente, de Estagiário a Embaixador, e cada patente libera uma recompensa que você propõe.</p><p><b>XP nunca é descontado.</b> O jogo é você contra ${esc(NOME)} da semana passada.</p>`},
-    {t:"O ritual da semana",b:`<ul><li><b>Todo dia:</b> 10 min de notícia e, na maioria dos dias, um bloco de estudo: <b>Novo bloco</b> guarda a matéria, o conteúdo e o que você entendeu.</li><li><b>Até quinta/sexta:</b> a redação do tema da semana.</li><li><b>Sábado:</b> preencher a ficha de briefing e reler no <b>Banco de estudo</b> o que você registrou na semana.</li><li><b>Domingo:</b> copiar o resumo e o código, mandar para ${oriSpan()} e fazer a chamada.</li></ul><p>O painel <b>Hoje</b>, no topo, diz o próximo passo. Se estiver na dúvida, faça o que está lá.</p>`},
+    {t:"O ritual da semana",b:`<ul><li><b>Todo dia:</b> 10 min de notícia e, na maioria dos dias, um bloco de estudo: <b>Novo bloco</b> guarda a matéria, o conteúdo e o que você entendeu. Se quiser, marque também <b>como foi estudar</b> — Pesou, Ok ou Fluiu; é opcional e não muda o XP.</li><li><b>Até quinta/sexta:</b> a redação do tema da semana.</li><li><b>Sábado:</b> preencher a ficha de briefing e reler no <b>Banco de estudo</b> o que você registrou na semana.</li><li><b>Domingo:</b> copiar o resumo e o código, mandar para ${oriSpan()} e fazer a chamada.</li></ul><p>O painel <b>Hoje</b>, no topo, diz o próximo passo. Se estiver na dúvida, faça o que está lá.</p>`},
     {t:"Escrever mais do que o plano pede",b:`<p>Em <b>Redações</b> ficam todas as suas redações: as oito do plano e quantas <b>extras</b> você quiser escrever. <b>Nova redação extra</b> abre um banco de temas — as apostas deste ano e os temas que já caíram na prova —, e dá para escrever sobre um tema seu também.</p><p>Cada extra registrada vale <b>50 XP</b>, pelas duas primeiras de cada semana. A folha, o foco da semana e a correção são os mesmos da redação da semana, e tocar numa linha da lista abre a ficha dela.</p>`},
     {t:"Primeiro passo: seu contrato",b:`<p>Antes de tudo, preencha o <b>contrato de rotina</b>: o dia da chamada com ${oriSpan()}, o dia em que você entrega a redação, seu limite de jogo e as recompensas por patente.</p><p>É você quem propõe; a validação é na primeira chamada.</p>`},
   ];
@@ -2203,10 +2233,12 @@
       let mat = str(e.mat); if(!keys.has(mat)) mat = outra.trim() ? "outra" : "";
       const mn = Number(e.min), dia = e.dia;
       let id = str(e.id) || String(at); while(ids.has(id)) id += "-"+i; ids.add(id);
+      const h = str(e.humor);
       out.push({id, week, at, mat, outra, conteudo: str(e.conteudo).slice(0,LIM.conteudo),
         min: (Number.isInteger(mn) && mn>=5 && mn<=LIM.minMax && mn%5===0) ? mn : null,
         dia: /^[0-6]$/.test(String(dia)) ? Number(dia) : null,
-        oque: str(e.oque).slice(0,LIM.oque), onde: str(e.onde).slice(0,LIM.onde), legado: !!e.legado});
+        oque: str(e.oque).slice(0,LIM.oque), onde: str(e.onde).slice(0,LIM.onde), legado: !!e.legado,
+        ...(HUMOR.some(x=>x[0]===h) ? {humor:h} : {})});
     };
     if(Array.isArray(s.estudo) && s.estudo.length) s.estudo.forEach(push);   // v3: confia nas entradas, ignora blk/blocks
     else Object.keys(s.weeks||{}).forEach(n=>{ const w = s.weeks[n]; if(!w || typeof w!=="object") return;
@@ -2214,6 +2246,16 @@
       else { const nb = Math.round(num(w.blocks,0,5,0)); for(let i=0;i<nb;i++) push(legacyFromBlk({}, Number(n), i), i); } });
     Object.values(s.weeks||{}).forEach(w=>{ if(w && typeof w==="object"){ delete w.blk; delete w.blocks; } });
     s.estudo = out;
+  }
+
+  // Quantos blocos de uma lista levam cada marca. Bloco sem marca — ou com marca que a carga
+  // descartou — conta em `sem`. É daqui que saem todas as leituras das duas telas: a etiqueta da
+  // linha, a leitura por matéria, a linha da semana e a tendência (ADR-005 de humor-do-bloco).
+  // CÓPIA VERBATIM de humorConta() no painel do orientador — scripts/check-weeks.mjs reprova a diferença.
+  function humorConta(list){
+    const c = {pesou:0, ok:0, fluiu:0, sem:0};
+    list.forEach(e=>{ c[HUMOR.some(h=>h[0]===e.humor) ? e.humor : "sem"]++; });
+    return c;
   }
 
   // O limite do campo de onde veio uma outra versão guardada (`state.outras`): é o maxlength dele. A
@@ -3072,7 +3114,7 @@
   // `banco` só decide o convite de explicar o bloco, que no card da semana seria cobrança (ele acabou de
   // salvar). A ordem importa: como faixa de largura inteira, as ações separavam o conteúdo do bloco.
   function rowEstudo(e, paid){
-    const tags = [e.dia!==null ? DAYS[e.dia] : "", e.min ? `${e.min} min` : "", paid ? "" : "sem XP", e.legado ? "bloco antigo" : ""]
+    const tags = [e.dia!==null ? DAYS[e.dia] : "", e.min ? `${e.min} min` : "", e.humor || "", paid ? "" : "sem XP", e.legado ? "bloco antigo" : ""]
       .filter(Boolean).map(t=>`<span class="tag">${esc(t)}</span>`).join("");
     // A matéria é o que ele varre; o conteúdo pode ter 200 caracteres e, em negrito junto com ela, virava
     // uma mancha de quatro linhas onde o nome da matéria não se distinguia mais. Peso, não ordem nem cor:
@@ -3097,7 +3139,45 @@
     let opts = `<option value="">sem tempo</option>`;
     for(let m=5;m<=LIM.minMax;m+=5) opts += `<option value="${m}">${m} min</option>`;
     document.getElementById("eMin").innerHTML = opts;
+    // As três pílulas saem de HUMOR, como as opções de Matéria saem de MATERIAS: a escala é um literal
+    // só, igual nos dois apps, e trocar uma palavra depois é trocá-la num lugar.
+    document.getElementById("eHumor").innerHTML = HUMOR
+      .map(([v,l])=>`<label><input type="radio" name="eHumor" value="${v}" data-humor="${v}"><span>${esc(l)}</span></label>`).join("");
   })();
+
+  // ---------- como foi estudar: ler, mostrar e LIMPAR a marca no formulário
+  // Rádio nativo não desmarca por clique, e esta marca é opcional: sem o limpar, quem toca por engano
+  // fica preso à primeira escolha. Quem limpa é o `click` comparando com a seleção LEMBRADA — quando o
+  // ouvinte roda o navegador já marcou o rádio, então comparar com `checked` não diria nada. As setas
+  // marcam e disparam `click` e `change`, e os dois mantêm a memória em dia; o Espaço na pílula já
+  // marcada é o único gesto que não vira clique, e tem o ouvinte próprio logo abaixo.
+  let eHumorSel = null;
+  // O domínio é fechado também na LEITURA do formulário, e não só na carga: o valor do rádio é markup,
+  // e markup se altera. Fora das três palavras, o formulário não tem marca nenhuma — nunca um quarto
+  // estado nem um texto estranho escrito na entrada (ADR-005; US-001 EC-5).
+  function humorForm(){ const r = document.querySelector("#eHumor input:checked");
+    return r && HUMOR.some(h=>h[0]===r.value) ? r.value : null; }
+  function setHumorForm(v){
+    document.querySelectorAll("#eHumor input").forEach(r=>{ r.checked = r.value===v; });
+    eHumorSel = humorForm();
+  }
+  function limpaHumor(r){ r.checked = false; eHumorSel = null; }
+  document.getElementById("eHumor").addEventListener("click", ev=>{
+    const r = ev.target.closest("input[type=radio]"); if(!r) return;   // o clique no rótulo chega antes, sem alvo
+    if(eHumorSel === r.value) limpaHumor(r); else eHumorSel = r.value;
+  });
+  // O Espaço na pílula JÁ MARCADA não produz clique nenhum: medido no Chrome em 21/10/2026, a ativação
+  // é suprimida quando o rádio não muda de estado (`keydown` e `keyup`, e mais nada; na não marcada vêm
+  // `click` e `change`). Sem este ouvinte, limpar seria possível no dedo e impossível no teclado — e a
+  // seta, que DISPARA clique, já mantém a memória em dia pelo caminho de cima.
+  document.getElementById("eHumor").addEventListener("keydown", ev=>{
+    if(ev.key !== " ") return;
+    const r = ev.target.closest("input[type=radio]");
+    if(r && r.checked && eHumorSel === r.value){ ev.preventDefault(); limpaHumor(r); }
+  });
+  document.getElementById("eHumor").addEventListener("change", ev=>{
+    const r = ev.target.closest("input[type=radio]"); if(r) eHumorSel = r.checked ? r.value : null;
+  });
   document.getElementById("eMat").addEventListener("change",e=>{
     const wrap = document.getElementById("eOutraWrap"), inp = document.getElementById("eOutra");
     const mostra = e.target.value==="outra"; wrap.hidden = !mostra;
@@ -3250,6 +3330,7 @@
     estudoForm.hidden = true;
     editEstudo = null; formWeek = null;
     document.getElementById("eOque").value = ""; renderNota();   // a nota não sobrevive ao fechamento, nem na pré-visualização
+    setHumorForm(null);                                          // nem a marca: fechar é descartar o que não foi salvo
   }
   // Abre sempre dentro do banco de estudo, que é o único lugar onde bloco se registra, edita e apaga.
   // `week` continua sendo a da aba de Semanas (ADR-005) — e agora o formulário diz qual é, em #estudoWeek.
@@ -3275,6 +3356,7 @@
     eData.value = dataV; marcaSemana();
     document.getElementById("eOque").value = v.oque || "";
     document.getElementById("eOnde").value = v.onde || "";
+    setHumorForm(entry ? (entry.humor || null) : null);   // bloco novo abre sem nada marcado, pelos três caminhos
     estudoForm.hidden = false; grow(document.getElementById("eOque")); renderNota();
     estudoAbriu = quemAbriu();
     document.getElementById("eMat").focus();
@@ -3295,6 +3377,10 @@
     const mat = document.getElementById("eMat").value, outra = document.getElementById("eOutra").value.trim();
     const conteudo = document.getElementById("eConteudo").value.trim();
     const minV = document.getElementById("eMin").value, dataV = document.getElementById("eData").value;
+    // Lida AQUI, com os outros campos: `fechaForm()` mais abaixo fecha o formulário, e fechado ele já
+    // não tem marca para ler. Ela fica fora de `data` de propósito — `Object.assign` escreveria
+    // `humor: undefined` por cima, e o teste de presença é `"humor" in e` (ADR-005).
+    const humor = humorForm();
     const d = parseData(dataV), nData = d ? semanaDe(d) : null;
     // O erro frequente do app é este, e ele chegava só como toast preso no pé da janela: sem foco, sem
     // marca no campo e sem rolar até ele, que num celular de 400px costuma estar fora da tela.
@@ -3321,7 +3407,9 @@
     const tinha = fechaForm(estudoForm, closeEstudo);
     // Editar a data move o bloco de semana, e mover mexe no XP das duas — então o toast diz que moveu,
     // em vez de um "Bloco atualizado" mudo enquanto dois números mudam na tela.
-    if(alvo){ Object.assign(alvo, data, {week:semana, legado:false}); commit();
+    if(alvo){ Object.assign(alvo, data, {week:semana, legado:false});
+      if(humor) alvo.humor = humor; else delete alvo.humor;   // limpar é APAGAR a chave, nunca gravar nada no lugar
+      commit();
       toast(mudou ? `Bloco movido para a semana ${semana}` : "Bloco atualizado");
       if(tinha) devolveFoco(()=>document.querySelector(`#estudoList [data-edit-estudo="${CSS.escape(alvo.id)}"]`)||document.getElementById("novoEstudoBanco"), viaTeclado);
       return; }
@@ -3332,6 +3420,7 @@
     const at = Date.now(); let id = String(at), k = 0;
     while(state.estudo.some(x=>x.id===id)) id = `${at}-${++k}`;
     const e = Object.assign({id, week:semana, at, legado:false}, data);
+    if(humor) e.humor = humor;
     state.estudo.push(e);
     const pg = pagos(semana);
     if(pg.has(e.id)){
@@ -4783,6 +4872,7 @@
     const all = state.estudo;
     if(!all.length){
       wrap.hidden = true; chips.hidden = true; chips.innerHTML = ""; estudoFiltro = null;
+      document.getElementById("estudoHumor").hidden = true;
       list.innerHTML = `<p class="muted vazio">Banco vazio. Cada bloco que você registrar nas semanas aparece aqui para revisar.</p>`;
       return;
     }
@@ -4802,6 +4892,20 @@
     chips.innerHTML = [["","Todas",all.length]].concat(labels.map(l=>[l,l,conta.get(l)]))
       .map(([v,l,n])=>`<button type="button" data-mat="${esc(v)}" aria-pressed="${v===ativo}">${esc(l)} <span class="cnt">${n}</span></button>`).join("");
     chips.querySelectorAll("[data-mat]").forEach(b=>b.addEventListener("click",()=>{ estudoFiltro = b.dataset.mat || null; keepFocus(renderEstudo); }));
+    // Como foi estudar, por matéria, sobre a missão inteira. Só a matéria que tem ALGUMA marca ganha
+    // linha: sem isso um banco inteiro sem marca viraria uma parede de "0 pesou · 0 ok · 0 fluiu", e
+    // `N sem registro` é a CAUDA de uma linha que existe, nunca uma linha própria (US-006 AC-4). Segue
+    // o chip escolhido, como os cabeçalhos de semana; zero some, e nenhuma linha esconde o bloco todo.
+    const hum = document.getElementById("estudoHumor");
+    const linhas = labels.filter(l=>!estudoFiltro || l===estudoFiltro).map(l=>{
+      const c = humorConta(all.filter(e=>matLabel(e)===l));
+      if(!(c.pesou || c.ok || c.fluiu)) return "";
+      const ps = HUMOR.map(([k])=>c[k] ? `${c[k]} ${k}` : "").filter(Boolean);
+      if(c.sem) ps.push(`${c.sem} sem registro`);
+      return `<p><b>${esc(l)}</b> · ${ps.join(" · ")}</p>`;
+    }).filter(Boolean);
+    hum.innerHTML = linhas.join("");
+    hum.hidden = !linhas.length;
     const vis = estudoFiltro ? all.filter(e=>matLabel(e)===estudoFiltro) : all;
     if(!vis.length){
       // Só o chip preso chega aqui: a lista diz o mesmo que a fila — a matéria marcada, com 0.
@@ -4897,6 +5001,19 @@
   // O título de cada passo de redação extra no painel Hoje, pelo item derivado que o gerou. Só estes
   // três: os outros itens da lista se marcam na ficha, e não há gesto a trazer para cá.
   const PASSO_EXTRA = {registrar:"Registrar a redação extra", limpo:"Passar a limpo a redação extra", ler:"Ler o parecer da redação extra"};
+  // A matéria cujos TRÊS blocos mais recentes pesaram, e cujo mais recente é desta semana ou da
+  // anterior. A ordem lida é a de REGISTRO (`at`), não a data do bloco: três blocos retroativos
+  // marcados numa sentada são três vezes seguidas que ele disse que pesou, e é isso que a linha
+  // conta. A semana só envelhece o padrão. Duas matérias empatadas no padrão: vence a do registro
+  // mais recente — a linha nunca nomeia duas (ADR-004 de humor-do-bloco).
+  function humorAlerta(){
+    const real = guessWeek(), por = new Map();
+    state.estudo.slice().sort((a,b)=>a.at-b.at).forEach(e=>{ const k = matLabel(e); (por.get(k)||por.set(k,[]).get(k)).push(e); });
+    let hit = null;
+    por.forEach((es,k)=>{ const u = es.slice(-3); if(u.length<3 || !u.every(e=>e.humor==="pesou")) return;
+      const last = u[2]; if(last.week < real-1) return; if(!hit || last.at > hit.at) hit = {materia:k, at:last.at}; });
+    return hit;
+  }
   function renderToday(){
     const n = guessWeek(), meta = WEEKS[n-1], w = wk(n), d = todayIdx(), c = state.contrato;
     const entrega = dayIdx(c,"entrega") >= 0 ? dayIdx(c,"entrega") : 4;
@@ -5072,6 +5189,14 @@
     }
     later.textContent = rotulos.length ? "Depois: " + rotulos.join(" · ") : "";
     later.hidden = !rotulos.length;
+    // Uma matéria que pesou três vezes seguidas é PAUTA de domingo, não dívida: uma linha quieta, sem
+    // botão, sem XP e sem jeito de dispensar — ela sai sozinha no render em que a regra deixa de
+    // valer. A frase é sobre a matéria ("Física pesou"), nunca sobre ele. A reta final, a véspera, o
+    // dia da prova e o depois vencem, como em todo item do Hoje.
+    const alerta = (meta.final || daysLeft<=0) ? null : humorAlerta();
+    const hum = document.getElementById("todayHumor");
+    hum.textContent = alerta ? `${alerta.materia} pesou nos últimos 3 blocos. Vale levar para o domingo.` : "";
+    hum.hidden = !alerta;
     document.getElementById("lembretesLinha").hidden = daysLeft<=0;
     // \u00AD = hífen suave: só quebra a palavra quando a célula é estreita demais.
     // Montada do zero a partir dos dias do contrato; o que vem depois vence. Assim "sábado" como encontro
@@ -5156,8 +5281,13 @@
   function estudoLine(n){
     const b = blocos(n), paid = Math.min(ESTUDO_PAGOS, b.length), extra = b.length-paid, M = minutos(b);
     // A data anda junto do dia e sai com ele: o bloco legado (v1/v2, sem `dia`) não ganha uma data inventada.
-    const itens = b.map(e=>[e.dia!==null ? DAYS[e.dia] : "", e.dia!==null ? dmData(dataDe(e.week, e.dia)) : "",
-      `${matLabel(e)}${e.conteudo?` · ${e.conteudo}`:""}`, e.min?`(${e.min} min)`:""].filter(Boolean).join(" ")).join("; ");
+    // A marca entra DENTRO dos parênteses que já existiam — `(50 min, pesou)`, `(pesou)` sem minutos —
+    // e não numa linha nova: o resumo é uma mensagem de WhatsApp, e a linha dos blocos continua uma só.
+    const itens = b.map(e=>{
+      const par = [e.min?`${e.min} min`:"", e.humor||""].filter(Boolean).join(", ");
+      return [e.dia!==null ? DAYS[e.dia] : "", e.dia!==null ? dmData(dataDe(e.week, e.dia)) : "",
+        `${matLabel(e)}${e.conteudo?` · ${e.conteudo}`:""}`, par?`(${par})`:""].filter(Boolean).join(" ");
+    }).join("; ");
     return `Blocos de estudo: ${paid}/5${extra?` (+${extra} sem XP)`:""}${M?` · ${M} min`:""}${b.length?` — ${itens}`:""}`;
   }
   // O combinado é do contrato, que é único e vale a missão inteira — daí "no contrato" e "com você",

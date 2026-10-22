@@ -542,6 +542,12 @@
   .passo .actions{margin:10px 0 0}
   .vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   #arthurWeek .flag{margin:0 0 10px} /* o aviso de backup velho vem antes dos números da semana */
+  /* "Como foi:" fica à distância da régua em que a linha "Feito:" fica, e um nome de 40 caracteres
+     digitado em "Outra" quebra dentro da linha em vez de esticá-la e fazer a página rolar de lado. */
+  #arthurHumor{margin-top:8px;overflow-wrap:anywhere}
+  #estudoTendencia p{font-size:14px;line-height:1.6;overflow-wrap:anywhere}
+  #estudoTendencia p + p{margin-top:4px}
+  #estudoTendencia{margin-bottom:10px}
 
   /* ficha: nota externa em uma linha, fechamento em destaque, perguntas recolhidas */
   .notas{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
@@ -1198,7 +1204,7 @@
 
   <details class="card" id="cEstudo">
     <summary><h2>Banco de estudo de <span data-nome></span> <button class="help" data-help="estudo" aria-label="Ajuda: banco de estudo">?</button></h2><span class="sum" id="sumEstudo"></span></summary>
-    <div class="body"><div id="estudoFiltroO" class="fila noprint" hidden><div class="chips" id="estudoChipsO"></div></div><div id="arthurEstudo"></div>
+    <div class="body"><div id="estudoFiltroO" class="fila noprint" hidden><div class="chips" id="estudoChipsO"></div></div><div id="estudoTendencia" hidden></div><div id="arthurEstudo"></div>
       <div class="actions"><button data-print="estudo">Imprimir banco de estudo</button></div></div>
   </details>
 
@@ -1216,7 +1222,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 260 · 19/10/2026</p></div>
+  <div class="in"><p class="versao">versão 267 · 21/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -1319,6 +1325,12 @@
   // Limites de cada campo do bloco, aplicados no maxlength do aluno e de novo na carga, aqui.
   const LIM = {conteudo:200, outra:40, oque:10000, onde:300, minMax:180};
   const ESTUDO_PAGOS = 5, ESTUDO_XP = 20;
+
+  // ---------- como foi estudar: a escala de três níveis do bloco (ADR-001 de humor-do-bloco)
+  // Do pior ao melhor. O slug é o valor GRAVADO e a etiqueta que a linha mostra; o rótulo é o texto da
+  // pílula. A marca é opcional: bloco sem ela é bloco sem ela, nunca um quarto estado.
+  // ESTE LITERAL É IGUAL NO PAINEL DO ALUNO E NO enem.mjs DA SKILL — scripts/check-weeks.mjs reprova se divergir.
+  const HUMOR = [["pesou","Pesou"],["ok","Ok"],["fluiu","Fluiu"]];
 
   // ---------- banco de temas das redações extras (ADR-004 e ADR-013 de redacoes-extras)
   // GERADO PELO BUILD a partir de .agents/skills/planejar-temas/assets/temas-extras-2026.json, o
@@ -1630,17 +1642,17 @@
   const HELP = {
     fluxo:{t:"Como usar este painel",b:`<p><b>Se estiver em dúvida por onde começar, siga o quadro <i>Passo a passo do domingo</i>, no topo:</b> ele mostra em qual dos quatro passos você está e traz o botão do passo de agora. O resto desta tela é para quando você quiser algo fora desse caminho.</p><p>A tela segue o domingo:</p><ul><li><b>Antes:</b> <span data-nome></span> toca em “Copiar resumo e código” no painel e te manda uma mensagem só. Você cola a mensagem inteira em <b>Importar dados de <span data-nome></span></b>. Isso traz a redação, o que foi marcado, o briefing, o contrato e o banco. Depois, <b>Preparar com o Claude</b> monta a ficha e as perguntas do encontro.</li><li><b>Na chamada:</b> à esquerda, o que chegou (redação e registro da semana); à direita, o que você faz (roteiro, ficha, briefing, anotações), na ordem dos 40 minutos.</li><li><b>Depois:</b> a curva de notas em Evolução. Contrato e banco ficam recolhidos para consulta.</li></ul><p>Os backups das suas anotações estão no rodapé; só precisa deles ao trocar de aparelho.</p>${APP?`<p><b>No aplicativo as anotações não ficam no navegador:</b> elas moram num banco próprio na pasta de dados do seu usuário${FOLDER?` (<code>${esc(FOLDER)}</code>)`:""} — <code>%APPDATA%\\Missão ENEM</code> no Windows e <code>~/.config/missao-enem</code> no Linux —, separado do banco do aluno. <b>Abrir pasta dos dados</b>, no rodapé, abre essa pasta.</p><p><b>Cópias automáticas:</b> na primeira vez que o app salva em cada dia, ele guarda ali uma cópia do estado anterior, em JSON — o mesmo formato do arquivo de backup. Ficam as 14 mais recentes, e restaurar uma delas pede confirmação e deixa 8 segundos de Desfazer.</p><p><b>Esqueceu a senha?</b> Apague o <code>config.json</code> dessa pasta: o app volta a aceitar a senha que veio na instalação. A senha trocada aqui vale só neste aparelho e nunca entra no backup das anotações.</p>`:""}`},
     passos:{t:"Passo a passo do domingo",b:`<p>O domingo tem quatro passos, e o quadro sabe em qual você está: cada passo se marca sozinho a partir do que já existe no painel. <b>Não há nada para você marcar à mão.</b></p><ol><li><b>Importar o que <span data-nome></span> mandou</b> — o botão abre o mesmo diálogo do topo. Fecha quando o código entra, e reabre se o código for anterior a esta semana.</li><li><b>Preparar com o Claude</b> — o botão copia o comando; você cola no Claude Code aberto na pasta do projeto, copia a resposta inteira e volta aqui, onde o mesmo passo passa a oferecer <b>Colar o preparo</b>. Fecha quando o preparo entra. No caminho normal você não precisa abrir o card <b>Preparar com o Claude</b>.</li><li><b>A chamada de 40 minutos</b> — o botão abre o roteiro, que em cada bloco diz o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada. Fecha quando a ficha tem uma força e um ajuste.</li><li><b>Mandar a tarefa da semana</b> — a mensagem pronta para o WhatsApp, com o parágrafo a reescrever, os exercícios do ajuste e o combinado da próxima semana. Fecha quando você copia. Mande junto o <b>parecer</b> (card Parecer da redação → Copiar o parecer): é a correção escrita para <span data-nome></span>, que fica guardada no painel do aluno.</li></ol><p>Os outros modelos de <b>Preparar com o Claude</b> não são passos do domingo: são ferramentas de outros momentos, e os grupos da lista lá dizem de qual. Na reta final o quadro tem dois passos, porque não há redação nova.</p>${ONLINE?`<p><b>Com o aluno conectado</b>, o primeiro passo fecha sozinho quando a semana do aluno abre e chega, e o último é <b>Enviar o parecer</b>: o parecer e a mensagem vão juntos para o app do aluno, sem WhatsApp.</p>`:""}`},
-    dados:{t:"O que <span data-nome></span> registrou",b:`<p>Leitura automática do backup de <span data-nome></span> para a semana selecionada: XP, blocos de estudo, repertórios, dias de notícia, o que está marcado como feito e a nota lançada. Use no fechamento para validar o XP. Você não edita aqui; se algo estiver errado, a correção é feita no painel do aluno, e um código novo traz a mudança.</p><p>Abaixo dos números vêm os blocos da semana, um por linha, do mais novo para o mais antigo: matéria, conteúdo, dia, tempo e, quando foram escritos, o “o que é” e o “onde aparece”. Do sexto bloco em diante a linha vem marcada como <b>sem XP</b> — o estudo aconteceu, só não soma mais; blocos vindos da versão antiga do app aparecem como <b>bloco antigo</b>.</p><p>No topo, ao lado do XP acumulado, aparece quanto o XP subiu desde o backup anterior: é o número para abrir a chamada.</p>`},
+    dados:{t:"O que <span data-nome></span> registrou",b:`<p>Leitura automática do backup de <span data-nome></span> para a semana selecionada: XP, blocos de estudo, repertórios, dias de notícia, o que está marcado como feito e a nota lançada. Use no fechamento para validar o XP. Você não edita aqui; se algo estiver errado, a correção é feita no painel do aluno, e um código novo traz a mudança.</p><p>Abaixo dos números vêm os blocos da semana, um por linha, do mais novo para o mais antigo: matéria, conteúdo, dia, tempo e, quando foram escritos, o “o que é” e o “onde aparece”. Do sexto bloco em diante a linha vem marcada como <b>sem XP</b> — o estudo aconteceu, só não soma mais; blocos vindos da versão antiga do app aparecem como <b>bloco antigo</b>.</p><p><b>Como foi:</b> logo abaixo dos números, uma linha diz onde a semana pesou e onde fluiu — <code>Como foi: pesou em Física (3 de 3) · ok em Matemática (1 de 2) · 1 sem registro</code> —, nomeando cada matéria uma vez com a marca que mais apareceu e em quantos blocos daquela matéria; a mesma marca vem na etiqueta de cada bloco, abaixo. É <b>a leitura de <span data-nome></span></b> sobre como aquela sessão de estudo foi: <b>opcional</b>, e <b>não muda o XP</b> nem entra em medalha ou patente. Bloco salvo sem marca entra como <i>sem registro</i>, nunca como “Ok”. Num <b>empate</b> entre duas marcas a linha diz a pior das duas, de propósito — empate, como bloco sem marca, é motivo para <b>perguntar</b> na chamada, nunca para concluir. A mesma matéria vista semana a semana fica no card <b>Banco de estudo</b>.</p><p>No topo, ao lado do XP acumulado, aparece quanto o XP subiu desde o backup anterior: é o número para abrir a chamada.</p>`},
     roteiro:{t:"Roteiro do encontro (40 min)",b:`<p>Montado para a semana selecionada: o foco de correção, o ajuste combinado na semana anterior (para cobrar continuidade), a pauta do briefing e o que combinar para a próxima. As perguntas por competência estão dentro da ficha de correção. A regra é conduzir por perguntas, não por afirmações, e fechar sempre com <b>uma</b> força e <b>um</b> ajuste.</p><p>Com o preparo colado (Preparar com o Claude → Preparar o encontro), cada bloco traz o que perguntar, <b>o que esperar como resposta</b> — com o trecho da redação — e o que dizer se a resposta vier errada; a leitura em voz alta ganha os tropeços prováveis, o fechamento o XP e a próxima semana. Quando a redação foi passada a limpo, a leitura traz também a <b>translineação</b>: cada palavra dividida errado no fim de uma linha, com o número da linha da folha e as duas metades como estão escritas; sem nenhuma errada, ela diz que estão todas certas. A folha em andamento é conferida como está (“não finalizada”), e a da semana que exige a folha é “transcrita do papel”. No fim, “Copiar mensagem” leva para o WhatsApp o parágrafo a reescrever, os exercícios do ajuste e o combinado da próxima. Com o preparo, “Imprimir semana” leva o roteiro para o papel.</p>`},
     redacao:{t:"Redação da semana",b:`<p>Se <span data-nome></span> escreveu no painel, o texto chega pela importação. Se veio como foto, peça a transcrição ou transcreva no Claude e cole aqui. O texto fica salvo nesta semana e entra sozinho no prompt “Avaliar a redação”.</p><p><b>As linhas do cabeçalho</b> são contadas como na folha de <span data-nome></span>: na largura e no recuo medidos da letra do aluno (sem código importado, 68 caracteres e recuo de 4). É o mesmo número que aparece no painel do aluno e o que a skill usa. Se você trocar o texto aqui, a conta segue o seu texto, na largura medida.</p><p><b>A folha passada a limpo</b>, quando existe, aparece abaixo do texto: as linhas numeradas como foram escritas, se está em andamento ou finalizada e se a semana exigia. É só leitura — o que você digita no campo não a muda. Na semana que exige a folha ela é a cópia da folha de papel, linha por linha, e uma linha mais longa que a largura medida aparece sublinhada, sem ser erro. Se o rascunho mudou depois de passado a limpo, uma linha avisa. Com folha, <b>Imprimir semana</b> leva a folha para o papel no lugar do texto. Na conversa, olhem os fins de linha: é onde está a translineação.</p><p><b>Com o aluno conectado,</b> a redação chega <b>entregue</b>: quando o aluno toca em Entregar a redação, vem o texto daquele instante e a folha passada a limpo, se já tinha começado, com a data — <i>entregue em</i>. O rascunho que continua em edição não chega. Se uma entrega mais nova chega com o campo já preenchido — a entrega anterior ou a sua transcrição —, o card diz <i>Há uma entrega mais nova</i> e o campo só muda quando você toca em <b>Usar</b>. O comando do preparo leva o que está no campo; sem entrega e sem texto, vai sem redação.</p>`},
-    ia:{t:"Preparar com o Claude",b:`<p>Você não precisa ser corretor. O painel monta um prompt com o contexto (idade, data da prova, tema, foco da semana) e a redação.</p><ul><li><b>A lista é agrupada por momento</b>, porque a dúvida não é o que cada um faz, é quando se usa. <b>O caminho do domingo:</b> “Preparar o encontro” — é ele que o passo 2 do quadro lá em cima copia, e sozinho ele já dá nota, ficha, perguntas por competência e perguntas do briefing. <b>Antes da chamada, se quiser mais:</b> buscar notícias e perguntas para o briefing (peça busca na web ativa), corrigir de reserva quando você só quer a nota, ou avaliar a redação no chat. <b>Depois da chamada:</b> montar a proposta da próxima redação, com os três textos motivadores, para mandar a <span data-nome></span>; e comparar o parágrafo reescrito, que chega na segunda. <b>De vez em quando:</b> analisar a evolução, a partir da terceira semana com nota.</li><li><b>Onde vai a resposta:</b> a linha cinza abaixo da lista diz, para o modelo escolhido, onde rodar e para onde levar o que voltar. Só dois modelos rodam no Claude Code; o resto é no chat do Claude.</li><li><b>Corrigir de reserva (skill):</b> para a semana em que a correção externa não chegou até o encontro. Copia o comando <code>/corrigir-redacao N</code> com o tema e a redação; cole no Claude Code aberto na pasta do projeto. Dois leitores corrigem sem se ver, com a matriz do INEP, e um terceiro entra se divergirem; o que volta é o bloco da ficha (notas C1–C5, uma força, um ajuste, três perguntas). Cole abaixo e lance as notas como nota externa. A nota humana, quando existe, continua valendo mais.</li><li><b>Preparar o encontro (skill):</b> o caminho normal do domingo. Copia o comando <code>/preparar-encontro N</code> com a semana inteira de <span data-nome></span> — redação, briefing, blocos de estudo (sem as notas), repertórios, o contrato resumido, o XP e as fichas das semanas anteriores; cole no Claude Code na pasta do projeto. Ele corrige a redação (ou reaproveita a correção de reserva já feita), lê o resto da semana e devolve um bloco de preparo. Cole a resposta em <b>Colar o preparo</b>: a ficha se preenche onde estiver vazia (o que você já digitou fica; “o que <span data-nome></span> percebeu” nunca entra), o roteiro ganha, em cada bloco, o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada, e “Copiar mensagem” leva o exercício da semana seguinte. Força e ajuste continuam sendo decisão sua depois da leitura em voz alta.</li><li><b>Aspectos:</b> só aparecem em “Avaliar a redação”. Marque poucos; menos é mais.</li><li><b>Instrução extra:</b> algo específico (“‘ademais’ se repete”).</li><li><b>Resposta:</b> cole de volta; fica guardada nesta semana.</li></ul><p>O modelo “analisar a evolução” leva junto os blocos de estudo da semana selecionada (dia, matéria, conteúdo e tempo, com o total em minutos), para o Claude olhar esforço e resultado lado a lado.</p>`},
+    ia:{t:"Preparar com o Claude",b:`<p>Você não precisa ser corretor. O painel monta um prompt com o contexto (idade, data da prova, tema, foco da semana) e a redação.</p><ul><li><b>A lista é agrupada por momento</b>, porque a dúvida não é o que cada um faz, é quando se usa. <b>O caminho do domingo:</b> “Preparar o encontro” — é ele que o passo 2 do quadro lá em cima copia, e sozinho ele já dá nota, ficha, perguntas por competência e perguntas do briefing. <b>Antes da chamada, se quiser mais:</b> buscar notícias e perguntas para o briefing (peça busca na web ativa), corrigir de reserva quando você só quer a nota, ou avaliar a redação no chat. <b>Depois da chamada:</b> montar a proposta da próxima redação, com os três textos motivadores, para mandar a <span data-nome></span>; e comparar o parágrafo reescrito, que chega na segunda. <b>De vez em quando:</b> analisar a evolução, a partir da terceira semana com nota.</li><li><b>Onde vai a resposta:</b> a linha cinza abaixo da lista diz, para o modelo escolhido, onde rodar e para onde levar o que voltar. Só dois modelos rodam no Claude Code; o resto é no chat do Claude.</li><li><b>Corrigir de reserva (skill):</b> para a semana em que a correção externa não chegou até o encontro. Copia o comando <code>/corrigir-redacao N</code> com o tema e a redação; cole no Claude Code aberto na pasta do projeto. Dois leitores corrigem sem se ver, com a matriz do INEP, e um terceiro entra se divergirem; o que volta é o bloco da ficha (notas C1–C5, uma força, um ajuste, três perguntas). Cole abaixo e lance as notas como nota externa. A nota humana, quando existe, continua valendo mais.</li><li><b>Preparar o encontro (skill):</b> o caminho normal do domingo. Copia o comando <code>/preparar-encontro N</code> com a semana inteira de <span data-nome></span> — redação, briefing, blocos de estudo (sem as notas), repertórios, o contrato resumido, o XP e as fichas das semanas anteriores; cole no Claude Code na pasta do projeto. Ele corrige a redação (ou reaproveita a correção de reserva já feita), lê o resto da semana e devolve um bloco de preparo. Cole a resposta em <b>Colar o preparo</b>: a ficha se preenche onde estiver vazia (o que você já digitou fica; “o que <span data-nome></span> percebeu” nunca entra), o roteiro ganha, em cada bloco, o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada, e “Copiar mensagem” leva o exercício da semana seguinte. Força e ajuste continuam sendo decisão sua depois da leitura em voz alta.</li><li><b>Aspectos:</b> só aparecem em “Avaliar a redação”. Marque poucos; menos é mais.</li><li><b>Instrução extra:</b> algo específico (“‘ademais’ se repete”).</li><li><b>Resposta:</b> cole de volta; fica guardada nesta semana.</li></ul><p><b>A marca de como foi estudar vai no comando agregada por matéria</b> — quantos blocos da semana pesaram, ficaram ok ou fluíram em cada uma —, e <b>nunca por bloco</b>: qual conteúdo pesou é leitura sua, aqui no painel, e não entra em prompt nenhum. Com o agregado o preparo pode trazer uma pergunta da chegada sobre a matéria que pesou; a mensagem que vai para <span data-nome></span> nunca sai da marca.</p><p>O modelo “analisar a evolução” leva junto os blocos de estudo da semana selecionada (dia, matéria, conteúdo e tempo, com o total em minutos), para o Claude olhar esforço e resultado lado a lado.</p>`},
     ficha:{t:"Ficha de correção",b:`<p>Três blocos, na ordem da conversa:</p><ul><li><b>Nota externa (C1–C5):</b> comece por ela, não pela sua opinião. Se a nota já foi lançada no painel do aluno, os cinco números chegam preenchidos; ajuste se precisar. O total soma sozinho.</li><li><b>Fechamento:</b> o que <span data-nome></span> percebeu ao ler em voz alta, <b>uma</b> força, <b>um</b> ajuste e o parágrafo a reescrever até segunda. É isso que fica para a semana; o resto é apoio.</li><li><b>Perguntas por competência:</b> abra no minuto 15. Uma pergunta por competência e um campo para anotar o que discutiram. Em C5, marque os cinco elementos: faltou um, a nota caiu ali.</li></ul>`},
     brief:{t:"Briefing de notícia",b:`<p>Acima aparece a ficha da notícia que <span data-nome></span> marcou para <b>apresentar</b>. Dá para guardar várias notícias na semana, mas a mensagem do WhatsApp só traz a apresentada, e é só ela que aparece aqui e que vai para o preparo — as guardadas ficam no painel do aluno. Marque os critérios durante a fala: falou sem ler, ficou em 3 min, respondeu "e o Brasil?", disse quem ganha e quem perde, ligou a um tipo de tema. Em "Como foi a fala", registre fluência, se sustentou as perguntas difíceis, se usou repertório.</p>`},
     notas:{t:"Minhas anotações",b:`<p>Espaço livre por semana: clima da chamada, o que combinar com a família, o que a escola disse, o que trazer na próxima. Não vai para <span data-nome></span>.</p>`},
     parecer:{t:"Parecer da redação para <span data-nome></span>",b:`<p>É a correção escrita para <b><span data-nome></span></b>, em linguagem simples, e é também o seu apoio na chamada: você não precisa saber a regra da crase de cor, porque ela está escrita ali, ao lado do trecho da redação em que apareceu.</p><ul><li><b>De onde vem:</b> chega dentro do preparo (Preparar com o Claude → Colar o preparo). A skill o monta a partir da mesma correção que preenche a ficha: a nota com o que cada competência mede, uma força, um ajuste (e como conferir sem ajuda), os tropeços de português por tipo — regra, casos no texto, como conferir, um link conferido; a translineação, quando há folha passada a limpo, cita a linha da folha e as duas metades da palavra —, o mapa do que fica para as próximas semanas e o que estudar.</li><li><b>Como chega ao aluno:</b> <b>Copiar o parecer</b> põe na área de transferência uma mensagem com o código; cole no WhatsApp. No painel do aluno, <b>Parecer da redação → Colar o parecer</b> recebe a mensagem inteira e põe o parecer na semana certa. Fica guardado lá por semana, para reler antes da próxima redação.</li><li><b>Na chamada:</b> leiam, nesta ordem: a nota, o que ficou bom, o ajuste, os tropeços. O que não ficar claro, a regra escrita responde; o que a regra não responder, anote em Minhas anotações para a próxima. <b>Imprimir parecer</b> tira a folha para ler de papel.</li><li><b>O que ficou de fazer:</b> abaixo do parecer, a mesma lista que fecha o parecer no painel do aluno — o parágrafo a reescrever e os um ou dois exercícios do ajuste —, com o que já está marcado. Os títulos saem do <b>seu</b> preparo; as marcas, do último código que você importou, e por isso o cabeçalho traz a data do código. <b>Aqui você só lê:</b> não há caixa para marcar, porque quem marca é <span data-nome></span>. Sem código importado, ou com um backup anterior a esta lista, o placar aparece como <i>desconhecido</i> — nunca como zero. A linha da semana anterior, em <b>O que <span data-nome></span> registrou</b>, responde a mesma pergunta antes de você abrir este card.</li><li><b>Um ajuste só, de propósito.</b> A lista das próximas redações é mapa, não tarefa — o plano é um ajuste por semana. Não transforme o mapa em cobrança.</li><li><b>Os links</b> saem de uma lista conferida à mão na skill (<code>assets/materiais.json</code>); a skill não pode inventar endereço.</li></ul><p>O parecer viaja no backup das suas anotações, junto com o preparo. No código que chega de <span data-nome></span> o parecer <b>não</b> vem (você já o tem); no arquivo de backup do aluno, sim.</p>${ONLINE?`<p><b>Com a conexão ativa,</b> o botão do card vira <b>Enviar o parecer</b> (ou <b>Enviar a mensagem</b>, quando o preparo veio sem redação): um toque entrega o parecer e a mensagem da semana no app de <span data-nome></span>, na semana certa, e fecha o último passo do domingo. Colar o preparo não envia nada — o que chega é o que vocês leram na chamada. Sem rede, o envio espera e sai sozinho quando a conexão voltar. Enviar de novo substitui o parecer e a mensagem enviados antes. As marcas do que ficou de fazer chegam com a semana, e o cabeçalho diz quando chegaram. Com a sincronização desligada, volta a ser <b>Copiar o parecer</b>, pelo WhatsApp.</p>`:""}`},
     contrato:{t:"Contrato de rotina de <span data-nome></span>",b:`<p>Cópia somente leitura do contrato preenchido no painel do aluno: encontro, dia de envio, limite de jogo, recompensas por patente e a grade da semana. Se algo precisa mudar, combinem na chamada; a edição é feita lá.</p>`},
     banco:{t:"Banco de repertório de <span data-nome></span>",b:`<p>Os repertórios cadastrados, do mais recente para o mais antigo, com a semana e os temas para que servem. Meta até a prova: 10 no banco, 6 decorados. Use na semana 7 para montar o kit de prova com <span data-nome></span>.</p>`},
-    estudo:{t:"Banco de estudo de <span data-nome></span>",b:`<p>Tudo o que foi registrado até aqui, agrupado por semana, da mais recente para a mais antiga — não só a semana selecionada. Cada linha traz matéria, conteúdo, dia, tempo e os textos escritos em cada bloco.</p><p>Os chips filtram por matéria e valem só enquanto a página estiver aberta. Use perto da prova para montar a revisão com <span data-nome></span>: o que foi muito visto, o que ficou de fora. “Imprimir banco de estudo” leva só este card para o papel.</p>`},
+    estudo:{t:"Banco de estudo de <span data-nome></span>",b:`<p>Tudo o que foi registrado até aqui, agrupado por semana, da mais recente para a mais antiga — não só a semana selecionada. Cada linha traz matéria, conteúdo, dia, tempo e os textos escritos em cada bloco.</p><p><b>Como vem indo cada matéria</b>, acima dos grupos: uma linha por matéria com a marca dominante de cada semana e em quantos blocos daquela semana — <code>Física · S6 pesou 2/3 · S7 fluiu 1/1</code> —, da semana mais antiga para a mais nova. É a leitura <b>semana a semana</b>, a que mostra a matéria que vem pesando antes de o padrão ter três semanas de idade; semana com bloco e sem marca nenhuma aparece como <i>sem registro</i>. É texto, não gráfico, e segue o chip escolhido.</p><p>Os chips filtram por matéria e valem só enquanto a página estiver aberta. Use perto da prova para montar a revisão com <span data-nome></span>: o que foi muito visto, o que ficou de fora. “Imprimir banco de estudo” leva só este card para o papel.</p>`},
     correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora pelo modelo, no servidor, sem esperar o domingo. Ela só existe no modo conectado, e quem a liga é você: <b>com a sua chave</b>, <b>por aluno</b> e <b>com um teto por semana</b>.</p><ul><li><b>A chave é sua.</b> Ela é guardada no servidor, cifrada, e nunca volta para esta tela: o campo é só de escrita, e o que você lê aqui é a data em que ela foi cadastrada. <b>Salvar chave</b> pergunta ao fornecedor se ela serve antes de guardar — chave recusada não é guardada em lugar nenhum. <b>Remover chave</b> desliga a correção automática de todos os seus alunos na hora; a que estiver rodando termina.</li><li><b>Por aluno, com teto.</b> Ligar pede que você reconheça uma linha: a folha passada a limpo de <span data-nome></span> é enviada ao fornecedor do modelo para ser corrigida. <b>Correções por semana</b> vai de 0 a 20 (o padrão é 2); 0 equivale a desligado, e a ficha de <span data-nome></span> diz <i>0 de 0 nesta semana</i>. O crédito volta na segunda-feira, pelo calendário da missão.</li><li><b>Só a folha passada a limpo é corrigida</b>, nunca o rascunho — é ela que um corretor leria na prova. Sem folha, a ficha de <span data-nome></span> oferece só <b>Pedir correção</b>, que vem para você.</li><li><b>Falha não custa crédito.</b> Correção que não volta ou demora demais não gasta nada, e a ficha de <span data-nome></span> volta ao estado anterior. <b>A garantia é do servidor</b>, que só conta o crédito quando fecha a correção com um parecer — e o crédito de um parecer que volta numa forma que o app não entende, o que só acontece com um aparelho atrás do servidor, é devolvido ao teto da semana; uma correção devolvida sai também das duas contas do cartão do aluno. Esse cartão mostra as últimas falhas com o motivo curto; três seguidas trocam a linha por <i>A correção automática está falhando: confira a chave</i>, e <b>nada é desligado sozinho</b>.</li><li><b>Você recebe uma cópia</b> de todo parecer automático: ele aparece na ficha da redação, em <b>Redações extras</b>, com <i>Parecer automático</i> no cabeçalho. Montando o seu por cima e enviando, é o seu que passa a valer, e o automático fica legível atrás de um toque.</li><li><b>Avisos por e-mail:</b> cada pedido de correção de <span data-nome></span> manda um e-mail para o endereço da sua conta, sem o texto da redação. Desligando aqui, os pedidos continuam aparecendo na faixa do painel e no passo do domingo. <b>Só a recusa imediata do servidor de e-mail é detectada</b> — um endereço que recusa depois, em silêncio, continua marcado como funcionando, e nesse caso os avisos param de chegar sem que o painel saiba. Detectada a recusa, os avisos são desligados e esta linha diz isso.</li></ul><p>O que sai daqui para o fornecedor do modelo: a folha passada a limpo de <span data-nome></span>, o tema e a proposta. Nome, e-mail e o resto do painel não saem.</p>`},
     extras:{t:"Redações extras",b:`<p>As redações que <span data-nome></span> escreve por conta própria, fora da redação da semana. Cada uma conta na semana em que foi registrada e vale 50 XP, pelas duas primeiras de cada semana.</p><ul><li><b>Você só vê o que foi mandado.</b> Enquanto a correção não é pedida, a redação não aparece aqui — nem o rascunho, nem a folha passada a limpo. Pedida a correção, o que você lê é a versão daquele instante: o texto pode ter mudado depois, e isso não muda o que está nesta tela. Apagada no aparelho de <span data-nome></span>, a linha diz <b>apagada pelo aluno</b> e o texto entregue continua legível.</li><li><b>Sem folha passada a limpo</b> a entrega vem com o rascunho, dito como rascunho, e o parecer sai com <i>lido do rascunho</i>.</li><li><b>Corrigir à mão:</b> preencha a ficha — as cinco notas, uma força, um ajuste — e toque em <b>Montar o parecer</b>. Sai um parecer na mesma forma dos outros três, com o glossário das competências, o ajuste e o que estudar. Montar de novo substitui o anterior.</li><li><b>O ajuste é um só</b>, na competência do foco da semana. Quando o seu texto fala de outra competência, o painel pergunta se o foco desta redação não é outro: <b>Foco desta redação</b> muda só esta.</li><li><b>Com a skill:</b> <b>Copiar o comando</b> leva a proposta e o texto para o Claude Code — a skill não precisa do plano para uma extra — e <b>Colar o preparo</b> traz a ficha e o parecer de volta. O preparo de uma extra não entra na semana, e o da semana não entra aqui.</li><li><b>Combinado com <span data-nome></span>:</b> o que vocês acertarem na chamada. Até 200 caracteres por item; viaja na próxima entrega do parecer. Remover um antes de mandar o tira da lista do outro lado.</li><li><b>O que ficou de fazer</b> mostra as marcas do último código ou da última descida. Você lê e não muda: marcar é gesto de quem escreveu.</li></ul>`},
     evolucao:{t:"Evolução",b:`<p>Nota total por semana, usando a nota da ficha (ou, se você não lançou, a registrada no painel do aluno). Abaixo, a última nota de cada competência. A partir da segunda semana com nota, “ponto fraco” marca a mais baixa delas, quando está abaixo de 160 e no menor valor que já teve. Use o prompt “Analisar a evolução” quando tiver três ou mais semanas lançadas.</p>`},
@@ -1686,10 +1698,12 @@
       let mat = str(e.mat); if(!keys.has(mat)) mat = outra.trim() ? "outra" : "";
       const mn = Number(e.min), dia = e.dia;
       let id = str(e.id) || String(at); while(ids.has(id)) id += "-"+i; ids.add(id);
+      const h = str(e.humor);
       out.push({id, week, at, mat, outra, conteudo: str(e.conteudo).slice(0,LIM.conteudo),
         min: (Number.isInteger(mn) && mn>=5 && mn<=LIM.minMax && mn%5===0) ? mn : null,
         dia: /^[0-6]$/.test(String(dia)) ? Number(dia) : null,
-        oque: str(e.oque).slice(0,LIM.oque), onde: str(e.onde).slice(0,LIM.onde), legado: !!e.legado});
+        oque: str(e.oque).slice(0,LIM.oque), onde: str(e.onde).slice(0,LIM.onde), legado: !!e.legado,
+        ...(HUMOR.some(x=>x[0]===h) ? {humor:h} : {})});
     };
     if(Array.isArray(s.estudo) && s.estudo.length) s.estudo.forEach(push);   // v3: confia nas entradas, ignora blk/blocks
     else Object.keys(s.weeks||{}).forEach(n=>{ const w = s.weeks[n]; if(!w || typeof w!=="object") return;
@@ -1697,6 +1711,27 @@
       else { const nb = Math.round(num(w.blocks,0,5,0)); for(let i=0;i<nb;i++) push(legacyFromBlk({}, Number(n), i), i); } });
     Object.values(s.weeks||{}).forEach(w=>{ if(w && typeof w==="object"){ delete w.blk; delete w.blocks; } });
     s.estudo = out;
+  }
+
+  // Quantos blocos de uma lista levam cada marca. Bloco sem marca — ou com marca que a carga
+  // descartou — conta em `sem`. É daqui que saem todas as leituras das duas telas: a etiqueta da
+  // linha, a leitura por matéria, a linha da semana e a tendência (ADR-005 de humor-do-bloco).
+  // CÓPIA VERBATIM de humorConta() no painel do aluno — scripts/check-weeks.mjs reprova a diferença.
+  function humorConta(list){
+    const c = {pesou:0, ok:0, fluiu:0, sem:0};
+    list.forEach(e=>{ c[HUMOR.some(h=>h[0]===e.humor) ? e.humor : "sem"]++; });
+    return c;
+  }
+
+  // A marca dominante de uma matéria: mais blocos vence; empate resolve para a palavra MAIS BAIXA
+  // (pesou > ok > fluiu, que é a ordem de HUMOR com `>` estrito); "sem" quando nenhum bloco está
+  // marcado, e `sem` nunca compete. CÓPIA VERBATIM do enem.mjs da skill — scripts/check-weeks.mjs
+  // reprova qualquer diferença, como em parecerDaFicha (só `export` e indentação não contam). Um
+  // empate lido como `ok` aqui e `pesou` no preparo seria invisível até o domingo.
+  function humorDominante(c){
+    let best = "sem";
+    HUMOR.forEach(([k])=>{ if(c[k] > 0 && (best==="sem" || c[k] > c[best])) best = k; });
+    return best;
   }
 
   // Mesmas regras do migrate() do painel do aluno: o XP calculado aqui tem de bater com o de lá.
@@ -2395,9 +2430,45 @@
   // descrição verdadeira do bloco (e filtro útil), ao contrário do chip "Outra" que o ADR-002 proíbe.
   function aMatLabel(e){ const m=MATERIAS.find(x=>x[0]===e.mat); return (m && e.mat!=="outra") ? m[1] : (str(e.outra).trim() || "Sem matéria"); }
   function aPagos(n){ return new Set(aBlocos(n).slice(0,ESTUDO_PAGOS).map(e=>e.id)); }
+  // A ordem dos chips, derivada num lugar só: as matérias fixas na ordem de MATERIAS e, atrás delas,
+  // os nomes digitados em "Outra" em ordem alfabética (ADR-002). A fila do card, a linha da semana, a
+  // tendência e o agregado que vai à skill leem esta mesma derivação — divergir faria o pai ler as
+  // matérias numa ordem na fila e noutra na leitura logo abaixo dela.
+  function aMatOrdem(list){
+    const vistas=new Set(); list.forEach(e=>vistas.add(aMatLabel(e)));
+    const fixos=MATERIAS.filter(m=>m[0]!=="outra").map(m=>m[1]).filter(l=>vistas.has(l));
+    return fixos.concat([...vistas].filter(l=>!fixos.includes(l)).sort((a,b)=>a.localeCompare(b,"pt-BR")));
+  }
+  // Como foi a semana, numa linha: a palavra dominante de cada matéria MARCADA e o `k de n` dela, na
+  // ordem dos chips, mais a cauda com os blocos da semana que ninguém marcou. Matéria inteiramente sem
+  // marca não é nomeada — os blocos dela entram na cauda, que é o total da SEMANA e não da matéria —, e
+  // `N sem registro` é a cauda de uma linha que existe: sem nenhuma marca a linha toda é
+  // `Como foi: sem registro`. Semana sem bloco não tem leitura nenhuma (US-013 AC-3).
+  // A palavra dominante e o empate que resolve para baixo saem de humorDominante(), nunca reescritos
+  // aqui: empate é motivo para perguntar, e a regra mora num lugar (ADR-005).
+  function aHumorSemana(n){
+    const bs=aBlocos(n); if(!bs.length) return "";
+    const nomeadas=aMatOrdem(bs).map(l=>{
+      const es=bs.filter(e=>aMatLabel(e)===l), c=humorConta(es), dom=humorDominante(c);
+      return dom==="sem" ? "" : `${dom} em ${l} (${c[dom]} de ${es.length})`;
+    }).filter(Boolean);
+    if(!nomeadas.length) return "Como foi: sem registro";
+    const sem=humorConta(bs).sem;
+    return `Como foi: ${nomeadas.concat(sem?[`${sem} sem registro`]:[]).join(" · ")}`;
+  }
+  // O agregado por matéria que vai ao preparo, e o ÚNICO caminho por onde a marca sai deste painel: a
+  // marca de cada bloco nunca entra em prompt (ADR-003), e o validarEntrada() da skill recusa uma que
+  // escape pelos itens de `estudo`. Uma entrada por matéria com bloco na semana, na ordem dos chips,
+  // com o nome de EXIBIÇÃO (o digitado, em "Outra") — é por esse nome que o validador cruza o agregado
+  // com a lista de blocos. Bloco legado conta em `sem`, como qualquer bloco sem marca. Vazio quando a
+  // semana não tem bloco: a lista viaja sempre, e é a ausência dela que diz "painel antigo" (ADR-006).
+  function humorAgregado(n){
+    const bs=aBlocos(n);
+    return aMatOrdem(bs).map(l=>({materia:l, ...humorConta(bs.filter(e=>aMatLabel(e)===l))}));
+  }
   // Gêmea de rowEstudo() do aluno, sem as ações: o pai lê o que ele registrou, não corrige aqui.
   function aRowEstudo(e, paid){
-    const tags=[e.dia!==null?DAYS[e.dia]:"", e.min?`${e.min} min`:"", paid?"":"sem XP", e.legado?"bloco antigo":""]
+    const tags=[e.dia!==null?DAYS[e.dia]:"", e.min?`${e.min} min`:"", e.humor||"", paid?"":"sem XP", e.legado?"bloco antigo":""]
       .filter(Boolean).map(t=>`<span class="tag">${esc(t)}</span>`).join("");
     // Matéria em negrito e conteúdo em peso normal, como na gêmea do aluno: com 200 caracteres os dois
     // em negrito viravam uma mancha onde o nome da matéria não se distinguia mais.
@@ -2767,17 +2838,16 @@
   function renderEstudoBanco(){
     const el=document.getElementById("arthurEstudo"), sum=document.getElementById("sumEstudo"),
       wrap=document.getElementById("estudoFiltroO"), chips=document.getElementById("estudoChipsO"),
+      tend=document.getElementById("estudoTendencia"),
       all=((aluno().dados||{}).estudo)||[];
-    const vazio=(msg,resumo)=>{ wrap.hidden=true; chips.innerHTML=""; estudoFiltroO=null; el.innerHTML=`<p class="muted">${msg}</p>`; sum.textContent=resumo; };
+    const vazio=(msg,resumo)=>{ wrap.hidden=true; chips.innerHTML=""; tend.hidden=true; tend.innerHTML=""; estudoFiltroO=null; el.innerHTML=`<p class="muted">${msg}</p>`; sum.textContent=resumo; };
     if(!aluno().dados) return vazio(`Importe o código de ${esc(nomeAluno())} para ver o banco.`,"—");
     if(!all.length) return vazio("Nenhum bloco registrado ainda.","0 blocos");
     // Os rótulos vêm na ordem de MATERIAS e, atrás dela, os textos de "Outra" em ordem alfabética,
     // como no painel dele: a lista fixa manda e o que ele digitou entra depois (ADR-002).
     const conta=new Map();
     all.forEach(e=>{ const l=aMatLabel(e); conta.set(l,(conta.get(l)||0)+1); });
-    const fixos=MATERIAS.filter(m=>m[0]!=="outra").map(m=>m[1]).filter(l=>conta.has(l));
-    const livres=[...conta.keys()].filter(l=>!fixos.includes(l)).sort((a,b)=>a.localeCompare(b,"pt-BR"));
-    const labels=fixos.concat(livres);
+    const labels=aMatOrdem(all);
     if(estudoFiltroO && !labels.includes(estudoFiltroO)) estudoFiltroO=null;
     const mn=all.reduce((s,e)=>s+(e.min||0),0), k=labels.length;
     sum.textContent=`${all.length} bloco${all.length===1?"":"s"}${mn?` · ${mn} min`:""} · ${k} matéria${k===1?"":"s"}`;
@@ -2786,6 +2856,22 @@
     chips.innerHTML=[["","Todas",all.length]].concat(labels.map(l=>[l,l,conta.get(l)]))
       .map(([v,l,c])=>`<button type="button" data-mat="${esc(v)}" aria-pressed="${v===ativo}">${esc(l)} <span class="cnt">${c}</span></button>`).join("");
     chips.querySelectorAll("[data-mat]").forEach(b=>b.addEventListener("click",()=>{ estudoFiltroO=b.dataset.mat||null; keepFocus(renderEstudoBanco); }));
+    // Semana a semana, por matéria: a palavra dominante de cada semana com bloco daquela matéria e o
+    // `k de n` dela, da mais antiga para a mais nova — é esta leitura que mostra a matéria que vem
+    // pesando antes de a tendência ter três semanas de idade. Texto, nunca gráfico (US-014 AC-4), e
+    // nenhum botão: o pai lê. Diferente da leitura do aluno, aqui TODA matéria com bloco ganha linha,
+    // mesmo sem marca nenhuma — a pergunta aqui é "como vem indo", e `sem registro` é uma resposta.
+    // Segue o chip escolhido, como os grupos abaixo, e o chip é da sessão (fora do estado e do backup).
+    const alvos=labels.filter(l=>!estudoFiltroO || l===estudoFiltroO);
+    tend.innerHTML=alvos.map(l=>{
+      const es=all.filter(e=>aMatLabel(e)===l);
+      const partes=[...new Set(es.map(e=>e.week))].sort((a,b)=>a-b).map(w=>{
+        const naSemana=es.filter(e=>e.week===w), c=humorConta(naSemana), dom=humorDominante(c);
+        return `S${w} ${dom==="sem"?"sem registro":dom} ${dom==="sem"?0:c[dom]}/${naSemana.length}`;
+      });
+      return `<p><b>${esc(l)}</b> · ${partes.join(" · ")}</p>`;
+    }).join("");
+    tend.hidden=!alvos.length;
     const vis=estudoFiltroO?all.filter(e=>aMatLabel(e)===estudoFiltroO):all;
     const groups={}; vis.forEach(e=>{ (groups[e.week]=groups[e.week]||[]).push(e); });
     el.innerHTML=Object.keys(groups).sort((a,b)=>b-a).map(w=>{
@@ -2906,9 +2992,10 @@
     const not=vis.filter(([id])=>!(w.tasks&&w.tasks[id])&&!(id==="early"&&!w.tasks.red)).map(([,l])=>l);
     const days=(w.days||[]).map((v,i)=>v?DAYS[i]:null).filter(Boolean), nd=days.length;
     const s=w.scores||{};
-    const bs=aBlocos(current), mn=aMin(current);
+    const bs=aBlocos(current), mn=aMin(current), hum=aHumorSemana(current);
     const reps=aRepList(current).map(r=>esc(r.nome)).join(", ");
     el.innerHTML=flag+`<p class="kv"><span><b>${aWeekXP(current)}</b>XP</span><span><b>${Math.min(ESTUDO_PAGOS,bs.length)}/5</b>blocos</span>${mn?`<span><b>${mn}</b>min</span>`:""}<span><b>${aRep(current)}/2</b>repertórios</span><span><b>${nd}/7</b>dias de notícia</span></p>
+      ${hum?`<p class="muted" id="arthurHumor">${esc(hum)}</p>`:""}
       <p class="did">${did.length?`<b>Feito:</b> ${did.join(" · ")}`:"Nada marcado como feito ainda."}</p>
       ${not.length?`<p class="muted">Ainda não: ${not.join(" · ")}</p>`:""}
       ${fazerAnterior()}
@@ -3993,6 +4080,11 @@
       ...(aw.limpo ? {limpo:{linhas:aw.limpo.linhas.slice(), largura:aw.limpo.larg, estado:aw.limpo.fim?"finalizada":"andamento", exigida:!!m.limpo}} : {}),
       semanaAluno:{ tasks:obj(aw.tasks), days:Array.isArray(aw.days)?aw.days.slice(0,7).map(x=>x?1:0):[0,0,0,0,0,0,0], scores:obj(aw.scores), brief:briefPreparo(aw) },
       estudo:aBlocos(n).map(e=>({mat:str(e.mat), materia:aMatLabel(e), outra:str(e.outra), conteudo:str(e.conteudo), min:Number.isInteger(e.min)?e.min:null, dia:Number.isInteger(e.dia)?e.dia:null, legado:!!e.legado, pago:pagos.has(e.id)})),
+      // A marca de como foi estudar sai daqui AGREGADA POR MATÉRIA, e só daqui: os itens de `estudo`
+      // acima nunca a levam (ADR-003), e o validarEntrada() da skill recusa um que a leve. A lista vai
+      // SEMPRE — vazia quando a semana não tem bloco —, porque é a ausência dela que diz à skill que o
+      // painel é de uma versão anterior a esta (ADR-006 §1).
+      humor:humorAgregado(n),
       repertorios:{ semana:aRepList(n).map(r=>({nome:str(r.nome), oque:str(r.oque), frase:str(r.frase), temas:str(r.temas)})), total:((d.bank)||[]).length },
       contrato:{ encontro:str(c.encontro), encontroDia:str(c.encontroDia), encontroHora:str(c.encontroHora), entrega:str(c.entrega), entregaDia:str(c.entregaDia), plataforma:str(c.plataforma), jogoHoras:str(c.jogoHoras), jogoDepois:str(c.jogoDepois), assPai:!!str(c.assPai).trim(), grade:{estudo:grade("Estudo"), noticia:grade("Notícia"), redacao:grade("Redação")} },
       // 720 e não 620 desde as redações extras: duas por semana a 50 XP entram em aWeekXP(), e o
