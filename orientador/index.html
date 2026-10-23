@@ -385,6 +385,16 @@
      inversão de hierarquia. O que distingue aqui é o peso e o cinza, não o tamanho. */
   h3{font-size:15px;margin:0;font-weight:700;color:var(--muted)}
   label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+  /* O nome do aluno é um <span data-nome> preenchido por renderNome(), e ele cai no meio de um texto:
+     "O que Arthur percebeu…", "Parecer da redação para Arthur". Em pai flex ele virava ITEM de flex, e
+     os dois pais flex desta tela são justamente onde ele mora: `label` (coluna) partia o rótulo do
+     primeiro campo do fechamento em TRÊS linhas — "O que / Arthur / percebeu na leitura em voz alta",
+     104px de altura contra 68px dos vizinhos — e `h2` (linha, gap 8px) punha 8px de cada lado do nome
+     em seis títulos de card, onde cabe um espaço de palavra de ~4,4px. Saía no papel também.
+     `display:contents` tira a caixa do span e devolve o nome ao fluxo do texto: a quebra volta a ser a
+     do texto corrido, sem mexer no markup nem no renderNome(). Vale para todo [data-nome] porque o
+     span só contém um nó de texto — não há caixa para perder. */
+  span[data-nome]{display:contents}
   .notaext{font-size:14px}
   #cNotas textarea{min-height:120px}
   .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -466,12 +476,38 @@
      (redação + o que ele registrou) tem de caber em uma tela e meia, senão o pai perde a redação de vista
      assim que rola até a ficha, e a coluna sticky deixa de servir para o que existe. Passando do teto o
      próprio textarea rola por dentro, com a barra fina do sistema. */
-  /* A folha passada a limpo dele, abaixo da redação: só leitura. Em tela estreita quem rola de lado é o
+  /* A folha passada a limpo dele, a outra forma da redação no mesmo card (uma de cada vez, pelo
+     #redModoO): só leitura. Em tela estreita quem rola de lado é o
      .sheet-wrap, por dentro do card (min-width:0 aqui é o que deixa o card encolher). */
   #arthurFolha{display:grid;gap:6px;margin-top:12px;min-width:0}
   #arthurFolha p{margin:0}
   .folhastat{font-size:13px}
   #redacao{min-height:380px;max-height:min(1200px,64vh);line-height:1.6;font-size:15px;field-sizing:content} /* a alça brigaria com o crescimento automático */
+  /* O seletor de vista do #cRed. Componente igual ao `.modo` do painel dele, incluindo a linguagem do
+     marcado: pílula em verde suave, que é como as duas telas dizem "é esta". */
+  .modo{display:flex;flex-wrap:wrap;gap:6px}
+  .modo label{position:relative;display:inline-flex;align-items:center;font-size:13px;padding:6px 14px;border-radius:99px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+  .modo input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
+  .modo label:has(input:checked){background:var(--green-soft);color:var(--green);border-color:transparent;font-weight:700}
+  .modo label:has(input:focus-visible){outline:3px solid var(--blue);outline-offset:2px}
+  /* Em alto contraste o sistema troca os fundos e as duas pílulas ficam iguais: o que sobra como
+     "marcado" é o contorno. Mesma regra do painel dele. */
+  @media (forced-colors: active){ .modo label:has(input:checked){outline:2px solid currentColor;outline-offset:-2px} }
+  /* Só na TELA: no papel quem decide continua sendo a regra de impressão de sempre (#cRed.folha esconde
+     a transcrição quando há folha), e a vista escolhida na tela não muda o documento. Por isso estas
+     duas não são o atributo `hidden`, que venceria a impressão com !important. */
+  @media screen{
+    #cRed.vefolha #redacao{display:none}
+    #cRed.vetexto #arthurFolha{display:none}
+    /* E a folha precisa do MESMO teto que o campo, pela mesma razão: ela não tinha nenhum. Medido com
+       28 linhas, #arthurFolha dava 1497px em TODA janela — 1,66 tela a 900px e 1,95 a 768 —, porque 30
+       linhas de 24px não encolhem com a janela. Mostrar uma das duas resolveu o empilhamento e não isto.
+       Passado o teto, a folha rola por dentro, com a barra fina do sistema que .sheet-wrap já declara.
+       E o campo cede os ~45px do seletor quando ele existe: sem isso a vista da transcrição passava de
+       uma tela e meia a 768px por 26px, e o teto de 64vh é de quando não havia seletor nenhum. */
+    #cRed .sheet-wrap{max-height:min(900px,46vh)}
+    #cRed.vetexto #redacao{max-height:min(1200px,58vh)}
+  }
 
   /* o que ele registrou: uma linha de números, uma de feitos */
   .kv{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:14px;color:var(--muted)}
@@ -484,7 +520,11 @@
   .script li{margin:6px 0}
   /* o preparo do encontro (skill preparar-encontro) dentro de cada bloco do roteiro: pergunte → espere → se errar.
      Sem cor nova: o tom do insight sai da palavra (Atenção/Bom), e o fio esquerdo é o mesmo --line dos cards. */
-  .script .prep{margin:6px 0 0;padding-left:10px;border-left:3px solid var(--line);display:grid;gap:3px;font-size:14px}
+  /* O recuo diz o aninhamento; o filete saiu em 22/10/2026. Eram 3px de --line à esquerda, uma SEGUNDA
+     forma assimétrica numa tela cujo DESIGN.md afirma que o aviso em ouro é "a única" — e a 1,30:1 no
+     claro (1,37:1 no escuro) o fio não se enxergava, então pagava a quebra da regra sem entregar o
+     sinal. O filete de 2px de .parecer .cita fica: aquele está nomeado no DESIGN.md. */
+  .script .prep{margin:6px 0 0;padding-left:10px;display:grid;gap:3px;font-size:14px}
   .script .prep p{margin:0}
   .script .prep .espera,.script .prep .erra{color:var(--muted)}
   .script .prep b{color:var(--ink);margin-right:4px}
@@ -526,7 +566,12 @@
   .parecer .pfeito .pfmark{color:var(--muted);text-align:center}
   .parecer .pfeito .pfrow.done .pfmark{color:var(--green);font-weight:700}
   @media (max-width:480px){.parecer .pnota b{font-size:18px}}
-  .flag{background:var(--gold-soft);border-left:3px solid var(--gold);padding:8px 10px;border-radius:0 8px 8px 0;font-size:14px}
+  /* "A Regra do Par Escuro" do DESIGN.md: todo acento suave usado como fundo tem um par escuro para o
+     texto que pousa nele, e ouro suave → ouro tinta. O .flag era o único acento da tela que não usava
+     o par — ficava em --ink, e `--gold-ink` tinha ZERO usos no painel renderizado, enquanto o vizinho
+     .parecer .pbloco.ajuste já usava o par azul. 6,07:1 no claro e 8,10:1 no escuro: passa AA com
+     folga, e o aviso passa a falar a língua do próprio acento. */
+  .flag{background:var(--gold-soft);color:var(--gold-ink);border-left:3px solid var(--gold);padding:8px 10px;border-radius:0 8px 8px 0;font-size:14px}
 
   /* Passo a passo do domingo. O progresso é DERIVADO do estado — não há nada para ticar —, e o desenho
      não traz acento novo: verde é feito (a cor de `.did b`), o passo de agora é o único com título em
@@ -561,8 +606,26 @@
   .notas input[readonly]{background:var(--bg);font-weight:700}
   .close{display:grid;gap:10px;margin-top:14px}
   .close label.key{font-size:14px;font-weight:700;color:var(--ink)}
-  .close label.key input{padding:10px}
-  .close label.key input::placeholder{font-weight:400}
+  .close label.key input,.close label.key textarea{padding:10px}
+  .close label.key input::placeholder,.close label.key textarea::placeholder{font-weight:400}
+  /* Os campos de prosa da ficha (os de 300 caracteres) eram <input> de uma linha, e a coluna direita
+     mede 517px fixos — o <main> trava em 1080px. Medido com o preparo colado: `UMA força` com 88
+     caracteres tinha scrollWidth 675 contra clientWidth 481 e escondia 194px, 29% do próprio texto,
+     cortado a seco, sem reticência e sem contador. Cabiam ~62 dos 300 que o maxlength aceita. É a
+     frase que ele lê em voz alta no minuto 35 e a única que o filho leva da semana.
+     Duas linhas por padrão, crescendo com o texto até um teto e rolando por dentro depois — a barra
+     fina já é a do sistema, na base. Sem alça: ela brigaria com o crescimento, como em [data-grow].
+     O seletor é o maxlength e não uma classe nova: `notas` e `bobs` são caderno livre, não têm teto de
+     caracteres e seguem com a alça e a altura deles. */
+  #cFicha textarea[maxlength="300"],#xForm textarea[maxlength="300"]{field-sizing:content;min-height:3.4em;max-height:9em;resize:none;line-height:1.45}
+  /* A medida de leitura dos cards de consulta. O <main> do painel tem 1080px, e prosa de 13–14px
+     esticada nessa largura dá linhas de 124 caracteres de mediana e 145 no pior caso (medido com
+     canvas.measureText, com tudo aberto): o #cParecer, que é o card que pai e filho leem JUNTOS no
+     telefone, ficava em 137–140. O arquivo já conhecia a medida e a aplicava em três peças pequenas —
+     .week .theme 70ch, .passo .flag 72ch, #xLista > .vazio 58ch — e em nenhuma prosa longa. 72ch é a
+     mesma do .flag. Só parágrafo e item de lista: tile da nota, grade do glossário e linha de ações
+     não são texto corrido e seguem a largura do card. */
+  #cParecer p,#cParecer li,#cEvo p,#cIA p,#cIA li,#mudou p,#mudou li,.foot > span{max-width:72ch}
   .short{max-width:140px}
   details.sub{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
   details.sub > summary{list-style:none;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px;user-select:none}
@@ -594,7 +657,9 @@
   .rep{border-top:1px solid var(--line);padding:8px 0;font-size:14px;overflow-wrap:anywhere}
   .rep > b{display:block}
   .rep.estudo .titulo{display:block}
-  .rep .tag{font-size:11px;font-weight:400;color:var(--muted);background:var(--bg);border-radius:99px;padding:2px 8px}
+  /* 4px e não 2 no vertical: a pílula tem 11px de texto e media 16px de altura inteira. O DESIGN.md
+     nomeia a tag ("pílula de 11px cinza neblina sobre papel azulado") e não nomeia o recuo. */
+  .rep .tag{font-size:11px;font-weight:400;color:var(--muted);background:var(--bg);border-radius:99px;padding:4px 8px}
   .rep > i{display:block;color:var(--muted)}
   /* Bloco de estudo: a mesma linha `.rep` do repertório, sem Editar nem Apagar — aqui o pai lê, não
      corrige (US-020.AC-3). O "O que é" é a nota formatada (`.nota`), que traz as quebras de linha
@@ -684,8 +749,20 @@
     /* A linha da extra são duas linhas de texto num cartão e já passa de 44px pelo padding; o mínimo é a
        rede. O `.linkish` zera o padding do botão e vence a regra `button` acima, então a área cresce por
        conta própria, para os dois lados: nada o encosta em cima nem embaixo. */
+    .modo label{min-height:44px}
     .xrow{min-height:44px}
     .linkish{padding:12px 0;margin:-12px 0}
+    /* "Abrir" é o único .linkish que mora DENTRO de um .flag, e ali o padding negativo não entrega o
+       alvo: medido 37,3 × 30,7 — a altura cai no padding do próprio aviso, que é quem responde ao
+       elementFromPoint, e a largura é só a da palavra, porque o .linkish zera o padding lateral do
+       botão. Alvo de verdade, sem invadir ninguém, como em .xrow e nos chips. */
+    #extrasAvisoIr{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;margin:0}
+    /* Os links de material do parecer ("Como conferir: …", "Para estudar") mediam 17,2px de altura: o
+       bloco acima cobre button, select, .xrow e .linkish, e nunca um <a> solto. Eles são link INLINE
+       dentro de texto corrido, então o alvo cresce pelo mesmo recurso do .linkish — e para em ~41px,
+       não em 44: altura de verdade aqui quebraria a linha da frase em que o link está. O que sobra é
+       dívida declarada na varredura T0, com a medida. */
+    .parecer a{display:inline-block;padding:12px 0;margin:-12px 0}
   }
   @media (max-width:480px){#code .actions{display:grid;grid-template-columns:1fr 1fr}#code .actions .filebtn{justify-content:center}}
   /* Conta e convites (modo online, só no app). A linha da conexão é texto de status; o pedido de um
@@ -731,7 +808,12 @@
   @media print{
     body{background:var(--surface);font-size:12px}
     main{max-width:none;padding:0}
-    .top,.contaTopo,.fila,.tabs,button,.actions,.toast,.foot,label.filebtn{display:none !important}
+    /* `.noprint` existia no markup desta tela (#estudoFiltroO) e NUNCA foi declarada aqui — as duas
+       outras telas a declaram nos blocos delas, e aqui os chips do filtro iam para o papel em silêncio.
+       Declarada, ela passa a valer também para #extrasAviso: a faixa em ouro de "N redações extras
+       pedindo correção" encabeçava os SEIS modos de impressão, inclusive o contrato e o banco, que não
+       têm nada a ver com extras pendentes (o botão Abrir já saía, pela regra de `button` acima). */
+    .top,.contaTopo,.fila,.tabs,button,.actions,.toast,.foot,label.filebtn,.noprint{display:none !important}
     /* `.grid > .col` para vencer o display:contents de uma coluna: imprimir de janela estreita não reordena */
     .grid,.grid > .col{display:block}
     .grid .col.stick{position:static}
@@ -983,7 +1065,7 @@
   <div id="painelSemana" role="tabpanel">
   <!-- O aviso das extras esperando correção (ADR-007): acima da faixa da semana, porque não é de semana
        nenhuma — é o que chegou entre dois domingos. Sai da tela quando o parecer de todas foi enviado. -->
-  <p class="flag" id="extrasAviso" hidden><span id="extrasAvisoTxt"></span> <button type="button" class="linkish" id="extrasAvisoIr">Abrir</button></p>
+  <p class="flag noprint" id="extrasAviso" hidden><span id="extrasAvisoTxt"></span> <button type="button" class="linkish" id="extrasAvisoIr">Abrir</button></p>
   <div class="week" id="cWeek">
     <div>
       <strong id="wtitle">Semana</strong>
@@ -1009,6 +1091,18 @@
                nova que a do campo é oferecida e nunca posta sozinha, porque o campo pode ter a transcrição do pai. -->
           <p class="muted" id="redEntregue" hidden></p>
           <p class="flag" id="entregaNova" hidden><span id="entregaNovaTxt"></span> <button id="usarEntrega">Usar</button></p>
+          <!-- A transcrição e a folha passada a limpo são a MESMA redação em duas formas, e nunca se leem
+               juntas: empilhadas, a coluna #colArthur chegava a 1737px com uma folha de 28 linhas (1,93
+               tela de 900) e a 2214px num estado cheio, contra a tela e meia que o CLAUDE.md promete — e o
+               pai escrevia UMA força com a transcrição fora da tela (medido: 0% dela à vista com o foco em
+               #cBrief e em #cNotas). Uma de cada vez devolve a coluna a 1,02 tela com a transcrição e 1,28
+               com a folha, e põe 99% da transcrição à vista na hora da ficha.
+               O grupo só existe quando HÁ folha: sem ela não há escolha, e não se renderiza controle morto.
+               Rádio de verdade, como o #redModo do painel dele — grupo e setas do teclado de graça. -->
+          <div class="modo mt" id="redModoO" role="radiogroup" aria-label="O que mostrar da redação" hidden>
+            <label><input type="radio" name="redModoO" value="folha"><span>Folha passada a limpo</span></label>
+            <label><input type="radio" name="redModoO" value="texto"><span>Transcrição</span></label>
+          </div>
           <textarea id="redacao" data-grow="1200" aria-label="Redação da semana" placeholder="Chega sozinha com a importação. Se veio por foto, cole a transcrição aqui."></textarea>
           <div id="arthurFolha" class="hand" hidden></div>
         </div>
@@ -1038,17 +1132,17 @@
           <label><b>Total</b>das 5<input type="number" data-f="nota" readonly tabindex="-1" aria-label="Nota total, soma das cinco"></label>
         </div>
         <div class="close">
-          <label>O que <span data-nome></span> percebeu na leitura em voz alta<input data-f="percebeu" maxlength="300"></label>
-          <label class="key">UMA força<input data-f="forca" maxlength="300" placeholder="o que saiu melhor do que na semana passada"></label>
-          <label class="key">UM ajuste para a próxima<input data-f="ajuste" maxlength="300" placeholder="só um; é o que fica para a semana"></label>
+          <label>O que <span data-nome></span> percebeu na leitura em voz alta<textarea data-f="percebeu" maxlength="300" rows="2"></textarea></label>
+          <label class="key">UMA força<textarea data-f="forca" maxlength="300" rows="2" placeholder="o que saiu melhor do que na semana passada"></textarea></label>
+          <label class="key">UM ajuste para a próxima<textarea data-f="ajuste" maxlength="300" rows="2" placeholder="só um; é o que fica para a semana"></textarea></label>
           <label>Parágrafo a reescrever até segunda<input data-f="paragrafo" class="short" maxlength="40" placeholder="ex.: 2º"></label>
         </div>
         <details class="sub" id="perguntas">
           <summary>Perguntas por competência</summary>
-          <div class="q"><p class="ask"><b>C1</b>“Me mostra três frases com vírgula. Por que a vírgula está aí?”</p><label>Erro que mais se repete<input data-f="erro" maxlength="300"></label></div>
-          <div class="q"><p class="ask"><b>C2</b>“Qual é a sua tese em uma frase? De onde veio o repertório e o que ele prova?”</p><label>Tese em uma frase<input data-f="tese" maxlength="300"></label><label>Repertório usado e o que ele prova<input data-f="rep" maxlength="300"></label></div>
+          <div class="q"><p class="ask"><b>C1</b>“Me mostra três frases com vírgula. Por que a vírgula está aí?”</p><label>Erro que mais se repete<textarea data-f="erro" maxlength="300" rows="2"></textarea></label></div>
+          <div class="q"><p class="ask"><b>C2</b>“Qual é a sua tese em uma frase? De onde veio o repertório e o que ele prova?”</p><label>Tese em uma frase<textarea data-f="tese" maxlength="300" rows="2"></textarea></label><label>Repertório usado e o que ele prova<textarea data-f="rep" maxlength="300" rows="2"></textarea></label></div>
           <div class="q"><p class="ask"><b>C3</b>“Se eu discordasse de você, qual parágrafo me convenceria? Por quê?”</p><div class="row"><label>Parágrafo mais forte<input data-f="forte" class="short" maxlength="40"></label><label>Mais fraco<input data-f="fraco" class="short" maxlength="40"></label></div></div>
-          <div class="q"><p class="ask"><b>C4</b>“Lê só a primeira frase de cada parágrafo, em sequência. Faz sentido como resumo?”</p><label>Conectivos repetidos<input data-f="conect" maxlength="300"></label></div>
+          <div class="q"><p class="ask"><b>C4</b>“Lê só a primeira frase de cada parágrafo, em sequência. Faz sentido como resumo?”</p><label>Conectivos repetidos<textarea data-f="conect" maxlength="300" rows="2"></textarea></label></div>
           <div class="q"><p class="ask"><b>C5</b>“Quem faz? Faz o quê? Como? Para quê? E o detalhe?”</p><div class="elems" id="elems" data-elems></div></div>
         </details>
       </section>
@@ -1118,8 +1212,8 @@
       <label><b>Total</b>das 5<input type="number" data-f="nota" readonly tabindex="-1" aria-label="Nota total, soma das cinco"></label>
     </div>
     <div class="close">
-      <label class="key">UMA força<input data-f="forca" maxlength="300" placeholder="o que saiu melhor nesta redação"></label>
-      <label class="key">UM ajuste para a próxima<input data-f="ajuste" maxlength="300" placeholder="só um; é o que fica desta redação"></label>
+      <label class="key">UMA força<textarea data-f="forca" maxlength="300" rows="2" placeholder="o que saiu melhor nesta redação"></textarea></label>
+      <label class="key">UM ajuste para a próxima<textarea data-f="ajuste" maxlength="300" rows="2" placeholder="só um; é o que fica desta redação"></textarea></label>
       <label>Foco desta redação<select id="xFoco">
         <option value="">o foco da semana</option>
         <option value="c1">C1 Gramática e ortografia</option>
@@ -1128,16 +1222,16 @@
         <option value="c4">C4 Coesão</option>
         <option value="c5">C5 Proposta de intervenção</option>
       </select></label>
-      <label>Como ele confere sozinho<input data-f="conferir" maxlength="300" placeholder="em branco, entra o teste padrão da competência"></label>
+      <label>Como ele confere sozinho<textarea data-f="conferir" maxlength="300" rows="2" placeholder="em branco, entra o teste padrão da competência"></textarea></label>
       <label>Parágrafo a reescrever<input data-f="paragrafo" class="short" maxlength="40" placeholder="ex.: 2º"></label>
-      <label>O que reescrever nele<input data-f="paragrafoTexto" maxlength="300" placeholder="o que falta naquele parágrafo"></label>
+      <label>O que reescrever nele<textarea data-f="paragrafoTexto" maxlength="300" rows="2" placeholder="o que falta naquele parágrafo"></textarea></label>
     </div>
     <details class="sub">
       <summary>Perguntas por competência</summary>
-      <div class="q"><p class="ask"><b>C1</b>“Me mostra três frases com vírgula. Por que a vírgula está aí?”</p><label>Erro que mais se repete<input data-f="erro" maxlength="300"></label></div>
-      <div class="q"><p class="ask"><b>C2</b>“Qual é a sua tese em uma frase? De onde veio o repertório e o que ele prova?”</p><label>Tese em uma frase<input data-f="tese" maxlength="300"></label><label>Repertório usado e o que ele prova<input data-f="rep" maxlength="300"></label></div>
+      <div class="q"><p class="ask"><b>C1</b>“Me mostra três frases com vírgula. Por que a vírgula está aí?”</p><label>Erro que mais se repete<textarea data-f="erro" maxlength="300" rows="2"></textarea></label></div>
+      <div class="q"><p class="ask"><b>C2</b>“Qual é a sua tese em uma frase? De onde veio o repertório e o que ele prova?”</p><label>Tese em uma frase<textarea data-f="tese" maxlength="300" rows="2"></textarea></label><label>Repertório usado e o que ele prova<textarea data-f="rep" maxlength="300" rows="2"></textarea></label></div>
       <div class="q"><p class="ask"><b>C3</b>“Se eu discordasse de você, qual parágrafo me convenceria? Por quê?”</p><div class="row"><label>Parágrafo mais forte<input data-f="forte" class="short" maxlength="40"></label><label>Mais fraco<input data-f="fraco" class="short" maxlength="40"></label></div></div>
-      <div class="q"><p class="ask"><b>C4</b>“Lê só a primeira frase de cada parágrafo, em sequência. Faz sentido como resumo?”</p><label>Conectivos repetidos<input data-f="conect" maxlength="300"></label></div>
+      <div class="q"><p class="ask"><b>C4</b>“Lê só a primeira frase de cada parágrafo, em sequência. Faz sentido como resumo?”</p><label>Conectivos repetidos<textarea data-f="conect" maxlength="300" rows="2"></textarea></label></div>
       <div class="q"><p class="ask"><b>C5</b>“Quem faz? Faz o quê? Como? Para quê? E o detalhe?”</p><div class="elems" data-elems></div></div>
     </details>
     <div class="actions mt"><button id="xMontar">Montar o parecer</button></div>
@@ -1222,7 +1316,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 267 · 21/10/2026</p></div>
+  <div class="in"><p class="versao">versão 284 · 22/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -1641,10 +1735,10 @@
   function conectado(){ const s = syncSt; return !!(s && s.session && s.enabled && s.connection && s.connection.state==="active"); }
   const HELP = {
     fluxo:{t:"Como usar este painel",b:`<p><b>Se estiver em dúvida por onde começar, siga o quadro <i>Passo a passo do domingo</i>, no topo:</b> ele mostra em qual dos quatro passos você está e traz o botão do passo de agora. O resto desta tela é para quando você quiser algo fora desse caminho.</p><p>A tela segue o domingo:</p><ul><li><b>Antes:</b> <span data-nome></span> toca em “Copiar resumo e código” no painel e te manda uma mensagem só. Você cola a mensagem inteira em <b>Importar dados de <span data-nome></span></b>. Isso traz a redação, o que foi marcado, o briefing, o contrato e o banco. Depois, <b>Preparar com o Claude</b> monta a ficha e as perguntas do encontro.</li><li><b>Na chamada:</b> à esquerda, o que chegou (redação e registro da semana); à direita, o que você faz (roteiro, ficha, briefing, anotações), na ordem dos 40 minutos.</li><li><b>Depois:</b> a curva de notas em Evolução. Contrato e banco ficam recolhidos para consulta.</li></ul><p>Os backups das suas anotações estão no rodapé; só precisa deles ao trocar de aparelho.</p>${APP?`<p><b>No aplicativo as anotações não ficam no navegador:</b> elas moram num banco próprio na pasta de dados do seu usuário${FOLDER?` (<code>${esc(FOLDER)}</code>)`:""} — <code>%APPDATA%\\Missão ENEM</code> no Windows e <code>~/.config/missao-enem</code> no Linux —, separado do banco do aluno. <b>Abrir pasta dos dados</b>, no rodapé, abre essa pasta.</p><p><b>Cópias automáticas:</b> na primeira vez que o app salva em cada dia, ele guarda ali uma cópia do estado anterior, em JSON — o mesmo formato do arquivo de backup. Ficam as 14 mais recentes, e restaurar uma delas pede confirmação e deixa 8 segundos de Desfazer.</p><p><b>Esqueceu a senha?</b> Apague o <code>config.json</code> dessa pasta: o app volta a aceitar a senha que veio na instalação. A senha trocada aqui vale só neste aparelho e nunca entra no backup das anotações.</p>`:""}`},
-    passos:{t:"Passo a passo do domingo",b:`<p>O domingo tem quatro passos, e o quadro sabe em qual você está: cada passo se marca sozinho a partir do que já existe no painel. <b>Não há nada para você marcar à mão.</b></p><ol><li><b>Importar o que <span data-nome></span> mandou</b> — o botão abre o mesmo diálogo do topo. Fecha quando o código entra, e reabre se o código for anterior a esta semana.</li><li><b>Preparar com o Claude</b> — o botão copia o comando; você cola no Claude Code aberto na pasta do projeto, copia a resposta inteira e volta aqui, onde o mesmo passo passa a oferecer <b>Colar o preparo</b>. Fecha quando o preparo entra. No caminho normal você não precisa abrir o card <b>Preparar com o Claude</b>.</li><li><b>A chamada de 40 minutos</b> — o botão abre o roteiro, que em cada bloco diz o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada. Fecha quando a ficha tem uma força e um ajuste.</li><li><b>Mandar a tarefa da semana</b> — a mensagem pronta para o WhatsApp, com o parágrafo a reescrever, os exercícios do ajuste e o combinado da próxima semana. Fecha quando você copia. Mande junto o <b>parecer</b> (card Parecer da redação → Copiar o parecer): é a correção escrita para <span data-nome></span>, que fica guardada no painel do aluno.</li></ol><p>Os outros modelos de <b>Preparar com o Claude</b> não são passos do domingo: são ferramentas de outros momentos, e os grupos da lista lá dizem de qual. Na reta final o quadro tem dois passos, porque não há redação nova.</p>${ONLINE?`<p><b>Com o aluno conectado</b>, o primeiro passo fecha sozinho quando a semana do aluno abre e chega, e o último é <b>Enviar o parecer</b>: o parecer e a mensagem vão juntos para o app do aluno, sem WhatsApp.</p>`:""}`},
+    passos:{t:"Passo a passo do domingo",b:`<p>O domingo tem quatro passos, e o quadro sabe em qual você está. Três deles se marcam sozinhos a partir do que já existe no painel; <b>o único que você marca é a chamada</b>, porque ela acontece no telefone e nada nesta tela pode saber que ela aconteceu. O botão dela tem duas metades: abre o roteiro e, depois, marca a chamada como feita.</p><ol><li><b>Importar o que <span data-nome></span> mandou</b> — o botão abre o mesmo diálogo do topo. Fecha quando o código entra, e reabre se o código for anterior a esta semana.</li><li><b>Preparar com o Claude</b> — o botão copia o comando; você cola no Claude Code aberto na pasta do projeto, copia a resposta inteira e volta aqui, onde o mesmo passo passa a oferecer <b>Colar o preparo</b>. Fecha quando o preparo entra. No caminho normal você não precisa abrir o card <b>Preparar com o Claude</b>.</li><li><b>A chamada de 40 minutos</b> — o botão abre o roteiro, que em cada bloco diz o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada. Terminada a chamada, o mesmo botão passa a dizer <b>A chamada foi feita</b>, e é ele que fecha o passo. O que <span data-nome></span> percebeu, os critérios do briefing e as suas anotações ficam na ficha e nos cards ao lado: são o registro do encontro, não a marca dele.</li><li><b>Mandar a tarefa da semana</b> — a mensagem pronta para o WhatsApp, com o parágrafo a reescrever, os exercícios do ajuste e o combinado da próxima semana. Fecha quando você copia. Mande junto o <b>parecer</b> (card Parecer da redação → Copiar o parecer): é a correção escrita para <span data-nome></span>, que fica guardada no painel do aluno.</li></ol><p>Os outros modelos de <b>Preparar com o Claude</b> não são passos do domingo: são ferramentas de outros momentos, e os grupos da lista lá dizem de qual. Na reta final o quadro tem dois passos, porque não há redação nova.</p>${ONLINE?`<p><b>Com o aluno conectado</b>, o primeiro passo fecha sozinho quando a semana do aluno abre e chega, e o último é <b>Enviar o parecer</b>: o parecer e a mensagem vão juntos para o app do aluno, sem WhatsApp.</p>`:""}`},
     dados:{t:"O que <span data-nome></span> registrou",b:`<p>Leitura automática do backup de <span data-nome></span> para a semana selecionada: XP, blocos de estudo, repertórios, dias de notícia, o que está marcado como feito e a nota lançada. Use no fechamento para validar o XP. Você não edita aqui; se algo estiver errado, a correção é feita no painel do aluno, e um código novo traz a mudança.</p><p>Abaixo dos números vêm os blocos da semana, um por linha, do mais novo para o mais antigo: matéria, conteúdo, dia, tempo e, quando foram escritos, o “o que é” e o “onde aparece”. Do sexto bloco em diante a linha vem marcada como <b>sem XP</b> — o estudo aconteceu, só não soma mais; blocos vindos da versão antiga do app aparecem como <b>bloco antigo</b>.</p><p><b>Como foi:</b> logo abaixo dos números, uma linha diz onde a semana pesou e onde fluiu — <code>Como foi: pesou em Física (3 de 3) · ok em Matemática (1 de 2) · 1 sem registro</code> —, nomeando cada matéria uma vez com a marca que mais apareceu e em quantos blocos daquela matéria; a mesma marca vem na etiqueta de cada bloco, abaixo. É <b>a leitura de <span data-nome></span></b> sobre como aquela sessão de estudo foi: <b>opcional</b>, e <b>não muda o XP</b> nem entra em medalha ou patente. Bloco salvo sem marca entra como <i>sem registro</i>, nunca como “Ok”. Num <b>empate</b> entre duas marcas a linha diz a pior das duas, de propósito — empate, como bloco sem marca, é motivo para <b>perguntar</b> na chamada, nunca para concluir. A mesma matéria vista semana a semana fica no card <b>Banco de estudo</b>.</p><p>No topo, ao lado do XP acumulado, aparece quanto o XP subiu desde o backup anterior: é o número para abrir a chamada.</p>`},
     roteiro:{t:"Roteiro do encontro (40 min)",b:`<p>Montado para a semana selecionada: o foco de correção, o ajuste combinado na semana anterior (para cobrar continuidade), a pauta do briefing e o que combinar para a próxima. As perguntas por competência estão dentro da ficha de correção. A regra é conduzir por perguntas, não por afirmações, e fechar sempre com <b>uma</b> força e <b>um</b> ajuste.</p><p>Com o preparo colado (Preparar com o Claude → Preparar o encontro), cada bloco traz o que perguntar, <b>o que esperar como resposta</b> — com o trecho da redação — e o que dizer se a resposta vier errada; a leitura em voz alta ganha os tropeços prováveis, o fechamento o XP e a próxima semana. Quando a redação foi passada a limpo, a leitura traz também a <b>translineação</b>: cada palavra dividida errado no fim de uma linha, com o número da linha da folha e as duas metades como estão escritas; sem nenhuma errada, ela diz que estão todas certas. A folha em andamento é conferida como está (“não finalizada”), e a da semana que exige a folha é “transcrita do papel”. No fim, “Copiar mensagem” leva para o WhatsApp o parágrafo a reescrever, os exercícios do ajuste e o combinado da próxima. Com o preparo, “Imprimir semana” leva o roteiro para o papel.</p>`},
-    redacao:{t:"Redação da semana",b:`<p>Se <span data-nome></span> escreveu no painel, o texto chega pela importação. Se veio como foto, peça a transcrição ou transcreva no Claude e cole aqui. O texto fica salvo nesta semana e entra sozinho no prompt “Avaliar a redação”.</p><p><b>As linhas do cabeçalho</b> são contadas como na folha de <span data-nome></span>: na largura e no recuo medidos da letra do aluno (sem código importado, 68 caracteres e recuo de 4). É o mesmo número que aparece no painel do aluno e o que a skill usa. Se você trocar o texto aqui, a conta segue o seu texto, na largura medida.</p><p><b>A folha passada a limpo</b>, quando existe, aparece abaixo do texto: as linhas numeradas como foram escritas, se está em andamento ou finalizada e se a semana exigia. É só leitura — o que você digita no campo não a muda. Na semana que exige a folha ela é a cópia da folha de papel, linha por linha, e uma linha mais longa que a largura medida aparece sublinhada, sem ser erro. Se o rascunho mudou depois de passado a limpo, uma linha avisa. Com folha, <b>Imprimir semana</b> leva a folha para o papel no lugar do texto. Na conversa, olhem os fins de linha: é onde está a translineação.</p><p><b>Com o aluno conectado,</b> a redação chega <b>entregue</b>: quando o aluno toca em Entregar a redação, vem o texto daquele instante e a folha passada a limpo, se já tinha começado, com a data — <i>entregue em</i>. O rascunho que continua em edição não chega. Se uma entrega mais nova chega com o campo já preenchido — a entrega anterior ou a sua transcrição —, o card diz <i>Há uma entrega mais nova</i> e o campo só muda quando você toca em <b>Usar</b>. O comando do preparo leva o que está no campo; sem entrega e sem texto, vai sem redação.</p>`},
+    redacao:{t:"Redação da semana",b:`<p>Se <span data-nome></span> escreveu no painel, o texto chega pela importação. Se veio como foto, peça a transcrição ou transcreva no Claude e cole aqui. O texto fica salvo nesta semana e entra sozinho no prompt “Avaliar a redação”.</p><p><b>As linhas do cabeçalho</b> são contadas como na folha de <span data-nome></span>: na largura e no recuo medidos da letra do aluno (sem código importado, 68 caracteres e recuo de 4). É o mesmo número que aparece no painel do aluno e o que a skill usa. Se você trocar o texto aqui, a conta segue o seu texto, na largura medida.</p><p><b>A folha passada a limpo</b>, quando existe, é o que o card mostra: as linhas numeradas como foram escritas, se está em andamento ou finalizada e se a semana exigia. As duas formas da mesma redação não ficam empilhadas: os botões <b>Folha passada a limpo</b> e <b>Transcrição</b>, acima do campo, escolhem o que fica na tela. A folha é o padrão, porque a correção lê a folha. A escolha vale enquanto a página estiver aberta e não muda o papel. É só leitura — o que você digita no campo não a muda. Na semana que exige a folha ela é a cópia da folha de papel, linha por linha, e uma linha mais longa que a largura medida aparece sublinhada, sem ser erro. Se o rascunho mudou depois de passado a limpo, uma linha avisa. Com folha, <b>Imprimir semana</b> leva a folha para o papel no lugar do texto. Na conversa, olhem os fins de linha: é onde está a translineação.</p><p><b>Com o aluno conectado,</b> a redação chega <b>entregue</b>: quando o aluno toca em Entregar a redação, vem o texto daquele instante e a folha passada a limpo, se já tinha começado, com a data — <i>entregue em</i>. O rascunho que continua em edição não chega. Se uma entrega mais nova chega com o campo já preenchido — a entrega anterior ou a sua transcrição —, o card diz <i>Há uma entrega mais nova</i> e o campo só muda quando você toca em <b>Usar</b>. O comando do preparo leva o que está no campo; sem entrega e sem texto, vai sem redação.</p>`},
     ia:{t:"Preparar com o Claude",b:`<p>Você não precisa ser corretor. O painel monta um prompt com o contexto (idade, data da prova, tema, foco da semana) e a redação.</p><ul><li><b>A lista é agrupada por momento</b>, porque a dúvida não é o que cada um faz, é quando se usa. <b>O caminho do domingo:</b> “Preparar o encontro” — é ele que o passo 2 do quadro lá em cima copia, e sozinho ele já dá nota, ficha, perguntas por competência e perguntas do briefing. <b>Antes da chamada, se quiser mais:</b> buscar notícias e perguntas para o briefing (peça busca na web ativa), corrigir de reserva quando você só quer a nota, ou avaliar a redação no chat. <b>Depois da chamada:</b> montar a proposta da próxima redação, com os três textos motivadores, para mandar a <span data-nome></span>; e comparar o parágrafo reescrito, que chega na segunda. <b>De vez em quando:</b> analisar a evolução, a partir da terceira semana com nota.</li><li><b>Onde vai a resposta:</b> a linha cinza abaixo da lista diz, para o modelo escolhido, onde rodar e para onde levar o que voltar. Só dois modelos rodam no Claude Code; o resto é no chat do Claude.</li><li><b>Corrigir de reserva (skill):</b> para a semana em que a correção externa não chegou até o encontro. Copia o comando <code>/corrigir-redacao N</code> com o tema e a redação; cole no Claude Code aberto na pasta do projeto. Dois leitores corrigem sem se ver, com a matriz do INEP, e um terceiro entra se divergirem; o que volta é o bloco da ficha (notas C1–C5, uma força, um ajuste, três perguntas). Cole abaixo e lance as notas como nota externa. A nota humana, quando existe, continua valendo mais.</li><li><b>Preparar o encontro (skill):</b> o caminho normal do domingo. Copia o comando <code>/preparar-encontro N</code> com a semana inteira de <span data-nome></span> — redação, briefing, blocos de estudo (sem as notas), repertórios, o contrato resumido, o XP e as fichas das semanas anteriores; cole no Claude Code na pasta do projeto. Ele corrige a redação (ou reaproveita a correção de reserva já feita), lê o resto da semana e devolve um bloco de preparo. Cole a resposta em <b>Colar o preparo</b>: a ficha se preenche onde estiver vazia (o que você já digitou fica; “o que <span data-nome></span> percebeu” nunca entra), o roteiro ganha, em cada bloco, o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada, e “Copiar mensagem” leva o exercício da semana seguinte. Força e ajuste continuam sendo decisão sua depois da leitura em voz alta.</li><li><b>Aspectos:</b> só aparecem em “Avaliar a redação”. Marque poucos; menos é mais.</li><li><b>Instrução extra:</b> algo específico (“‘ademais’ se repete”).</li><li><b>Resposta:</b> cole de volta; fica guardada nesta semana.</li></ul><p><b>A marca de como foi estudar vai no comando agregada por matéria</b> — quantos blocos da semana pesaram, ficaram ok ou fluíram em cada uma —, e <b>nunca por bloco</b>: qual conteúdo pesou é leitura sua, aqui no painel, e não entra em prompt nenhum. Com o agregado o preparo pode trazer uma pergunta da chegada sobre a matéria que pesou; a mensagem que vai para <span data-nome></span> nunca sai da marca.</p><p>O modelo “analisar a evolução” leva junto os blocos de estudo da semana selecionada (dia, matéria, conteúdo e tempo, com o total em minutos), para o Claude olhar esforço e resultado lado a lado.</p>`},
     ficha:{t:"Ficha de correção",b:`<p>Três blocos, na ordem da conversa:</p><ul><li><b>Nota externa (C1–C5):</b> comece por ela, não pela sua opinião. Se a nota já foi lançada no painel do aluno, os cinco números chegam preenchidos; ajuste se precisar. O total soma sozinho.</li><li><b>Fechamento:</b> o que <span data-nome></span> percebeu ao ler em voz alta, <b>uma</b> força, <b>um</b> ajuste e o parágrafo a reescrever até segunda. É isso que fica para a semana; o resto é apoio.</li><li><b>Perguntas por competência:</b> abra no minuto 15. Uma pergunta por competência e um campo para anotar o que discutiram. Em C5, marque os cinco elementos: faltou um, a nota caiu ali.</li></ul>`},
     brief:{t:"Briefing de notícia",b:`<p>Acima aparece a ficha da notícia que <span data-nome></span> marcou para <b>apresentar</b>. Dá para guardar várias notícias na semana, mas a mensagem do WhatsApp só traz a apresentada, e é só ela que aparece aqui e que vai para o preparo — as guardadas ficam no painel do aluno. Marque os critérios durante a fala: falou sem ler, ficou em 3 min, respondeu "e o Brasil?", disse quem ganha e quem perde, ligou a um tipo de tema. Em "Como foi a fala", registre fluência, se sustentou as perguntas difíceis, se usou repertório.</p>`},
@@ -1663,6 +1757,10 @@
   function num(v,lo,hi,d){ v = Number(v); return Number.isFinite(v) ? Math.min(hi, Math.max(lo, v)) : d; }
   function str(v){ return v==null ? "" : String(v); }
   function obj(v){ return v && typeof v==="object" && !Array.isArray(v) ? v : {}; }
+  // Comparar nome e tema escritos por gente: acento e caixa não contam. "Ana" e "ana", "Fabrício" e
+  // "Fabricio" são a mesma pessoa, e recusar um preparo por um acento perdido no caminho do WhatsApp
+  // seria pior que não conferir. Mesma conta do `tl` de normalizeParecer().
+  function semAcento(v){ return str(v).normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().trim(); }
   const CS = ["c1","c2","c3","c4","c5"];
 
   // ---------- blocos de estudo: normalização (GÊMEA de normEstudo() no painel do aluno)
@@ -1919,9 +2017,29 @@
       w.envio = ev && tsOuNulo(ev.em) && typeof ev.hash==="string" && ev.hash ? {em:tsOuNulo(ev.em), hash:ev.hash} : null;
       // `pre` marca o que já entrou sozinho vindo do backup dele, para não entrar de novo depois de apagado
       w.pre = obj(w.pre); Object.keys(w.pre).forEach(k=>{ w.pre[k] = !!w.pre[k]; });
+      // Quando a chamada foi marcada (ADR-001 de chamada-fecha-por-gesto): fecha o passo 3 do domingo.
+      w.chamadaEm = tsOuNulo(w.chamadaEm);
+      // MIGRAÇÃO, UMA VEZ POR ALUNO (a trava é `a.migChamada`, logo abaixo do laço). Até 22/10/2026
+      // este passo era DERIVADO de `percebeu`/`notas`/`bchecks`; a semana que já satisfazia aquela
+      // inferência ganha o carimbo agora, para o quadro de uma semana vivida não voltar a dizer
+      // "Agora. A chamada". O instante é o melhor que se sabe depois do fato — a mensagem foi
+      // copiada DEPOIS da chamada, e a importação, antes — e `1` é o honesto "aconteceu, hora
+      // desconhecida". Sem a trava, a migração rodaria a cada carga e restauraria a regra velha
+      // pela porta dos fundos: digitar em `percebeu`, recarregar, passo fechado.
+      // A trava é DO ALUNO e não da semana, e isso foi medido: `semanaComConteudo()` conta
+      // `Object.values(w.pre).some(Boolean)`, então um carimbo por semana faria toda semana VAZIA
+      // virar semana com conteúdo e subir na sincronização (UT-766, UT-768, UT-978).
+      if(!a.migChamada && !w.chamadaEm
+         && (str(w.f.percebeu).trim() || str(w.f.notas).trim() || Object.values(w.bchecks).some(Boolean)))
+        w.chamadaEm = w.msgEm || tsOuNulo(a.importadoEm) || 1;
       // A entrega que o pai já tem no campo (ou dispensou): a mais nova que isso é oferecida, nunca posta sozinha.
       if("entregaVista" in w){ const t = tsOuNulo(w.entregaVista); if(t) w.entregaVista = t; else delete w.entregaVista; }
     });
+    // A trava da migração do passo da chamada, uma por aluno: depois desta carga as semanas que
+    // vieram do disco já foram olhadas, e semana criada daqui para a frente nasce sob a regra nova.
+    // Fica no aluno e NÃO na semana porque `semanaComConteudo()` conta `w.pre`, e um carimbo por
+    // semana faria semana vazia subir na sincronização. É do aparelho: não viaja em `partesNotas()`.
+    a.migChamada = true;
     return a;
   }
   // O preparo do encontro (skill preparar-encontro), coagido à forma que renderScript() e aplicarPreparo()
@@ -2136,7 +2254,7 @@
     if(!kind){ el.hidden = true; el.innerHTML = ""; return; }
     el.innerHTML = msgs[kind]; el.hidden = false;
   }
-  function wk(n){ const ws=aluno().weeks; if(!ws[n]) ws[n]={f:{}, elems:{}, bchecks:{}, pre:{}, redacao:"", ai:"", prep:null, msgEm:null}; const w=ws[n]; if(!w.pre) w.pre={}; if(w.prep===undefined) w.prep=null; return w; }
+  function wk(n){ const ws=aluno().weeks; if(!ws[n]) ws[n]={f:{}, elems:{}, bchecks:{}, pre:{}, redacao:"", ai:"", prep:null, msgEm:null, chamadaEm:null}; const w=ws[n]; if(!w.pre) w.pre={}; if(w.prep===undefined) w.prep=null; return w; }
   function guessWeek(){ const d=Math.floor((Date.now()-INICIO)/864e5); return Math.min(8,Math.max(1,Math.floor(d/7)+1)); }
   // ---------- as fronteiras do modo online (ADR-011, ADR-016)
   // GÊMEAS: abreEm, rotuloAtividade e montaDados existem em cópia idêntica nos dois apps, e o
@@ -2599,7 +2717,7 @@
     if(p.tropecos.length){
       const n = p.tropecos.reduce((a,t)=>a+t.casos.length,0);
       h += `<div class="pbloco"><h3>Os tropeços de português <span class="pcomp">C1 · ${n} desvio${n===1?"":"s"} · para conferir ao reescrever</span></h3><p class="muted">Não são o ajuste da semana. São o que, conferido antes de entregar, sobe a C1 sem esforço novo.</p><ol class="ptrop">`
-        + p.tropecos.map((t,i)=>`<li><b>${esc(t.tipo)} (${t.casos.length} ${t.casos.length===1?"vez":"vezes"})${i===0&&t.casos.length>1?` <span class="pchip">o que mais se repete</span>`:""}</b><p class="pcasos">${t.casos.map(c=>"linha" in c ? `linha ${c.linha} ${esc(c.antes)} / ${esc(c.depois)}` : `§${c.paragrafo} ${esc(c.trecho)}`).join(" · ")}</p><p>${esc(t.regra)}</p><p><b>Como conferir:</b> ${esc(t.conferir)}${link(t.link)}</p></li>`).join("")
+        + p.tropecos.map((t,i)=>`<li><b>${esc(t.tipo)} (${t.casos.length} ${t.casos.length===1?"vez":"vezes"})${i===0&&t.casos.length>1?` <span class="pchip">o que mais se repete</span>`:""}</b><p class="pcasos">${t.casos.map(c=>"linha" in c ? `linha ${c.linha} ${esc(c.antes)} / ${esc(c.depois)}` : `§${c.paragrafo} ${esc(c.trecho)}`).join(" · ")}</p><p>${esc(t.regra)}</p>${t.conferir || t.link ? `<p><b>Como conferir:</b> ${esc(t.conferir)}${link(t.link)}</p>` : ""}</li>`).join("")
         + `</ol></div>`;
     }
     if(p.mapa.length) h += `<div class="pbloco"><h3>Para as próximas redações <span class="pcomp">fica anotado, não é tarefa</span></h3><p class="muted">O que os leitores viram além do ajuste. O plano é um ajuste por semana: isto é o mapa do que vem depois.</p><ul class="pmapa">${p.mapa.map(m=>`<li><b>${esc(m.titulo)}${m.comp?` (${up(m.comp)})`:""}.</b> ${esc(m.texto)}${m.conferir?` <i>Como conferir:</i> ${esc(m.conferir)}`:""}</li>`).join("")}</ul></div>`;
@@ -2808,7 +2926,10 @@
   function renderContrato(){
     const el=document.getElementById("arthurContrato"), sum=document.getElementById("sumContrato"), d=aluno().dados, c=d&&d.contrato;
     if(!c){ el.innerHTML=`<p class="muted">Aparece aqui depois de importar os dados de ${esc(nomeAluno())}.</p>`; sum.textContent="aparece depois da importação"; return; }
-    sum.textContent = (c.encontro||c.entrega) ? `encontro: ${c.encontro||"?"} · envia a redação: ${c.entrega||"?"} · jogo: ${c.jogoHoras||"?"}/dia` : "ainda não preenchido";
+    // `jogoHoras` é texto livre que o aluno escreve ("2h por dia", "1 hora", "só fim de semana"), então
+    // o `/dia` concatenado imprimia `jogo: 2h por dia/dia`. O rótulo do campo na lista abaixo já diz
+    // "Jogo por dia"; aqui o valor fala por si.
+    sum.textContent = (c.encontro||c.entrega) ? `encontro: ${c.encontro||"?"} · envia a redação: ${c.entrega||"?"} · jogo: ${c.jogoHoras||"?"}` : "ainda não preenchido";
     const F=[["encontro","Encontro"],["entrega","Envia a redação"],["plataforma","Correção"],["jogoHoras","Jogo por dia"],["jogoDepois","Jogo só depois de"],["rAdido","Recompensa Adido"],["rTerc","Recompensa Terceiro-Secretário"],["rCons","Recompensa Conselheiro"],["rEmb","Recompensa Embaixador"],["assArthur",`Assinado por ${esc(nomeAluno())}`],["assPai","Validado por você"]];
     let h=F.map(([k,l])=>`<p><b>${l}:</b> ${esc(c[k])||"—"}</p>`).join("");
     const s=c.sched||{};
@@ -3011,6 +3132,11 @@
   // chamada, depois dela, de vez em quando), e quem diz de qual são os grupos da lista de modelos.
   // O botão de cada passo FAZ a coisa, não navega — a exceção é a chamada, cujo conteúdo é o roteiro.
   let cmdCopiado = null;   // a semana cujo comando foi copiado nesta sessão; recarregar volta ao passo de copiar
+  // A semana cujo roteiro foi aberto nesta sessão, do mesmo jeito e pela mesma razão: é ela que vira
+  // a segunda metade do passo da chamada (ADR-001 de chamada-fecha-por-gesto). Recarregar no meio da
+  // chamada volta o botão a "Abrir o roteiro", que é o certo — ele abre de novo, e a marca que ainda
+  // não fez não é marca que ele perde.
+  let roteiroAberto = null;
   function irPara(id){
     const el = document.getElementById(id); if(!el) return;
     if(el.tagName === "DETAILS") el.open = true;
@@ -3024,6 +3150,14 @@
     document.getElementById("ptype").value = "preparar"; syncAspects();
     cmdCopiado = current; renderPassos();
     copy(buildPrompt(), {title:"Comando para o Claude Code", done:"Comando copiado. Cole no Claude Code, na pasta do projeto."});
+  }
+  // O único passo do domingo que se marca à mão, e o porquê está na ADR-001 de
+  // chamada-fecha-por-gesto: a chamada acontece no telefone, e nada que fique nesta tela sabe que
+  // ela aconteceu. Grava o instante, como o `msgEm` do último passo.
+  function marcarChamada(){
+    const w = wk(current);
+    w.chamadaEm = Date.now(); save(); renderPassos();
+    toast(WEEKS[current-1].final ? "Chamada da véspera marcada" : "Chamada marcada");
   }
   function copiarMensagem(){
     const w = wk(current); if(!(w.prep && w.prep.mensagem)) return;
@@ -3084,28 +3218,48 @@
         fn: esperando ? ()=>document.getElementById("colarPreparo").click() : copiarComando,
       });
     }
-    // Corrigir as extras vem depois de preparar e antes da chamada: é o parecer de cada uma que a skill
-    // lê como contexto da semana (ADR-009 §4), e é o que ele manda sem esperar o domingo. O passo não
-    // existe quando nada espera — e não "existe feito": um quadro com um passo permanentemente marcado
-    // diria que corrigir extras é etapa de todo domingo, e ela só é quando ele pediu (ADR-007).
-    const pendX = pendentes();
-    if(pendX.length) lista.push({
-      id:"extras", tit:"Corrigir as extras", feito:false,
-      como: pendX.length===1 ? "1 redação extra espera correção: abra a primeira."
-                             : `${pendX.length} redações extras esperam correção: abra a primeira.`,
-      rotulo:"Abrir a primeira", fn: ()=>abreExtra(pendX[0].id),
-    });
-    // O que fecha este passo é o que SÓ a chamada produz. Força e ajuste não servem: o preparo os
-    // preenche como palpite, e o quadro diria "chamada feita" antes de ele discar. `percebeu` é o que
-    // ele mesmo disse na leitura em voz alta, os `bchecks` são marcados enquanto ele fala e `notas` é o
-    // caderno do pai — o preparo não toca em nenhum dos três.
-    const daChamada = cheio(w.f.percebeu) || cheio(w.f.notas) || Object.values(w.bchecks||{}).some(Boolean);
+    // Corrigir as extras NÃO é passo do domingo, e já foi (até 22/10/2026 era o terceiro da fila).
+    // A razão de antes continua certa: o passo não podia "existir feito", porque um passo
+    // permanentemente marcado diria que corrigir extras é etapa de todo domingo, e ela só é quando ele
+    // pediu (ADR-007). O que não se viu foi a consequência de ordem. `renderPassos()` elege o agora
+    // como o primeiro não-feito, e um passo que NUNCA fecha no meio da fila congela os dois sinais do
+    // quadro: medido num domingo inteiro (importar, preparar, chamada feita, parecer copiado), a lista
+    // mostrava `✓ · ✓ · 3 Agora. Corrigir as extras · ✓ A chamada · 5 Mandar a tarefa` sob o subtítulo
+    // `Passo 3 de 5` — um ✓ ABAIXO do agora, e o pai mandado procurar trabalho que já fez. Pior: só o
+    // agora recebe `.actions`, então o passo 5, que é o gesto de saída do domingo, ficava SEM BOTÃO
+    // enquanto uma extra esperasse. O leitor de tela herdava a contradição ("Agora. Corrigir as extras"
+    // depois de "Feito. A chamada de 40 minutos").
+    //
+    // O canal já existia e é melhor: o `.flag` #extrasAviso, acima da faixa da semana, diz
+    // `N redações extras pedindo correção` com o mesmo botão Abrir e o mesmo `abreExtra(pendentes()[0])`
+    // — era a mesma frase duas vezes na mesma tela. O quadro volta aos passos que acontecem em
+    // sequência, e cada um deles pode fechar. Passo novo aqui tem de poder ficar `feito`; o que não
+    // puder mora no aviso.
+    // ESTE PASSO FECHA POR GESTO, e é o único (ADR-001 de chamada-fecha-por-gesto). Ele era derivado
+    // como os outros três — `cheio(w.f.percebeu) || cheio(w.f.notas) || algum bchecks` —, e a
+    // derivação não tinha como ser lida: nenhum dos três campos dizia que fechava o passo, e a única
+    // frase que explicava era este `como`, que só aparece enquanto o passo é o agora. Digitar em
+    // "Minhas anotações da semana" adiantava o quadro em silêncio; não digitar o segurava em
+    // silêncio. A diferença com os outros três é que ali a coisa que fecha É o gesto (o código
+    // importado, o preparo colado, a mensagem copiada); a chamada acontece no TELEFONE, fora desta
+    // tela, e nada que fique nela pode saber que ela aconteceu.
+    // Duas metades, como o passo 2: antes, "Abrir o roteiro"; depois de abri-lo, "A chamada foi
+    // feita". Um botão só, porque `renderPassos()` move o `passoBtn` em vez de recriá-lo
+    // (BUG-20261005-passo-do-domingo-perde-o-foco) e dois lado a lado trariam o defeito de volta.
+    const peloRoteiro = roteiroAberto === current;
     lista.push({
       id:"chamada", tit: m.final ? "A chamada da véspera (15 min)" : "A chamada de 40 minutos",
-      feito: daChamada,
-      como: m.final ? "O roteiro é o checklist de véspera: local e horário, canetas, kit mental, dormir cedo. O passo fecha quando você escrever nas suas anotações."
-                    : `Em cada bloco o roteiro diz o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada. O passo fecha quando você anotar na ficha algo que só a chamada produz: o que ${nome} percebeu, um critério do briefing ou as suas anotações.`,
-      rotulo:"Abrir o roteiro", fn: ()=>irPara("cRoteiro"),
+      feito: !!w.chamadaEm,
+      como: peloRoteiro
+        ? (m.final ? "Quando a chamada da véspera terminar, marque aqui. As suas anotações ficam no card Minhas anotações da semana."
+                   : `Quando a chamada terminar, marque aqui. O que ${nome} percebeu, os critérios do briefing e as suas anotações ficam na ficha e nos cards ao lado — nada disso marca o passo.`)
+        : (m.final ? "O roteiro é o checklist de véspera: local e horário, canetas, kit mental, dormir cedo. Abra, faça a chamada e volte para marcar."
+                   : "Em cada bloco o roteiro diz o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada. Abra, faça a chamada e volte para marcar."),
+      rotulo: peloRoteiro ? "A chamada foi feita" : "Abrir o roteiro",
+      // `irPara()` ANTES de marcar a sessão: ele põe o foco no título do roteiro, e aí o
+      // `renderPassos()` seguinte vê que o `passoBtn` não tem mais o foco e não o puxa de volta
+      // (QA-ancora, que afirma que "Abrir o roteiro" deixa o foco no título do card).
+      fn: peloRoteiro ? marcarChamada : ()=>{ irPara("cRoteiro"); roteiroAberto = current; renderPassos(); },
     });
     // Conectado, o passo é o gesto que entrega o parecer e a mensagem juntos (ADR-006, BR-29): é o "agora"
     // depois da chamada, e é ele que lembra o pai de enviar — nada mais no domingo pede um gesto dele.
@@ -3465,9 +3619,15 @@
       const corpo = `<span class="titulo">${esc(fichaIdTexto(vm))}</span>${xMetaHTML(vm)}`;
       // Sem entrega não há o que abrir: o pai tem o metadado dela e mais nada (BR-15). Linha, não botão —
       // um botão prometeria uma ficha (CLAUDE.md: nunca se renderiza botão morto).
+      // E a frase tem dois ramos, como `estadoFicha`: sem `registro` o chip diz `não começada`, e dizer
+      // "só o registro chegou" ao lado dele era a linha se desmentindo na mesma linha. O que o painel
+      // sabe nesse caso é só que ela existe no aparelho dele.
+      const semEntrega = vm.registro
+        ? "só o registro chegou — a correção ainda não foi pedida"
+        : "ele criou esta redação e ainda não a registrou";
       return abre
         ? `<button type="button" class="xrow${x.id===xAberta?" aberta":""}" data-extra="${id}"${x.id===xAberta?' aria-current="true"':""}>${corpo}</button>`
-        : `<div class="xrow semabrir">${corpo}<span class="muted">só o registro chegou — a correção ainda não foi pedida</span></div>`;
+        : `<div class="xrow semabrir">${corpo}<span class="muted">${semEntrega}</span></div>`;
     }).join("");
     const vm = xAberta ? aFichaDe({extra:xAberta}) : null;
     if(!vm || !vm.entregue){ xAberta = null; ficha.hidden = true; return; }
@@ -3801,13 +3961,38 @@
   // bindForm(): marcar um checkbox da ficha não pode fechar o card enquanto ele cola uma transcrição.
   // A folha passada a limpo dele também abre o card: na semana exigida a fonte é o papel, e a folha
   // pode chegar sem rascunho nenhum.
+  // Qual das duas formas da redação está na tela. É jeito de OLHAR e não preferência: vive na sessão,
+  // como o `estudoFiltroO` dos chips do banco, fica fora do estado e fora do backup das anotações, e
+  // recarregar volta ao padrão. O padrão é a FOLHA quando ela existe, pela mesma razão que a impressão
+  // já esconde a transcrição nesse caso: é a folha que um corretor leria, e é por ela que a correção lê
+  // (ADR-001 de correcao-pela-folha). Sem folha não há escolha, e o grupo não se renderiza.
+  let redVista = "folha";
   function renderRed(){
     const fin=!!WEEKS[current-1].final, l=(aWeek(current)||{}).limpo;
     document.getElementById("cRed").open = fin ? false : !!((wk(current).redacao||"").trim() || l);
     renderEntregue();
     renderFolhaAluno();
+    renderRedVista();
     redFit();
   }
+  function renderRedVista(){
+    const temFolha = !!((aWeek(current)||{}).limpo) && !WEEKS[current-1].final;
+    const grupo = document.getElementById("redModoO"), card = document.getElementById("cRed");
+    grupo.hidden = !temFolha;
+    const vista = temFolha ? redVista : "texto";
+    card.classList.toggle("vefolha", vista==="folha");
+    card.classList.toggle("vetexto", temFolha && vista==="texto");
+    grupo.querySelectorAll("input").forEach(r=>{ r.checked = r.value===vista; });
+  }
+  document.getElementById("redModoO").addEventListener("change",e=>{
+    if(!e.target.value) return;
+    redVista = e.target.value;
+    // Trocar para a transcrição revela um campo que estava escondido, e textarea escondida não tem
+    // altura para medir: o fallback de crescimento roda de novo, como no `toggle` do card.
+    renderRedVista();
+    if(redVista==="texto") grow(document.getElementById("redacao"));
+    redFit();
+  });
   // A entrega dele (modo conectado): "entregue em" com a data do gesto, e a entrega mais nova que a que
   // está no campo, quando o campo tem texto — o dele ou a transcrição do pai — vira um aviso com Usar.
   // O campo nunca muda sozinho (US-024 AC-2, EC-1); desmarcar a entrega do lado dele não muda nada aqui.
@@ -3916,7 +4101,18 @@
     const f = p.fonte;
     const fonte = f.correcao==="skill" ? `correção da skill, ${f.leitores.length||2} leitores${f.confiabilidade?", confiabilidade "+f.confiabilidade:""}${f.reaproveitada?" (reaproveitada)":""}`
       : f.correcao==="externa" ? "nota externa" + (f.conferencia ? " (conferida pela skill)" : "") : "sem redação";
-    el.textContent = `Preparo da semana ${current}, gerado em ${fmtWhen(p.geradoEm)} · ${fonte}. Força e ajuste são palpite até a leitura em voz alta.`;
+    // O tema é AVISO e não recusa, e a razão é a semana 7: ali o tema é surpresa escolhida por ele, e
+    // `WEEKS[6].tema` nem tenta dizer qual é. Fora disso um parecer cujo tema não é o da semana aberta
+    // é sinal de bloco trocado — o card imprimia o enunciado de outra semana sem uma palavra. A
+    // comparação corta o sufixo editorial do plano (" (ENEM 2023)", " — simulado de 60 min"), senão
+    // metade das semanas avisaria sozinha.
+    const semSufixo = t => semAcento(str(t).split(/ \(| — /)[0]);
+    const temaDele = p.parecer && str(p.parecer.tema).trim();
+    const temaDaSemana = str(WEEKS[current-1].tema);
+    const outroTema = temaDele && !WEEKS[current-1].final && !/surpresa/i.test(temaDaSemana)
+      && semSufixo(temaDele) !== semSufixo(temaDaSemana);
+    el.textContent = `Preparo da semana ${current}, gerado em ${fmtWhen(p.geradoEm)} · ${fonte}. Força e ajuste são palpite até a leitura em voz alta.`
+      + (outroTema ? ` O parecer é sobre «${temaDele}», que não é o tema desta semana: confira se o bloco é o certo.` : "");
     el.hidden = false;
   }
   function bindForm(){
@@ -3943,13 +4139,12 @@
         if(CS.includes(campo)){ renderChart(); return; }
         if(campo==="elems"){ keepFocus(bindForm); return; }
         if(["forca","ajuste","notas"].includes(campo)) renderTabs();
-        if(["percebeu","notas"].includes(campo)) renderPassos();
         if(!fechadoAntes && w.f.forca&&w.f.forca.trim()&&w.f.ajuste&&w.f.ajuste.trim() && !closedNoted.has(current)){ closedNoted.add(current); toastHTML(`Fechamento da semana ${current} pronto: <b>uma força, um ajuste</b>. É o que fica para a semana.`); }
       }});
     const red=document.getElementById("redacao"); red.value=w.redacao||""; grow(red); red.oninput=()=>{ w.redacao=red.value; save(); grow(red); redFit(); renderPassos(); };
     const ai=document.getElementById("aiResp"); ai.value=w.ai||""; ai.oninput=()=>{ w.ai=ai.value; save(); };
     document.getElementById("bchecks").innerHTML=BCHECKS.map(([id,l])=>`<label class="${w.bchecks[id]?'on':''}"><input type="checkbox" data-b="${id}" ${w.bchecks[id]?'checked':''}>${l}</label>`).join("");
-    document.querySelectorAll("[data-b]").forEach(cb=>cb.onchange=()=>{ w.bchecks[cb.dataset.b]=cb.checked; save(); keepFocus(bindForm); renderPassos(); });
+    document.querySelectorAll("[data-b]").forEach(cb=>cb.onchange=()=>{ w.bchecks[cb.dataset.b]=cb.checked; save(); keepFocus(bindForm); });
     document.getElementById("aspects").innerHTML=ASPECTS.map(([id,l])=>`<label class="${state.aspects.includes(id)?'on':''}"><input type="checkbox" data-a="${id}" ${state.aspects.includes(id)?'checked':''}>${l}</label>`).join("");
     document.querySelectorAll("[data-a]").forEach(cb=>cb.onchange=()=>{ state.aspects=cb.checked?[...new Set([...state.aspects,cb.dataset.a])]:state.aspects.filter(x=>x!==cb.dataset.a); save(); keepFocus(bindForm); });
     syncAspects(); renderPrepStat();
@@ -4181,6 +4376,20 @@
     if(dx!=null) return `Este preparo é da redação extra «${temaDaExtra(str(dx)) || str(obj(obj(r.data).parecer).tema) || str(dx)}»`;
     const p = normalizePreparo(r.data); if(!p) return "Esse preparo não tem a forma esperada (versão 1, semana de 1 a 7 e a ficha).";
     if(p.semana!==current) return `Esse preparo é da semana ${p.semana}; a aba aberta é a semana ${current}. Troque de aba ou cole o preparo certo.`;
+    // E de quem ele é. A semana era conferida desde o começo; o ALUNO não era, e o painel suporta
+    // vários (ADR-008). O preparo vem de uma SEGUNDA janela com o Claude Code aberta, que é
+    // exatamente o cenário em que se cola o bloco errado — e o custo não ficava na tela: medido, um
+    // preparo de outra aluna foi aceito, preencheu 15 campos da ficha, abriu o card do parecer, e o
+    // botão `Copiar mensagem para Arthur` copiou um texto que começa com o nome da outra criança.
+    // Quem diz que o painel TEM identidade é o e-mail do envelope, nunca o nome: `novoAluno()` semeia
+    // `perfil.nome` com NOME_PADRAO, então o nome nunca está vazio e comparar por ele recusava o
+    // caminho normal — medido, um preparo legítimo era recusado num painel que nunca importou código
+    // nenhum. `perfil.email` só existe quando um código com envelope chegou (ADR-008), que é também a
+    // única situação em que há mais de um aluno para confundir. Sem e-mail não se afirma nada: o nome
+    // ali é o padrão da tela, não uma pessoa.
+    const dele = str(p.aluno).trim(), meu = str(aluno().perfil.nome).trim();
+    if(str(aluno().perfil.email).trim() && meu && dele && semAcento(meu)!==semAcento(dele))
+      return `Esse preparo é de ${dele}; este painel é de ${meu}. Troque de aluno na barra do topo ou cole o preparo certo.`;
     const k = aplicarPreparo(current, p); save(); render();
     // O toast conta a ficha e diz que o parecer chegou: sem isso o card novo enche sozinho lá embaixo
     // e ninguém fica sabendo — era o único produto do preparo sem aviso nenhum.
@@ -4212,7 +4421,16 @@
     // isso aqui só se OLHA quem seria adotado.
     const adotado = candidatoAdocao(key);
     const alvo = state.alunos[key] || (adotado!=null ? state.alunos[adotado] : null);
-    if(exportedAt && alvo && alvo.exportadoEm && exportedAt < alvo.exportadoEm && !confirm(`Esse código é de ${fmtWhen(exportedAt)}, mais antigo que o já importado (${fmtWhen(alvo.exportadoEm)}). Importar mesmo assim?`)){ toast("Nada foi alterado"); return null; }
+    // O confirm de código velho citava só as duas DATAS, e data não diz o que se perde: o app do aluno
+    // mostra os dois lados e quanto cai, porque "a mensagem errada rolando no WhatsApp é o jeito real
+    // de perder uma semana" (CLAUDE.md), e a importação é o mesmo gesto do outro lado. O XP dos dois
+    // lados sai da conta da própria tela, pelo swap de `copiaTexto()`.
+    if(exportedAt && alvo && alvo.exportadoEm && exportedAt < alvo.exportadoEm){
+      const aqui = alvo.dados ? xpDe(alvo.dados) : null, vem = xpDe(d);
+      const lados = aqui==null ? `No código: ${vem} XP.`
+        : `Aqui: ${aqui} XP. No código: ${vem} XP.` + (vem < aqui ? ` Importar perde ${aqui-vem} XP do que já está no painel.` : "");
+      if(!confirm(`Esse código é de ${fmtWhen(exportedAt)}, mais antigo que o já importado (${fmtWhen(alvo.exportadoEm)}).\n\n${lados}\n\nImportar mesmo assim?`)){ toast("Nada foi alterado"); return null; }
+    }
     const al = adota(perfil);
     // Importar torna o importado o aluno visível: é dele que o painel passa a falar.
     state.alunoAtual = key;
@@ -4270,6 +4488,14 @@
       const semanas = `${k} semana${k===1?"":"s"} anotada${k===1?"":"s"}`;
       return d ? `${aTotal()} XP · ${((d.bank)||[]).length} repertórios · ${semanas}` : `sem dados do aluno · ${semanas}`;
     } finally { state = keep; }
+  }
+  // O XP de um `dados` que não é o do aluno visível — o que já está no painel contra o que o código
+  // traz. Mesmo recurso de `copiaTexto()`: a conta é a da tela (aTotal/aWeekXP leem `aluno().dados`),
+  // então o estado é trocado por um mínimo e devolvido no finally.
+  function xpDe(dados){
+    const keep = state;
+    state = { alunos:{ x:{ perfil:{nome:"",email:""}, dados } }, alunoAtual:"x", weeks:{} };
+    try{ return aTotal(); } finally { state = keep; }
   }
   function copiaEstado(json){
     try{
@@ -5108,7 +5334,7 @@
   // `vivo`) não vão: cada aparelho os recebe dele. Nada disto é do aluno ler (ADR-008): só os aparelhos
   // do orientador. A entrada vazia que aluno() cria para a tela não ter buraco não é um aluno, e fica.
   function semanaComConteudo(w){
-    return Object.values(obj(w.f)).some(v=>str(v).trim()) || !!str(w.redacao).trim() || !!str(w.ai).trim() || !!w.prep || !!w.msgEm || !!w.envio
+    return Object.values(obj(w.f)).some(v=>str(v).trim()) || !!str(w.redacao).trim() || !!str(w.ai).trim() || !!w.prep || !!w.msgEm || !!w.chamadaEm || !!w.envio
       || Object.values(obj(w.elems)).some(Boolean) || Object.values(obj(w.bchecks)).some(Boolean) || Object.values(obj(w.pre)).some(Boolean) || !!w.entregaVista;
   }
   function partesNotas(s){

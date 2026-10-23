@@ -382,6 +382,11 @@
   h2{font-size:17px;margin:0;font-weight:700}
   h3{font-size:14px;margin:14px 0 6px;font-weight:700;color:var(--muted)}
   h3.sep{margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+  /* O <span data-nome> do contrato ("Assinado por Arthur em") mora num `.f`, que é flex em coluna:
+     como item de flex o nome virava linha própria, e o rótulo saía em três. Gêmea da regra do painel,
+     pela mesma razão e com a mesma conta; fica no CSS de cada tela e não na base, porque o Escolha e a
+     Missão Olimpíadas não têm [data-nome] e não devem carimbar versão nova por isto. */
+  span[data-nome]{display:contents}
   .sec{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-top:22px;scroll-margin-top:12px}
   .sec > header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;cursor:pointer;user-select:none}
   .sec h2,.sec h3.hh{display:flex;align-items:center;gap:8px}
@@ -452,14 +457,27 @@
   .week header{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin-bottom:4px}
   .week header strong{font-size:18px}
   .week header .xp{color:var(--blue);font-weight:700}
-  .theme{color:var(--muted);font-size:14px;margin-bottom:12px}
-  .task{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+  /* 72ch é a medida que o resto da tela já usa (#eHumorDica, #redAviso). Sem teto, o tema da semana
+     corria ~93 caracteres numa linha só no desktop: o card pode ser largo sem que a frase seja. */
+  .theme{color:var(--muted);font-size:14px;margin-bottom:12px;max-width:72ch}
+  .task{display:flex;align-items:center;flex-wrap:wrap;gap:0 12px;padding:10px 0;border-top:1px solid var(--line)}
   .task.first{border-top:0}
   .task input[type=checkbox]{width:22px;height:22px;accent-color:var(--blue);flex:0 0 auto}
   .task label{flex:1;min-width:0;cursor:pointer;overflow-wrap:break-word}
   .task .pts{color:var(--muted);font-size:14px;white-space:nowrap}
   .task.done label{color:var(--muted);text-decoration:line-through}
   .task input:disabled + label{color:var(--muted);cursor:default}
+  /* A linha que diz por que a caixa está apagada. Fica FORA do <label> — "a linha ao lado dele", nas
+     palavras do DESIGN.md —, em linha própria: dentro do rótulo ela entrava no nome acessível da
+     caixa e o texto saía grudado ("quintahoje ainda dá"). Em tinta cheia, porque o apagado é a caixa
+     e não a explicação. 13px é o passo abaixo do corpo, não um tamanho novo; o recuo da esquerda
+     alinha com o rótulo (22px da caixa + 12px do vão) e é PADDING: com `flex-basis:100%` a margem
+     fica fora da base e põe a página inteira a rolar 1px de lado. */
+  .task .dica{flex:1 0 100%;padding-left:34px;font-size:13px;color:var(--ink);margin-top:2px}
+  .task.done .dica{display:none}
+  /* No papel, não: a caixa vira quadrado para marcar à mão, e "hoje ainda dá" é uma frase presa ao
+     relógio numa folha que vai ser lida depois. Estado de tela não se imprime. */
+  @media print{.task .dica{display:none}}
   .days{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:8px 0 4px}
   .days label{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--muted);padding:10px 0;border:1px solid var(--line);border-radius:10px;cursor:pointer}
   .days label.on{background:var(--green-soft);color:var(--green);border-color:transparent;font-weight:700}
@@ -527,6 +545,10 @@
   .outra .actions{margin-top:8px}
   .outraTexto p{margin-top:8px;white-space:pre-wrap;background:var(--surface);color:var(--ink);border-radius:8px;padding:8px 10px;max-height:40vh;overflow:auto}
   @media print{.outras{display:none}}
+  /* A leitura por matéria: `p{margin:0}` da base deixava as linhas coladas e o bloco lia como uma
+     mancha de negrito. O h3 acima é o rótulo; 2px entre as linhas basta para separá-las. */
+  #estudoHumorWrap h3{margin-top:16px}
+  .humor p + p{margin-top:2px}
   .pmsg h3{margin:0;font-size:14px;display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
   .pmsg h3 .muted{font-size:12px;font-weight:400}
   .pmsg p{margin:0;white-space:pre-line;min-width:0}
@@ -569,8 +591,12 @@
   .parecer .pitem label{flex:1;min-width:0;display:grid;gap:2px;cursor:pointer;overflow-wrap:anywhere}
   .parecer .pitem label .muted{font-size:12px}
   /* Feito é o mesmo risco apagado da tarefa marcada, e vai no <label>, nunca no .pitem: em contêiner
-     flex o text-decoration do pai alcança o filho e riscaria também a caixa. */
-  .parecer .pitem.done label{color:var(--muted);text-decoration:line-through}
+     flex o text-decoration do pai alcança o filho e riscaria também a caixa.
+     Dentro do rótulo o risco vai nos FILHOS que são a tarefa — o título e o complemento —, nunca no
+     rótulo inteiro: o `.muted` é o "porquê" do item, e riscado a 12px ele ficava ilegível justamente
+     no item que ele cumpriu. É a mesma regra já escrita para o `.today .item.ok`. */
+  .parecer .pitem.done label{color:var(--muted)}
+  .parecer .pitem.done label > b,.parecer .pitem.done label > span:not(.muted){text-decoration:line-through}
   /* Bloco de estudo: a mesma linha do repertório. O "O que é" deixou de ser um <p class="oque"> e passou
      a ser a nota formatada (`.nota`), que é quem guarda as quebras de linha vindas do textarea. */
   .rep.estudo .onde{white-space:normal}
@@ -841,6 +867,13 @@
   .noticia > summary .titulo{min-width:0;overflow-wrap:anywhere}
   .noticia > summary .rotulo{font-size:12px;color:var(--blue-ink);background:var(--blue-soft);border-radius:99px;padding:2px 8px}
   .noticia > .body{padding:0 12px 12px;min-width:0}
+  /* Os seis campos de prosa crescem até 160px e depois rolam por dentro. O mínimo é 44px: vazio o
+     campo é quase do tamanho que sempre foi, e só quem escreveu paga a altura — mas campo de texto
+     que o dedo acerta não desce de 44, e a 40 a varredura T0 media 41,6–42,1. */
+  .noticia textarea{min-height:44px;max-height:160px;field-sizing:content}
+  /* No papel o campo não rola: a ficha impressa leva o texto inteiro, que o <input> de antes cortava
+     na largura. O !important vence a altura inline que o grow() escreve onde não há field-sizing. */
+  @media print{.noticia textarea{min-height:0;max-height:none;height:auto !important;overflow:visible}}
   .noticia > .body > .actions{margin-top:12px}
   @media (pointer:coarse){.noticia > summary{min-height:44px}}
   @media print{.sec.closed > .body{display:block}.sum{display:none}}
@@ -871,6 +904,10 @@
   .notaslinha{display:flex;flex-wrap:wrap;gap:4px 14px;margin:0;font-variant-numeric:tabular-nums}
   .fichaparecer{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
   .fichaparecer h3{margin:0 0 4px}
+  /* A ação da ficha INTEIRA, separada do bloco do parecer pelo mesmo fio que abre aquele bloco. Sem
+     isto, com "O que ficou de fazer" vazio, "Colar o parecer" e "Imprimir esta redação" encostavam um
+     no outro como dois botões iguais de um grupo só — e eles têm donos diferentes. */
+  #fichaAcoes{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
   /* O item DERIVADO da lista não tem caixa: ele some quando a condição é cumprida, e uma caixa
      prometeria um gesto que não existe (BR-18). A seta diz "o próximo passo é este" sem pedir clique. */
   .parecer .pitem .pimp{display:none}
@@ -880,12 +917,18 @@
   .parecer .pitem.der p span{font-size:12px;color:var(--muted)}
   /* O catálogo: uma linha por redação, a identificação em cima e as etiquetas embaixo. Linha inteira é
      o alvo — o gesto é "abrir esta redação", não "clicar num pedaço dela". */
-  .redrow{display:grid;gap:4px;width:100%;text-align:left;margin-top:8px;padding:12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:14px;color:var(--ink)}
+  .redrow{display:grid;gap:4px;width:100%;text-align:left;margin-top:8px;padding:12px 30px 12px 12px;background:var(--surface);border:1px solid var(--line);border-radius:10px;font-size:14px;color:var(--ink);position:relative}
   .redrow .titulo{font-weight:600;min-width:0;overflow-wrap:anywhere}
   .redmarcas{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12px}
   .rednota{font-weight:700;font-variant-numeric:tabular-nums}
   /* A semana 8 não é um botão: não há redação nova nela, e um botão prometeria uma ficha para abrir. */
   .redrow.semred{color:var(--muted);font-weight:400;cursor:default}
+  /* A linha é um <button> desenhado exatamente como um card, e o sistema proíbe hover: a única pista de
+     que ela abre era o cursor, que no toque não existe. O `›` é o mesmo da fila que rola — marca
+     tipográfica na fonte do sistema, não figura, e não entra na conta de ícones. A semana 8 não abre
+     nada e não ganha a marca; no papel ninguém toca em nada e ela sai. */
+  .redrow:not(.semred)::after{content:"›";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:18px;line-height:1}
+  @media print{.redrow{padding-right:12px}.redrow::after{content:none}}
   #redacoesList > .vazio{max-width:58ch}
   /* O banco de temas: uma entrada por <details>, com um primário só dentro dela (US-007 EC-3). */
   .tema{margin-top:8px;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
@@ -1016,8 +1059,9 @@
     .parecer .pitem input[type=checkbox]:checked{background:var(--muted)}
   }
 
-  /* O aviso de mudança dos arquivos avulsos (etapa 2): a faixa azul de sempre, com a lista dos passos. */
-  #mudou{margin:0 0 12px}
+  /* O aviso de mudança dos arquivos avulsos (etapa 2): a faixa azul de sempre, com a lista dos passos.
+     Sem margem própria — abaixo do Hoje ele é um alerta como os outros e usa o `.alert{margin-top:14px}`
+     da tela, e a folga de baixo é o `margin-top` do herói. Acima do Hoje ele precisava de `0` no topo. */
   #mudou p,#mudou ol{margin:0}
   #mudou ol{margin-top:6px;padding-left:22px}
   #mudou li+li{margin-top:2px}
@@ -1213,24 +1257,10 @@
   </div>
   <div class="navwrap fila">
     <nav class="nav" aria-label="Seções">
-      <a href="#hoje">Hoje</a><a href="#contrato">Contrato</a><a href="#semanas-wrap">Semanas</a><a href="#redacao">Redação</a><a href="#redacoes">Redações</a><a href="#parecer">Parecer</a><a href="#briefing">Briefing</a><a href="#banco">Repertório</a><a href="#estudo">Estudo</a><a href="#medalhas">Medalhas</a><a href="#resumo">Resumo</a>
+      <a href="#hoje">Hoje</a><a href="#contrato">Contrato</a><a href="#semanas-wrap">Semanas</a><a href="#redacao">Esta redação</a><a href="#redacoes">Todas as redações</a><a href="#parecer">Parecer</a><a href="#briefing">Briefing</a><a href="#banco">Repertório</a><a href="#estudo">Estudo</a><a href="#medalhas">Medalhas</a><a href="#resumo">Resumo</a>
     </nav>
   </div>
   <div class="alert" id="storeAlert" role="alert" hidden></div>
-  <!-- A versão final dos arquivos avulsos (etapa 2, BR-45, US-033): o produto mudou de casa, e este
-       arquivo diz para onde e como levar o que está aqui. Nasce `hidden`; só aparece aberto do disco
-       (`file:`) — no app (`APP`) e na versão hospedada (`https:`) ele não tem o que dizer. Os passos
-       mandam BAIXAR o arquivo, nunca copiar o código: o arquivo leva tudo, e a mensagem do WhatsApp
-       tem limite (US-033 EC-2). -->
-  <div class="alert info" id="mudou" hidden>
-    <p><b>A Missão ENEM agora mora num endereço e no aplicativo.</b> Este arquivo continua abrindo, mas não recebe mais novidades. Para levar tudo o que você fez:</p>
-    <ol>
-      <li>Aqui, em <b>Resumo → Backup</b>, toque em <b>Baixar arquivo de backup</b> e guarde o arquivo .txt.</li>
-      <li>Abra <a href="https://diogodomanski.github.io/missao-enem-releases/aluno/">diogodomanski.github.io/missao-enem-releases/aluno</a> — ou o aplicativo de desktop, se você já usa.</li>
-      <li>Lá, em <b>Resumo → Backup → Restaurar backup</b>, escolha o arquivo. É uma vez só.</li>
-    </ol>
-  </div>
-
   <section class="today" id="hoje">
     <div class="todayhead">
       <h2 id="todayTitle">Hoje</h2>
@@ -1251,6 +1281,26 @@
     <div class="tl" id="timeline"></div>
     <p class="lembretes" id="lembretesLinha"><button class="linkish" id="lembretesAbre">Lembretes no celular</button></p>
   </section>
+
+  <!-- DEPOIS do Hoje, nunca antes: o princípio nº 1 é "o que eu faço agora" antes de tudo, e em 390px
+       este aviso comia 250px dos 844 da primeira dobra — o Hoje começava em y=378 e o herói ficava
+       inteiro fora da tela. Na primeira abertura ele ainda aparecia ATRÁS do tutorial de boas-vindas:
+       o produto se apresentava e se aposentava na mesma tela. Aqui ele continua acima de todo o resto
+       e segue aparecendo em toda abertura (migrar é o que se quer), sem disputar a manchete.
+       `#storeAlert` fica onde está: "não estou conseguindo salvar" vem antes de qualquer coisa. -->
+  <!-- A versão final dos arquivos avulsos (etapa 2, BR-45, US-033): o produto mudou de casa, e este
+       arquivo diz para onde e como levar o que está aqui. Nasce `hidden`; só aparece aberto do disco
+       (`file:`) — no app (`APP`) e na versão hospedada (`https:`) ele não tem o que dizer. Os passos
+       mandam BAIXAR o arquivo, nunca copiar o código: o arquivo leva tudo, e a mensagem do WhatsApp
+       tem limite (US-033 EC-2). -->
+  <div class="alert info" id="mudou" hidden>
+    <p><b>A Missão ENEM agora mora num endereço e no aplicativo.</b> Este arquivo continua abrindo, mas não recebe mais novidades. Para levar tudo o que você fez:</p>
+    <ol>
+      <li>Aqui, em <b>Resumo → Backup</b>, toque em <b>Baixar arquivo de backup</b> e guarde o arquivo .txt.</li>
+      <li>Abra <a href="https://diogodomanski.github.io/missao-enem-releases/aluno/">diogodomanski.github.io/missao-enem-releases/aluno</a> — ou o aplicativo de desktop, se você já usa.</li>
+      <li>Lá, em <b>Resumo → Backup → Restaurar backup</b>, escolha o arquivo. É uma vez só.</li>
+    </ol>
+  </div>
 
   <section class="hero" tabindex="-1">
     <p class="rank" id="rank">Estagiário</p>
@@ -1343,6 +1393,10 @@
     <div id="redLimpo" role="region" aria-label="Passar a limpo" hidden>
       <div id="limpoRef" class="limporef mt"></div>
       <p class="muted" id="limpoNota" hidden>O rascunho mudou depois desta folha.</p>
+      <!-- O par do "Seu rascunho, só para ler" da folha de cima. São duas folhas numeradas, as duas
+           começando em 1, e só a de cima tinha rótulo — a de baixo, que é onde ele escreve, não tinha
+           nenhum. O `aria-label` da região já dizia "Passar a limpo"; o que faltava era na tela. -->
+      <p class="cap">Sua folha, para passar a limpo</p>
       <p class="sheet-hint" id="limpoDica" hidden>Deite o celular para ver a linha inteira ›</p>
       <div id="limpoFolha" class="limpofolha hand"></div>
       <div class="lines" id="limpoStat"></div>
@@ -1535,8 +1589,16 @@
     <div class="outras" id="estudoOutras" hidden></div>
     <!-- A leitura por matéria: uma linha por matéria que tem alguma marca, sobre a missão inteira.
          Fica entre os chips e os grupos de semana porque é leitura do banco todo, e o cabeçalho de
-         cada grupo é da semana. Texto, nunca gráfico e nunca botão. -->
-    <div class="humor" id="estudoHumor" hidden></div>
+         cada grupo é da semana. Texto, nunca gráfico e nunca botão.
+         O h3 é o nome que o HELP.estudo já dá a este bloco ("Como foi estudar, acima dos grupos") e
+         que faltava na tela: sem ele, cinco linhas em negrito apareciam sem rótulo e pesavam mais que
+         o h3 cinza da semana logo abaixo. Não leva `?` próprio — a ajuda deste bloco é a da seção, e
+         um segundo ponto de interrogação a dois centímetros do primeiro não é ajuda, é ruído.
+         O rótulo é estático e quem se refaz é só a lista: o wrap é que esconde os dois juntos. -->
+    <div id="estudoHumorWrap" hidden>
+      <h3>Como foi estudar</h3>
+      <div class="humor" id="estudoHumor"></div>
+    </div>
     <div id="estudoList" class="mt"></div>
   </section>
 
@@ -1575,7 +1637,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 267 · 21/10/2026</p></div>
+  <div class="in"><p class="versao">versão 284 · 22/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
@@ -1758,6 +1820,11 @@
   ];
   // Reta final (semana 8): sem redação nova, sem briefing, sem missão. Só notícia, blocos e simulado valem XP (máximo 300).
   const FINAL_HIDE = new Set(["red","early","read","rew","brief","miss"]);
+  // As três que a chamada de domingo produz, e por isso não são falta antes dela: a leitura em voz
+  // alta e o briefing acontecem NO encontro, e o parágrafo reescrito depois. Usado só pelo resumo
+  // para o pai; o painel Hoje tem a conta dele (`posChamada`), que é sobre outra coisa — lá a
+  // pergunta é "o que marcar agora", aqui é "o que não citar como falta".
+  const POS_CHAMADA = new Set(["read","brief","rew"]);
   // Matérias do bloco de estudo: a lista que o Arthur propôs, na ordem dele, mais "Outra" como saída
   // (História, Artes e Espanhol são conteúdo de ENEM que não estava na lista). A chave é um slug, não o
   // índice: reordenar a lista ou promover História depois não pode remexer no que já está gravado.
@@ -2112,6 +2179,12 @@
     backup:{t:"Backup e conexão",b:`<p>O backup é o seu progresso inteiro num código ou num arquivo: <b>${APP?"Salvar arquivo…":"Baixar arquivo de backup"}</b> guarda tudo, e <b>Restaurar backup</b> traz de volta, aqui ou em outro aparelho. Com conta ou sem conta, funciona igual.</p><p><b>Com a conexão ao orientador,</b> o que você registra sobe sozinho para o painel. A conexão não substitui o backup: o arquivo continua sendo seu, e restaurar continua valendo como sempre. <b>Sair da conta</b> encerra a sessão neste computador; o que ainda esperava a rede fica guardado aqui e sobe quando você entrar de novo.</p><p><b>Em mais de um aparelho,</b> o que foi feito num sem rede e no outro também se soma quando a rede volta: blocos, repertórios, notícias e marcas ficam todos, e o XP nunca diminui por causa disso. Um mesmo texto mudado nos dois fica com a mudança mais recente, e a outra versão é guardada: o campo mostra <b>Havia outra versão deste texto</b>, com <b>Ver</b> (e ali <b>Usar esta</b>, que troca as duas) e <b>Dispensar</b>, que a apaga de vez. <b>Zerar tudo</b>, conectado, zera a missão em todos os seus aparelhos — e o Desfazer dos 8 segundos devolve em todos.</p>`},
   };
   const BRIEF_FIELDS = [["tema","Tema da notícia"],["fontes","Fonte(s)"],["oque","1. O que aconteceu (1 frase)"],["porque","2. Por que importa (1 frase)"],["ganha","3. Quem ganha / quem perde"],["brasil","4. E o Brasil?"],["serve","5. Serve de repertório para temas de"],["pergunta","Pergunta que eu não sei responder"]];
+  // Os seis de prosa são textarea que cresce; `tema` e `fontes` continuam campo de uma linha (o tema é
+  // também o título do item recolhido, e a fonte é um endereço). O briefing é o único texto do app que
+  // ele escreve para FALAR, não para arquivar: são 400 caracteres permitidos contra ~80 visíveis num
+  // input, e entre escrever na sexta e apresentar no domingo não havia superfície nenhuma que mostrasse
+  // o que ele escreveu — nem o resumo para o pai, que corta os cinco centrais de propósito.
+  const BRIEF_LONGOS = new Set(["oque","porque","ganha","brasil","serve","pergunta"]);
   const BADGES = [
     {id:"tese",  name:"Primeira Tese",     desc:"C2 ≥ 160 em uma redação",     test:s=>anyScore(s,"c2",v=>v>=160)},
     {id:"cinco", name:"Cinco Elementos",   desc:"Proposta completa, C5 = 200", test:s=>anyScore(s,"c5",v=>v>=200)},
@@ -2745,7 +2818,7 @@
     if(p.tropecos.length){
       const n = p.tropecos.reduce((a,t)=>a+t.casos.length,0);
       h += `<div class="pbloco"><h3>Os tropeços de português <span class="pcomp">C1 · ${n} desvio${n===1?"":"s"} · para conferir ao reescrever</span></h3><p class="muted">Não são o ajuste da semana. São o que, conferido antes de entregar, sobe a C1 sem esforço novo.</p><ol class="ptrop">`
-        + p.tropecos.map((t,i)=>`<li><b>${esc(t.tipo)} (${t.casos.length} ${t.casos.length===1?"vez":"vezes"})${i===0&&t.casos.length>1?` <span class="pchip">o que mais se repete</span>`:""}</b><p class="pcasos">${t.casos.map(c=>"linha" in c ? `linha ${c.linha} ${esc(c.antes)} / ${esc(c.depois)}` : `§${c.paragrafo} ${esc(c.trecho)}`).join(" · ")}</p><p>${esc(t.regra)}</p><p><b>Como conferir:</b> ${esc(t.conferir)}${link(t.link)}</p></li>`).join("")
+        + p.tropecos.map((t,i)=>`<li><b>${esc(t.tipo)} (${t.casos.length} ${t.casos.length===1?"vez":"vezes"})${i===0&&t.casos.length>1?` <span class="pchip">o que mais se repete</span>`:""}</b><p class="pcasos">${t.casos.map(c=>"linha" in c ? `linha ${c.linha} ${esc(c.antes)} / ${esc(c.depois)}` : `§${c.paragrafo} ${esc(c.trecho)}`).join(" · ")}</p><p>${esc(t.regra)}</p>${t.conferir || t.link ? `<p><b>Como conferir:</b> ${esc(t.conferir)}${link(t.link)}</p>` : ""}</li>`).join("")
         + `</ol></div>`;
     }
     if(p.mapa.length) h += `<div class="pbloco"><h3>Para as próximas redações <span class="pcomp">fica anotado, não é tarefa</span></h3><p class="muted">O que os leitores viram além do ajuste. O plano é um ajuste por semana: isto é o mapa do que vem depois.</p><ul class="pmapa">${p.mapa.map(m=>`<li><b>${esc(m.titulo)}${m.comp?` (${up(m.comp)})`:""}.</b> ${esc(m.texto)}${m.conferir?` <i>Como conferir:</i> ${esc(m.conferir)}`:""}</li>`).join("")}</ul></div>`;
@@ -2900,7 +2973,12 @@
     const el = document.getElementById("vs"); const me = weekXP(current), prev = current>1 ? weekXP(current-1) : 0;
     // Do dia da prova em diante ninguém compara semanas: cobrar mais de quem já terminou seria o contrário do jogo.
     // Na semana 8 também não: ela vale no máximo 300 XP e o plano manda descansar.
-    if(daysToEnem()<=0 || WEEKS[current-1].final || current<=1 || !prev){ el.textContent = ""; return; }
+    // E de segunda a sexta também não (ADR-001 de resumo-que-so-fala-em-divida): comparar uma semana
+    // VIVA com uma FECHADA é aritmeticamente garantido dizer que ele está perdendo em seis dos sete
+    // dias, e esta é a única frase do herói dirigida pessoalmente a ele. No sábado e no domingo as
+    // duas semanas têm quase o mesmo tamanho, e aí "faltam N para passar" é alvo que ele alcança
+    // antes de a semana fechar — que é o que a frase sempre prometeu ser. A redação não muda.
+    if(daysToEnem()<=0 || WEEKS[current-1].final || current<=1 || !prev || todayIdx()<5){ el.textContent = ""; return; }
     el.innerHTML = me>prev ? `Semana ${current}: <b>${me} XP</b> · já passou a semana ${current-1} (${prev} XP).`
       : me===prev ? `Semana ${current}: <b>${me} XP</b> · empatou com a semana ${current-1}.`
       // Atrás nunca vira dívida: a frase diz quanto falta para passar, não quanto ele está devendo.
@@ -2915,7 +2993,12 @@
   function renderContrato(){
     const c = state.contrato;
     document.getElementById("contratoResumo").innerHTML = [
-      [`Encontro com ${orientador()}`, c.encontro], ["Redação até", c.entrega], ["Jogo na semana", c.jogoHoras ? `até ${c.jogoHoras}/dia` : ""], ["Jogo só depois de", c.jogoDepois], ["Correção", c.plataforma], ["Próxima recompensa", nextReward()]
+      // O rótulo é LEGENDA de um valor que está acima dele, então ele não pode ser uma frase pela
+      // metade: "fechar o bloco de estudo" sobre "Jogo só depois de" lia de trás para a frente, e o
+      // mesmo com "quinta" sobre "Redação até". No painel do pai os mesmos campos saem como
+      // "<b>Jogo só depois de:</b> fechar o bloco" — ali a frase inteira existe e o rótulo fica.
+      // "combinada" separa esta recompensa da patente que o herói aponta: são duas escadas.
+      [`Encontro com ${orientador()}`, c.encontro], ["Prazo da redação", c.entrega], ["Jogo na semana", c.jogoHoras ? `até ${c.jogoHoras}/dia` : ""], ["Condição para jogar", c.jogoDepois], ["Correção", c.plataforma], ["Próxima recompensa combinada", nextReward()]
     ].map(([l,v])=>`<div><b>${esc(v)||"—"}</b><small>${l}</small></div>`).join("");
     document.querySelectorAll("[data-c]").forEach(inp=>{ if(document.activeElement!==inp) inp.value = c[inp.dataset.c]||""; inp[inp.tagName==="SELECT"?"onchange":"oninput"] = ()=>{
       const k = inp.dataset.c; c[k] = inp.value;
@@ -3055,7 +3138,14 @@
     TASKS.forEach(t=>{
       if(meta.final && FINAL_HIDE.has(t.id)) return;
       const on = !!w.tasks[t.id], dis = t.needs && !w.tasks[t.needs];
-      html += `<div class="task ${on?'done':''} ${first?'first':''}"><input type="checkbox" id="t-${t.id}" data-task="${t.id}" ${on?'checked':''} ${dis?'disabled':''}><label for="t-${t.id}">${t.label}</label><span class="pts">${t.needs?'+':''}${t.xp} XP</span></div>`; first = false;
+      // Quem diz o que falta nunca é o controle apagado, é a linha ao lado dele, sempre visível
+      // (DESIGN.md). Sem isto a linha do bônus ficava cinza e muda na quinta — o único dia em que ele
+      // ainda é ganhável —, e a maior alavanca de antecipação do plano se parecia com uma já perdida.
+      // "hoje ainda dá" só na semana real: na aba de uma semana passada seria mentira sobre o relógio.
+      const dica = !dis ? "" : t.needs === "red"
+        ? (current === guessWeek() && todayIdx() <= 3 ? "hoje ainda dá: marque a redação" : "marque a redação primeiro")
+        : "falta a tarefa de cima";
+      html += `<div class="task ${on?'done':''} ${first?'first':''}"><input type="checkbox" id="t-${t.id}" data-task="${t.id}" ${on?'checked':''} ${dis?'disabled':''}><label for="t-${t.id}">${t.label}</label><span class="pts">${t.needs?'+':''}${t.xp} XP</span>${dica?`<small class="dica">${dica}</small>`:""}</div>`; first = false;
     });
     // A lista dos blocos mora no banco de estudo, e só lá. Aqui fica a régua da semana, no mesmo formato
     // da linha de repertório algumas linhas abaixo — quanto dos cinco já foi e o caminho para registrar.
@@ -3141,8 +3231,16 @@
     document.getElementById("eMin").innerHTML = opts;
     // As três pílulas saem de HUMOR, como as opções de Matéria saem de MATERIAS: a escala é um literal
     // só, igual nos dois apps, e trocar uma palavra depois é trocá-la num lugar.
+    // O `aria-describedby` vai nos TRÊS rádios e não no `role="radiogroup"` de #eHumor: na árvore de
+    // acessibilidade do Chrome a descrição do grupo não desce para os rádios — medido em 22/10/2026,
+    // o grupo a recebe e os três ficam com `description: null` —, e é no rádio que o foco pousa. Em
+    // modo de foco, que é o modo em que se preenche formulário, sem isto ele ouvia "Pesou, botão de
+    // opção 1 de 3" e não o que a palavra significa nem que a marca é lida
+    // (BUG-20261021-dica-da-marca-nao-e-anunciada-no-grupo). Preço aceito: a glosa inteira a cada
+    // seta. A dica é texto vivo — `renderNome()` reescreve o `<span data-orientador="de">` de dentro
+    // dela quando conectado —, e a descrição acompanha sozinha, porque o laço é por id.
     document.getElementById("eHumor").innerHTML = HUMOR
-      .map(([v,l])=>`<label><input type="radio" name="eHumor" value="${v}" data-humor="${v}"><span>${esc(l)}</span></label>`).join("");
+      .map(([v,l])=>`<label><input type="radio" name="eHumor" value="${v}" data-humor="${v}" aria-describedby="eHumorDica"><span>${esc(l)}</span></label>`).join("");
   })();
 
   // ---------- como foi estudar: ler, mostrar e LIMPAR a marca no formulário
@@ -4744,7 +4842,9 @@
     const ap = x.apresenta, id = esc(x.id), tit = (x.tema||"").trim() ? esc(x.tema) : "Sem título";
     return `<details class="noticia" data-noticia="${id}"${ap || noticiaAberta.has(x.id) ? " open" : ""}>`
       + `<summary>${ap ? `<span class="rotulo">Vou apresentar</span>` : ""}<span class="titulo">${tit}</span></summary><div class="body">`
-      + BRIEF_FIELDS.map(([k,l])=>`<label class="f mt">${l}<input id="nt-${id}-${k}" data-bf="${k}" maxlength="400" value="${esc(x[k])}"></label>`).join("")
+      + BRIEF_FIELDS.map(([k,l])=>`<label class="f mt">${l}${BRIEF_LONGOS.has(k)
+          ? `<textarea id="nt-${id}-${k}" data-bf="${k}" data-grow="160" rows="1" maxlength="400">${esc(x[k])}</textarea>`
+          : `<input id="nt-${id}-${k}" data-bf="${k}" maxlength="400" value="${esc(x[k])}">`}</label>`).join("")
       + `<div class="actions noprint">${ap ? "" : `<button class="quiet" data-apresentar="${id}">Apresentar esta</button>`}<button class="quiet" data-del-noticia="${id}">Apagar</button></div></div></details>`;
   }
   function renderBrief(){
@@ -4756,12 +4856,15 @@
     const ap = apresentada(w);
     if(!ap){ f.innerHTML = `<p class="muted vazio">Nenhuma notícia nesta semana ainda. Toque em <b>Nova notícia</b> para abrir a ficha da que você vai apresentar no domingo.</p>`; return; }
     f.innerHTML = [ap, ...w.noticias.filter(x=>x!==ap)].map(noticiaHTML).join("");
+    // Onde não há field-sizing, quem dá a altura é o grow(): aqui depois de desenhar, no toggle (campo
+    // dentro de item fechado mede zero e o grow desiste) e a cada tecla, no ouvinte de input abaixo.
+    f.querySelectorAll("textarea[data-grow]").forEach(grow);
     const item = el=>wk(n).noticias.find(x=>x.id===el.closest("[data-noticia]").dataset.noticia);
     // Digitar grava e refaz só os resumos, nunca a lista: o texto de um item continua onde está quando
     // ele abre outro. O tema também é o título do item recolhido, então ele acompanha a digitação.
     f.querySelectorAll("[data-bf]").forEach(inp=>inp.addEventListener("input",e=>{
       const x = item(inp); if(!x) return;
-      x[inp.dataset.bf] = e.target.value; save(); renderSummaries();
+      x[inp.dataset.bf] = e.target.value; grow(e.target); save(); renderSummaries();
       if(inp.dataset.bf==="tema") inp.closest(".noticia").querySelector("summary .titulo").textContent = x.tema.trim() ? x.tema : "Sem título";
       // O Hoje decide o passo do briefing pelo tema da apresentada: ele precisa ver a digitação, senão
       // continua pedindo a ficha que acabou de ser preenchida. Redesenhar o Hoje não toca no foco daqui.
@@ -4769,6 +4872,7 @@
     }));
     f.querySelectorAll("details.noticia").forEach(d=>d.addEventListener("toggle",()=>{
       const id = d.dataset.noticia, x = wk(n).noticias.find(y=>y.id===id);
+      if(d.open) d.querySelectorAll("textarea[data-grow]").forEach(grow);
       if(!x || x.apresenta) return;
       if(d.open) noticiaAberta.add(id); else noticiaAberta.delete(id);
     }));
@@ -4872,7 +4976,7 @@
     const all = state.estudo;
     if(!all.length){
       wrap.hidden = true; chips.hidden = true; chips.innerHTML = ""; estudoFiltro = null;
-      document.getElementById("estudoHumor").hidden = true;
+      document.getElementById("estudoHumorWrap").hidden = true;
       list.innerHTML = `<p class="muted vazio">Banco vazio. Cada bloco que você registrar nas semanas aparece aqui para revisar.</p>`;
       return;
     }
@@ -4905,7 +5009,7 @@
       return `<p><b>${esc(l)}</b> · ${ps.join(" · ")}</p>`;
     }).filter(Boolean);
     hum.innerHTML = linhas.join("");
-    hum.hidden = !linhas.length;
+    document.getElementById("estudoHumorWrap").hidden = !linhas.length;
     const vis = estudoFiltro ? all.filter(e=>matLabel(e)===estudoFiltro) : all;
     if(!vis.length){
       // Só o chip preso chega aqui: a lista diz o mesmo que a fila — a matéria marcada, com 0.
@@ -5333,11 +5437,39 @@
     // falta só entra numa semana que a exige, dentro da única linha "Ainda não" (ADR-002). Em
     // andamento numa semana que não a exige, não se fala dela.
     const limpoFim = limpoEstado(w)==="finalizada", limpoTxt = limpoFim ? `folha passada a limpo (${nLinhas(limpoEscritas(w.limpo))})` : "";
-    const naoFeitas = [...vis.filter(t=>!w.tasks[t.id]&&!t.needs).map(t=>t.label), ...falta.map(x=>x.titulo), ...(meta.limpo&&!limpoFim?["Passar a limpo"]:[])];
+    // A semana não cobra o que ela ainda não pediu. Três tarefas só acontecem NA chamada ou depois
+    // dela — `read` é "no encontro", `brief` é "apresentado" e `rew` é "até segunda" —, e numa quinta
+    // elas saíam na `Ainda não:` junto das outras: metade da lista era calendário, não atraso. O dia
+    // do encontro sai do CONTRATO (a mesma conta de renderToday(), com domingo de reserva), nunca de
+    // uma constante, e a regra só vale na semana REAL: na aba de uma semana que já fechou elas não
+    // foram feitas mesmo, e aí são falta de verdade.
+    // E A CONTA É A CHAMADA, NÃO O DIA DELA: o resumo é mandado ao pai ANTES da chamada, no próprio
+    // domingo — o painel Hoje modela isso desde sempre, em "o domingo tem duas metades" —, então
+    // parar na véspera deixava a única mensagem que o pai lê exatamente como era antes deste
+    // conserto. O sinal de que a chamada aconteceu é ele ter marcado alguma das três, que é o gesto
+    // que o Hoje já oferece ali; antes disso, no dia do encontro, elas ainda são calendário.
+    const encDia = dayIdx(state.contrato,"encontro")>=0 ? dayIdx(state.contrato,"encontro") : 6;
+    const chamou = [...POS_CHAMADA].some(id=>w.tasks[id]);
+    const antesDaChamada = current===guessWeek() && !chamou && todayIdx()<=encDia;
+    const naoFeitas = [...vis.filter(t=>!w.tasks[t.id]&&!t.needs&&!(antesDaChamada&&POS_CHAMADA.has(t.id))).map(t=>t.label), ...falta.map(x=>x.titulo), ...(meta.limpo&&!limpoFim?["Passar a limpo"]:[])];
     // O título fica sozinho na linha 1 e o tema vem na 2: a suíte reconhece a mensagem pelo começo dela.
     const cab = [`Missão ENEM — Semana ${meta.n} (${meta.range})`, meta.theme,
       `XP da semana: ${weekXP(current)} · Total: ${xp} · Patente: ${r}`, combinadoLine()];
+    // O corpo abre pelo que EXISTE. As linhas `✓` só nascem de tarefa marcada, então numa quinta sem
+    // nada marcado o resumo caía do cabeçalho direto na falta — zero afirmativas contra seis. Esta é
+    // a única linha do resumo que junta num lugar só o que ele registrou e que sem ela só aparece
+    // três e quatro linhas abaixo, cada uma com o seu denominador. Sem denominador aqui de
+    // propósito: `2/7` e `1/5` são medidas, e medida no lugar do elogio é a mesma frase de novo.
+    // "Esta semana" porque ela é DA SEMANA, ao lado de três linhas que são globais e dizem isso
+    // (`no contrato`, `no banco`, `da missão`).
+    // E A GUARDA VEM JUNTO, não depois: numa semana vazia a linha diria `Esta semana até aqui:` e
+    // nada, ou um zero — prometer elogio e entregar zero é pior do que não prometer. Sem nenhuma
+    // parte, ela não existe e o resumo fica como era.
+    const nDias = w.days.reduce((a,b)=>a+b,0), nBlocos = blocos(current).length, nReps = repCount(current);
+    const feito = [nDias?`${nDias} dia${nDias===1?"":"s"} de notícia`:"", nBlocos?`${nBlocos} bloco${nBlocos===1?"":"s"} de estudo`:"",
+      nReps?`${nReps} repertório${nReps===1?"":"s"}`:""].filter(Boolean);
     const lines = [
+      ...(feito.length?[`Esta semana até aqui: ${feito.join(" · ")}`]:[]),
       ...vis.filter(t=>w.tasks[t.id]&&(!t.needs||w.tasks[t.needs])).map(t=>"✓ "+t.label),
       ...(feitos.length?[`✓ Exercícios do parecer: ${feitos.map(x=>x.titulo).join(" · ")}`]:[]),
       ...(naoFeitas.length?[`Ainda não: ${naoFeitas.join(" · ")}`]:[]),
@@ -5345,7 +5477,14 @@
       `Repertórios: ${repCount(current)}/2 nesta semana · ${state.bank.length} no banco${reps.length?` (${reps.map(x=>`${x.nome}${(x.temas||"").trim()?` — ${x.temas}`:""}`).join("; ")})`:""}`,
       `Notícia: ${w.days.reduce((a,b)=>a+b,0)}/7 dias (${DAYS.filter((d,i)=>w.days[i]).join(", ")||"nenhum"})`];
     const gi = gDay(guessWeek(), todayIdx()), seqAtual = dayPerfect(gi) ? perfectRun(gi) : perfectRun(gi-1), seqMelhor = bestRun();
-    if(seqMelhor) lines.push(`Dias perfeitos seguidos: ${seqAtual}${seqMelhor>seqAtual?` (melhor: ${seqMelhor})`:""}`);
+    // Com a corrente em zero a linha dizia `Dias perfeitos seguidos: 0 (melhor: 37)`, que lê como
+    // "você tinha 37 e agora tem 0" — o recorde virava a régua da queda. É a MESMA regra que o
+    // foguinho gelado já pratica na tela ("perder a manhã não apaga o que ele já fez"), aplicada no
+    // outro lugar: em zero a linha diz só o recorde. Com a corrente viva nada muda, e o
+    // `N (melhor: M)` continua palavra por palavra. Sem recorde nenhum continua não havendo linha.
+    if(seqMelhor) lines.push(seqAtual
+      ? `Dias perfeitos seguidos: ${seqAtual}${seqMelhor>seqAtual?` (melhor: ${seqMelhor})`:""}`
+      : `Dias perfeitos seguidos: melhor da missão, ${seqMelhor}`);
     if(w.redacao&&w.redacao.trim()){ const rs=redStats(w.redacao); lines.push(`Redação escrita: ${rs.lines} linha${rs.lines===1?"":"s"}, ${rs.paras} parágrafo${rs.paras===1?"":"s"}${limpoTxt?` · ${limpoTxt}`:""}`); }
     else if(limpoTxt) lines.push(`Redação: ${limpoTxt}`);
     // As redações extras da semana (US-036): o tema e o estado de cada uma, na ordem do registro, e uma
