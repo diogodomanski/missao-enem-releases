@@ -938,6 +938,40 @@
   #temas .db > p:first-child{margin-top:0}
   #temas h3{margin:18px 0 0}
   #temaLivre{margin-top:18px;border-top:1px solid var(--line);padding-top:14px}
+
+  /* ---------- o guia de dicas de prova (ADR-005 de dicas-de-prova)
+     Cosmético, e só: nenhuma regra daqui decide o que se VÊ. Quem põe e tira o `hidden` das linhas
+     do outro dia, das etiquetas e da linha quieta é dicasHTML(), a gêmea dos dois apps — uma tela
+     que esquecesse uma regra de CSS mostraria outro texto que a outra, e é isso que a decisão
+     impede. Nenhum acento novo: nada aqui é vermelho, ouro ou azul fora do `a` das fontes, porque
+     vermelho é erro e ouro é o único acento da tela (DESIGN.md). */
+  .dicas .bloco{border-top:1px solid var(--line)}
+  .dicas .bloco:first-child{border-top:0}
+  .dicas .bloco > summary{list-style:none;cursor:pointer;padding:10px 0;display:flex;align-items:center;gap:8px;min-width:0}
+  .dicas .bloco > summary::-webkit-details-marker{display:none}
+  /* O ▾ é a receita do painel (details.card > summary::before), com a mesma guarda de movimento. */
+  .dicas .bloco > summary::before{content:"▾";color:var(--muted);font-size:14px;line-height:1;flex:0 0 auto;transform:rotate(-90deg);transition:transform .15s}
+  .dicas .bloco[open] > summary::before{transform:none}
+  @media (prefers-reduced-motion:reduce){.dicas .bloco > summary::before{transition:none}}
+  .dicas .bloco > summary h3{font-size:15px;margin:0;min-width:0;overflow-wrap:anywhere}
+  .dicas .agora{font-size:11px;font-weight:400;color:var(--muted)}
+  .dicas .itens{margin:0 0 12px;padding:0 0 0 22px}
+  .dicas .dica{margin:0 0 12px;min-width:0}
+  .dicas .dica > p{overflow-wrap:anywhere}
+  .dicas .acao{font-size:14px;color:var(--ink)}
+  .dicas .porque,.dicas .fecho{font-size:13px;color:var(--muted);margin-top:2px}
+  /* 11px cinza, a mesma etiqueta do banco de estudo (`.rep .tag`): a origem é legenda, não acento. */
+  .dicas .origem,.dicas .dtag{font-size:11px;color:var(--muted)}
+  .dicas .origem{margin-top:3px}
+  .dicas .sodia{font-size:13px}
+  /* As duas vias são simétricas por construção: mesma largura, mesmo tipo, mesma tinta. Abaixo de
+     480px elas empilham — lado a lado, a 320px cada coluna ficaria com ~9 caracteres por linha. */
+  .dicas .vias{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  .dicas .via{min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .dicas .via b{font-size:13px;display:block;overflow-wrap:anywhere}
+  .dicas .via p{font-size:13px;color:var(--muted);margin:4px 0 0;overflow-wrap:anywhere}
+  @media (max-width:480px){.dicas .vias{grid-template-columns:1fr}}
+  .dicas .fontes{font-size:13px;margin-top:14px;padding-top:10px;border-top:1px solid var(--line);overflow-wrap:anywhere}
   /* toque: alvo de 44px sem mudar o desenho (padding maior, área invisível no chevron; a do ? vem da base) e campo nunca abaixo de 16px */
   @media (pointer:coarse){
     button{padding:10px 14px}
@@ -988,7 +1022,26 @@
        devolve o que o botão cresce, para a linha continuar discreta. Acima está a linha do tempo, que
        não se toca; abaixo, o padding do painel. */
     .today .lembretes .linkish{padding:0;margin:-12px 0}
+    /* Duas linhas quietas seguidas (lembretes e o guia, nas semanas 5 e 7 e do dia da prova em
+       diante): cada botão desce 12px abaixo da própria linha e sobe 12px acima dela, e o vão de
+       12px entre os parágrafos não dá conta dos dois — medido, o alvo de cima caía para 31,9px
+       porque o de baixo pintava por cima. 24px é o vão que deixa os dois com os 44 inteiros. */
+    .today .lembretes + .lembretes{margin-top:24px}
     .lembrete a{min-height:44px}
+    /* O guia: o título do bloco é o alvo de abrir e fechar, e os dois links das fontes são âncoras
+       inline dentro de um parágrafo — `inline-flex` para o link não partir em dois retângulos quando
+       o título quebrar, que é o que aconteceu com os links do card da semana. */
+    .dicas .bloco > summary{min-height:44px}
+    .dicas .fontes a{display:inline-flex;align-items:center;min-height:44px}
+    /* E o primeiro bloco paga 2px pelo vizinho de cima: o `?` do cabeçalho leva um disco invisível de
+       44px (`.help::after`, na base), e o disco desce 10px abaixo do botão onde só há 8px de folga até
+       o `<summary>` — ele cobria 2px do topo e o alvo caía a 42,0px, onde o centro da linha passa
+       debaixo do `?` (medido a 390, 396, 400, 402, 406 e 414; a 320 e a 375 o disco já curvou e não
+       encosta, e 375 é a única largura que a varredura da suíte visita). `padding` e não `margin`:
+       entre o `<details>` e o `.body` da seção não há borda nem padding, então margem COLAPSA para
+       fora e o bloco não anda 1px (medido com 4px). O painel não precisa — lá o `?` mora no
+       `<summary>` do card, que tem 14px de folga abaixo dele. */
+    .dicas .bloco:first-child{padding-top:2px}
     /* Os dois links da linha de texto do card da semana. A linha do `.muted` mede 18,85px (13px × 1,45):
        13px de padding em cima e embaixo dão 44,85 — os 10px de antes davam 38,85. A margem negativa
        devolve o que o padding acrescenta, e o desenho não muda. `inline-block` para o link não quebrar
@@ -1023,7 +1076,13 @@
     body{background:var(--surface);font-size:12px}
     main{max-width:none;padding:0}
     .navwrap,.nav,.fila,.hero,.today,.promo,.tabs,.actions,button,.toast,.foot,.noprint,dialog{display:none !important}
-    .sec{border:0;padding:0;margin:0 0 18px;break-inside:avoid}
+    /* `auto`, e a declaração fica escrita em vez de sumir: `auto` é o valor inicial, e o que
+       precisa durar aqui é a razão. Com `avoid`, um contêiner mais alto que uma folha — o guia de
+       prova mede 3111px SEMPRE, o banco de estudo de fim de missão passa de 3000 — não cabe em
+       lugar nenhum, e o Chrome o empurra inteiro para a folha seguinte: a PRIMEIRA sai com a linha
+       de título e mais nada. Quem continua inteiro é a unidade que cabe numa folha, e ela diz isso
+       por conta própria logo abaixo (`.dicas .bloco`, `.sheet li`). Não devolva o `avoid` aqui. */
+    .sec{border:0;padding:0;margin:0 0 18px;break-inside:auto}
     body[data-print="contrato"] #contratoForm[hidden]{display:block !important}
     input,textarea,select{border:0;border-bottom:1px solid var(--muted);border-radius:0;padding:2px 0;background:var(--surface)}
     body[data-print="contrato"] .sec:not(#contrato),body[data-print="contrato"] #semanas-wrap,body[data-print="contrato"] .remind{display:none}
@@ -1046,6 +1105,18 @@
     /* A linha é um <button>, e o `button{display:none}` do começo deste bloco a apagaria: no papel ela
        volta como linha de texto, com a identificação à esquerda e as etiquetas à direita. */
     body[data-print="redacoes"] .redrow{display:flex !important;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:4px 0;margin:0;gap:10px;justify-content:space-between}
+    /* O GUIA DE PROVA (ADR-003 de dicas-de-prova): no papel ele sai inteiro e para os DOIS dias. O
+       `hidden` das linhas do outro dia e das etiquetas é posto por dicasHTML() — é lá que a regra
+       mora —, e aqui o papel o vence, porque uma folha impressa em outubro tem de servir nas duas
+       provas. `display:revert` e não `block`: o `li` volta a ser `list-item` e o `span` da etiqueta,
+       `inline`. O `!important` é o mesmo recurso do `#contratoForm[hidden]` logo acima.
+       Com tudo visível, a linha quieta do bloco de um dia só deixa de ter o que dizer e sai. */
+    body[data-print="dicas"] .sec:not(#dicas),body[data-print="dicas"] #semanas-wrap{display:none}
+    body[data-print="dicas"] .dicas li[hidden],body[data-print="dicas"] .dicas .dtag[hidden]{display:revert !important}
+    body[data-print="dicas"] .dicas .sodia{display:none}
+    /* O endereço vai junto do título: no papel um link azul não leva a lugar nenhum. */
+    body[data-print="dicas"] .dicas .fontes a::after{content:" (" attr(href) ")"}
+    .dicas .bloco{break-inside:avoid}
     /* Uma linha da folha nunca se parte entre duas páginas (US-004 EC-3). */
     .sheet li{break-inside:avoid}
     /* A lista do que ficou de fazer sai como registro: ✓ ou ☐ em texto, nunca um controle. */
@@ -1257,7 +1328,7 @@
   </div>
   <div class="navwrap fila">
     <nav class="nav" aria-label="Seções">
-      <a href="#hoje">Hoje</a><a href="#contrato">Contrato</a><a href="#semanas-wrap">Semanas</a><a href="#redacao">Esta redação</a><a href="#redacoes">Todas as redações</a><a href="#parecer">Parecer</a><a href="#briefing">Briefing</a><a href="#banco">Repertório</a><a href="#estudo">Estudo</a><a href="#medalhas">Medalhas</a><a href="#resumo">Resumo</a>
+      <a href="#hoje">Hoje</a><a href="#contrato">Contrato</a><a href="#semanas-wrap">Semanas</a><a href="#redacao">Esta redação</a><a href="#redacoes">Todas as redações</a><a href="#parecer">Parecer</a><a href="#briefing">Briefing</a><a href="#banco">Repertório</a><a href="#estudo">Estudo</a><a href="#dicas">Dicas de prova</a><a href="#medalhas">Medalhas</a><a href="#resumo">Resumo</a>
     </nav>
   </div>
   <div class="alert" id="storeAlert" role="alert" hidden></div>
@@ -1280,6 +1351,13 @@
     <p class="later" id="todayHumor" hidden></p>
     <div class="tl" id="timeline"></div>
     <p class="lembretes" id="lembretesLinha"><button class="linkish" id="lembretesAbre">Lembretes no celular</button></p>
+    <!-- A entrada quieta para o guia de prova (ADR-005 de dicas-de-prova). Markup estático pela mesma
+         razão do `#lembretesLinha` e do `#todayHumor`: o Hoje se redesenha a cada commit() e um nó
+         recriado levaria o foco ao <body>. Quem preenche o rótulo, os blocos de destino e o `hidden`
+         é o renderToday(), e só UMA variante existe por dia. Nunca é passo: sem XP, sem toast, fora
+         do "Depois:" — e no dia da prova ela é o ÚNICO caminho para o guia, porque ali o Hoje tem
+         zero botões por regra. -->
+    <p class="lembretes" id="dicasLinha" hidden><button class="linkish" id="dicasAbre"></button></p>
   </section>
 
   <!-- DEPOIS do Hoje, nunca antes: o princípio nº 1 é "o que eu faço agora" antes de tudo, e em 390px
@@ -1602,6 +1680,19 @@
     <div id="estudoList" class="mt"></div>
   </section>
 
+  <!-- O guia de dicas de prova (ADR-001 e ADR-005 de dicas-de-prova). Leitura, nunca tarefa: sem
+       checkbox, sem XP, sem toast, e o único estado que fica gravado é o aberto/fechado da seção,
+       como em toda `.sec`. O corpo inteiro é escrito por `renderDicas()` a partir do literal que o
+       build injetou — os seis blocos, o que se vê em cada dia e a linha das fontes saem de
+       `dicasHTML()`, a gêmea que o painel também chama, e não deste markup nem do CSS daqui.
+       O cabeçalho NÃO tem `.actions`: a Regra do Um Acento, e aqui não há acento nenhum a gastar —
+       o Imprimir é botão padrão e mora no corpo, então a seção fechada é só título, `?` e resumo. -->
+  <section class="sec" id="dicas">
+    <header><h2>Dicas de prova <button class="help" data-help="dicas" aria-label="Ajuda: dicas de prova">?</button></h2></header>
+    <div id="dicasCorpo"></div>
+    <div class="actions"><button data-print="dicas">Imprimir dicas de prova</button></div>
+  </section>
+
   <section class="sec" id="medalhas">
     <header><h2>Medalhas <button class="help" data-help="medalhas" aria-label="Ajuda: medalhas">?</button></h2></header>
     <div class="badges" id="badges"></div>
@@ -1637,7 +1728,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 284 · 22/10/2026</p></div>
+  <div class="in"><p class="versao">versão 287 · 24/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
@@ -1885,6 +1976,107 @@
     {"id":"enem2009","grupo":"anterior","faixa":null,"ano":2009,"titulo":"O indivíduo frente à ética nacional","eixo":"ética","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"O indivíduo frente à ética nacional\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"ENEM 2009","repertorio":"Constituição de 1988, art. 37 (moralidade na administração pública), e a Lei da Ficha Limpa (Lei Complementar 135/2010).","semana":null}
   ];
   /* /build:temas */
+
+  // ---------- dicas de prova (ADR-001 e ADR-004 de dicas-de-prova)
+  // GERADO PELO BUILD a partir de src/conteudo/dicas-de-prova-2026.json, o guia que o Diogo cura à
+  // mão: ele não tem skill que o escreva, e por isso mora em src/conteudo/ e não nos assets de uma.
+  // Igual nos dois apps por construção — não há cópia à mão para divergir —, e as duas `fontes`
+  // chegam aqui já RESOLVIDAS para { tema, titulo, url } a partir da lista conferida, para o endereço
+  // ter uma casa só. `npm run check` recusa bloco fora da ordem ou com outro título, item acima do
+  // limite, origem `edital` sem o número do item, `fontes` que não está na lista e o nome do aluno no
+  // texto. Não edite entre os marcadores: edite o asset e rode `npm run build`.
+  /* build:dicas */
+  const DICAS_PROVA = {
+    "edicao": 2026,
+    "blocos": [{"id":"semana","titulo":"A semana da prova","itens":[{"id":"semana-1","acao":"Sem redação nova. Revise o kit mental.","porque":"Introdução pronta, seis repertórios, os cinco elementos da proposta: é o que você leva na cabeça.","origem":"plano"},{"id":"semana-2","acao":"Confira o local no Cartão de Confirmação e faça o trajeto.","porque":"Saber quanto tempo leva tira a única variável que você não controla no domingo.","origem":"professores"},{"id":"semana-3","acao":"Separe o kit material: documento, duas canetas, água, lanche.","porque":"Documento oficial com foto, canetas pretas de corpo transparente. Separado na segunda, nada falta no domingo.","origem":"edital","item":"11.1.30"},{"id":"semana-4","acao":"Teste as duas canetas numa folha.","porque":"Tinta preta de verdade, sem falhar: o cartão-resposta é lido por máquina.","origem":"professores"},{"id":"semana-5","acao":"Acorde cedo a semana toda.","porque":"A prova começa às 13h30 e vai até as 19h; o corpo precisa estar acordado nesse horário, não no da madrugada.","origem":"professores"},{"id":"semana-6","acao":"Redação extra só até 4/11; depois disso nada novo.","porque":"Correção que chega na véspera é ruído, não ajuda.","origem":"plano","dia":"dia1"}]},{"id":"vespera","titulo":"A véspera","itens":[{"id":"vespera-1","acao":"Local de prova, trajeto e horário conferidos.","porque":"Portões abrem às 12h e fecham às 13h; a prova começa às 13h30.","origem":"edital","item":"11.1.6"},{"id":"vespera-2","acao":"Documento oficial com foto na mochila.","porque":"Original. Digital só e-Título, CNH ou CIN no app oficial ou no Gov.br. Carteira de estudante e cópia não valem.","origem":"edital","item":"10.1"},{"id":"vespera-3","acao":"Duas canetas pretas de material transparente.","porque":"Lápis, borracha e corretivo ficam em casa: fora do envelope são proibidos.","origem":"edital","item":"11.1.30"},{"id":"vespera-4","acao":"Água e lanche em embalagem transparente.","porque":"O lanche passa pela vistoria do chefe de sala; transparente passa rápido.","origem":"plano"},{"id":"vespera-5","acao":"Kit mental: introdução, seis repertórios, cinco elementos.","porque":"Uma passada, em voz alta, e pronto.","origem":"plano","dia":"dia1"},{"id":"vespera-6","acao":"Celular desligado, alarmes incluídos, para o envelope.","porque":"Qualquer som dentro do envelope elimina.","origem":"edital","item":"11.1.10"},{"id":"vespera-7","acao":"Dormir antes das 23h.","porque":"Sábado sem redação, sem estudo pesado, sem maratona de jogo.","origem":"plano"}]},{"id":"manha","titulo":"A manhã e a chegada","itens":[{"id":"manha-1","acao":"Almoce cedo e leve. Saia para chegar às 12h.","porque":"É quando os portões abrem; às 13h eles fecham e não há exceção.","origem":"edital","item":"11.1.6"},{"id":"manha-2","acao":"Na porta da sala até 13h. Das 13h às 13h30 você espera sentado.","porque":"Banheiro nesse intervalo só acompanhado por fiscal.","origem":"edital","item":"11.1.17"},{"id":"manha-3","acao":"Envelope: celular, relógio, boné, óculos escuros, Cartão.","porque":"Lacrado debaixo da carteira até a saída definitiva.","origem":"edital","item":"11.1.12"},{"id":"manha-4","acao":"Prova das 13h30 às 19h: 5h30 para 90 questões e a redação.","origem":"edital","item":"1.7","dia":"dia1"},{"id":"manha-5","acao":"Prova das 13h30 às 18h30: 5h para 90 questões.","origem":"edital","item":"9.4","dia":"dia2"},{"id":"manha-6","acao":"Horário de Brasília em todo o país.","porque":"Em Curitiba é o relógio da parede: nada a converter.","origem":"edital","item":"1.7"}]},{"id":"sala","titulo":"Na sala","itens":[{"id":"sala-1","acao":"Folheie a prova inteira e comece pelas fáceis.","porque":"Dois minutos mostram onde estão os pontos certos. A ordem do caderno não é regra.","origem":"professores"},{"id":"sala-2","acao":"Cerca de 3 minutos por questão. Sem caminho, pula.","porque":"90 questões em 4 horas, depois da redação; o tempo que uma difícil come é o de duas fáceis.","origem":"professores"},{"id":"sala-3","acao":"Marque o que pulou e volte por ordem.","porque":"Círculo no número e uma nota curta (\"B ou D\", \"falta conta\"). Volte nas meio-resolvidas, depois nas de assunto conhecido, por último nas sem caminho.","origem":"professores"},{"id":"sala-4","acao":"Responda todas. Em branco conta como errada.","porque":"O chute vale pouco, mas nunca tira ponto; a questão vazia tira. Acertar as fáceis com consistência é o que a TRI mais paga.","origem":"inep"},{"id":"sala-5","acao":"Trocar de resposta com um motivo concreto melhora a nota.","porque":"\"Primeira intuição\" é mito: em 33 estudos, metade das trocas foi de errada para certa, um quarto o contrário.","origem":"professores"},{"id":"sala-6","acao":"Gabarito por blocos, com 30 minutos reservados no fim.","porque":"Preencher tudo de uma vez no fim é onde o erro de linha acontece.","origem":"professores"},{"id":"sala-7","acao":"Saída só depois de 2 horas; caderno só nos últimos 30 minutos.","porque":"A partir das 15h30 você pode sair; a partir das 18h30 (18h no 2º dia) pode levar o caderno e o rascunho.","origem":"edital","item":"11.1.34"}]},{"id":"redacao","titulo":"A redação no dia","itens":[{"id":"redacao-1","acao":"Reserve de 1h a 1h30 para a redação; decida antes quando ela entra.","porque":"É a nota de maior peso e a única que não tem chute.","origem":"professores"},{"id":"redacao-2","tipo":"caminhos","acao":"Dois caminhos: quando escrever.","caminhos":[{"nome":"Redação primeiro","pro":"Cabeça fresca, o maior peso garantido, nenhum relógio no pescoço."},{"nome":"Depois de um bloco de fáceis","pro":"Aquecimento, pontos no bolso, e os textos da prova já trazem repertório."}],"fecho":"Escolha no simulado da semana 5 e confirme no ensaio geral da semana 7.","origem":"professores"},{"id":"redacao-3","acao":"15 minutos de leitura e esqueleto: tese, dois argumentos, proposta.","porque":"Rascunho curto, não o texto inteiro duas vezes.","origem":"professores"},{"id":"redacao-4","acao":"Passe a limpo com folga: só a Folha de Redação conta.","porque":"Rascunho e marcações no caderno não são corrigidos.","origem":"edital","item":"14.1"},{"id":"redacao-5","acao":"Zero: até 7 linhas, fuga ao tema, nome no texto, letra ilegível.","porque":"Linha copiada dos textos motivadores não conta para o mínimo de 7.","origem":"edital","item":"14.7"},{"id":"redacao-6","acao":"Caneta preta transparente também na redação.","porque":"Letra que dois avaliadores leiam; o corretor nunca viu a sua.","origem":"edital","item":"14.1"},{"id":"redacao-7","acao":"Dez minutos finais de revisão: acentos, pontuação, conectivos.","porque":"O seu ajuste da semana é o que você procura primeiro.","origem":"plano"}]},{"id":"dia2","titulo":"O 2º dia","itens":[{"id":"dia2-1","acao":"Natureza e Matemática: 90 questões, 5h, até 18h30. Sem redação.","origem":"edital","item":"9.4"},{"id":"dia2-2","acao":"Mesmo kit, mesmas regras de sala e de envelope.","porque":"Documento, canetas, celular desligado, portões às 13h.","origem":"edital","item":"11.1.6"},{"id":"dia2-3","acao":"Sem redação, sobra folga: use-a nas contas, não na pressa.","porque":"Cerca de 3 minutos por questão deixa meia hora livre.","origem":"professores"},{"id":"dia2-4","acao":"Saída depois de 2 horas; caderno só a partir das 18h.","origem":"edital","item":"11.1.34"},{"id":"dia2-5","acao":"Véspera é sábado 14/11: o checklist vale de novo, sem o kit mental.","origem":"plano"},{"id":"dia2-6","acao":"Entre as provas: escola no ritmo de sempre, nada de maratona.","porque":"Descanso é parte da prova.","origem":"plano"}]}],
+    "fontes": [{"tema":"edital-2026","titulo":"Edital do Enem 2026 (MEC/Inep)","url":"https://mecnormas.mec.gov.br/pesquisa/detalhar/11900"},{"tema":"cartilha","titulo":"Cartilha do Participante — A redação do Enem (Inep)","url":"https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/outros-documentos"}]
+  };
+  /* /build:dicas */
+
+  // ---------- o guia de dicas de prova (ADR-004 e ADR-005 de dicas-de-prova)
+  // momentoDicas, resumoDicas, acoesDicas e dicasHTML são CÓPIA VERBATIM entre os dois apps, e
+  // scripts/check-weeks.mjs reprova qualquer diferença: o guia é a fonte única de todo texto de dia
+  // de prova do produto — a seção do aluno, o card do painel, o passo da véspera, a manchete do Hoje,
+  // o roteiro da véspera e o lembrete da agenda saem destas quatro —, e divergir é o Arthur ler uma
+  // instrução e o pai outra sobre a MESMA manhã. São puras: nenhuma lê `state`, `document` ou
+  // `window`, e a data chega por parâmetro. As chaves ficam equilibradas dentro de todo literal,
+  // porque o funcao() do check é um casador de chaves que não entende string.
+  // Elas leem o literal que o build escreveu SEM guarda nenhuma — seis blocos na ordem, itens com
+  // `acao` e `origem`, `edital` com o número do item, dois caminhos com fecho, duas fontes
+  // resolvidas —, porque `validaDicas()` recusa o asset antes de ele chegar aqui, como
+  // `normalizeParecer()` faz pelo parecerHTML. O `find()` que pode não achar é outra coisa: ali o
+  // bloco inexistente é CONTRATO (depois de 15/11 não há momento, e um id de fora devolve vazio).
+
+  // O momento por DIA DO CALENDÁRIO, nunca por hora (ADR-001): o bloco que abre e a variante de dia.
+  // `d1`/`d2` são os dias até cada prova, negativo depois dela. Às 23h59 do dia 8 ainda é a manhã do
+  // dia 8 — hora do dia aqui seria o app trocando de assunto no meio da prova.
+  function momentoDicas(hoje, enem, enem2){
+    const zero = new Date(hoje).setHours(0,0,0,0), dias = d => Math.ceil((d - zero)/864e5);
+    const d1 = dias(enem), d2 = dias(enem2);
+    const variante = d1 >= 0 ? "dia1" : d2 >= 0 ? "dia2" : "todas";
+    const bloco = d1 >= 7 ? "sala" : d1 >= 2 ? "semana" : d1 === 1 ? "vespera" : d1 === 0 ? "manha"
+      : d2 >= 2 ? "dia2" : d2 === 1 ? "vespera" : d2 === 0 ? "manha" : null;
+    return {bloco, variante, d1, d2};
+  }
+
+  // A linha de resumo: a contagem e o momento. O título do bloco entra em minúscula porque ele é a
+  // segunda metade de uma frase — `faltam 16 dias · na sala` —, e o número NUNCA é negativo: passada
+  // a missão o guia deixa de contar e diz só que está ali para reler (US-003 EC-2).
+  function resumoDicas(dicas, m){
+    const b = dicas.blocos.find(x => x.id === m.bloco);
+    if(!b) return `${dicas.blocos.length} blocos · para reler`;
+    const momento = b.titulo.charAt(0).toLowerCase() + b.titulo.slice(1);
+    const n = m.d1 >= 0 ? m.d1 : m.d2, alvo = m.d1 >= 0 ? "" : " para o 2º dia";
+    if(n === 0) return `é hoje · ${momento}`;
+    return `${n === 1 ? "falta 1 dia" : `faltam ${n} dias`}${alvo} · ${momento}`;
+  }
+
+  // As linhas de ação que um bloco mostra numa variante, na ordem do asset. Linha sem etiqueta vale
+  // nos dois dias; em `todas` (depois de 15/11) valem todas. É daqui que saem o passo da véspera, a
+  // manchete do dia da prova, o roteiro do painel e o lembrete da agenda: uma fonte, quatro leitores.
+  function acoesDicas(dicas, bloco, variante){
+    const b = dicas.blocos.find(x => x.id === bloco);
+    return b ? b.itens.filter(i => !i.dia || variante === "todas" || i.dia === variante).map(i => i.acao) : [];
+  }
+
+  // O markup inteiro do guia. Quem decide o que se VÊ é esta função, não o CSS de cada tela
+  // (ADR-005): a linha do outro dia sai com `hidden`, a etiqueta de dia só aparece em `todas`, e o
+  // bloco que ficaria sem nenhuma linha visível ganha a linha quieta — uma tela não pode esquecer
+  // uma regra de CSS e mostrar outro texto. `open` e o `agora` são só do bloco do momento. As três
+  // partes da dica são <p> para a cópia sair em três linhas, e todo texto passa por esc().
+  function dicasHTML(dicas, m){
+    const ROTULOS = {edital:"regra do edital", inep:"o Inep explica", professores:"consenso de professores", plano:"combinado no plano"};
+    const ETIQUETAS = {dia1:" · 1º dia", dia2:" · 2º dia"};
+    const v = m.variante;
+    const mostra = i => !i.dia || v === "todas" || i.dia === v;
+    const origem = i => `<p class="origem">${esc(ROTULOS[i.origem])}`
+      + (i.origem === "edital" ? ` · item ${esc(i.item)}` : "")
+      + (i.dia ? `<span class="dtag"${v === "todas" ? "" : " hidden"}>${esc(ETIQUETAS[i.dia])}</span>` : "")
+      + `</p>`;
+    // O item de dois caminhos é simétrico por construção: as duas vias levam a mesma classe e a
+    // mesma forma, e quem escolhe é ele no simulado. Nenhuma leva `recomendado` nem um ✓.
+    const corpo = i => i.tipo === "caminhos"
+      ? `<div class="vias">`
+        + i.caminhos.map((c, k) => `<div class="via"><b>${"AB".charAt(k)}) ${esc(c.nome)}</b><p>${esc(c.pro)}</p></div>`).join("")
+        + `</div><p class="fecho">${esc(i.fecho)}</p>`
+      : (i.porque ? `<p class="porque">${esc(i.porque)}</p>` : "");
+    const dica = i => `<li class="dica${i.tipo === "caminhos" ? " caminhos" : ""}"`
+      + (i.dia ? ` data-dia="${esc(i.dia)}"` : "") + (mostra(i) ? "" : " hidden")
+      + `><p class="acao">${esc(i.acao)}</p>` + corpo(i) + origem(i) + `</li>`;
+    const bloco = b => {
+      const agora = b.id === m.bloco, itens = b.itens;
+      const quieta = !itens.some(mostra)
+        ? `<li class="sodia muted">${v === "dia2" ? "Não vale para o 2º dia." : "Não vale para o 1º dia."}</li>` : "";
+      return `<details class="bloco" data-bloco="${esc(b.id)}"${agora ? " open" : ""}>`
+        + `<summary><h3>${esc(b.titulo)}${agora ? ` <span class="agora">agora</span>` : ""}</h3></summary>`
+        + `<ol class="itens">${itens.map(dica).join("")}${quieta}</ol></details>`;
+    };
+    return `<div class="dicas" data-variante="${esc(v)}">`
+      + dicas.blocos.map(bloco).join("")
+      + `<p class="fontes"><b>Fontes oficiais:</b> `
+      + dicas.fontes.map(f => `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.titulo)}</a>`).join(" · ")
+      + `</p></div>`;
+  }
 
   // ---------- folha de redação (ADR-005 e ADR-007 de folha-de-redacao-e-noticias)
   // FOLHA, folhaLinhas, folhaHTML e normFolha são CÓPIA VERBATIM entre os dois apps, e folhaLinhas é
@@ -2173,6 +2365,7 @@
     fazer:{t:"O que ficou de fazer",b:`<p>É a última parte do parecer: <b>tudo o que a correção pediu</b>, reunido em um lugar só, para você não ter de garimpar tarefa dentro de um texto que foi escrito como diagnóstico. São no máximo três itens: o <b>parágrafo para reescrever</b> e os <b>um ou dois exercícios</b> do ajuste da semana.</p><ul><li><b>Só isto entra na lista.</b> "Para estudar" é link para quando sobrar tempo, "Para as próximas redações" é mapa, e os "Como conferir" são para usar <i>enquanto</i> você reescreve. Nada disso vira tarefa: o plano é <b>um ajuste por semana</b>.</li><li><b>A reescrita vale 30 XP</b> — é a mesma tarefa <i>Parágrafo reescrito até segunda</i> da lista de Semanas. Marcar aqui marca lá, e marcar lá marca aqui: é uma tarefa só, em duas telas.</li><li><b>Os exercícios não valem XP.</b> Marcar um é registro, não pontuação: serve para você ver o que falta e para ${oriSpan()} ver no domingo que foi feito. O XP da semana e o teto de 720 não mudam por causa deles.</li><li><b>Item deixado em branco não é cobrado depois.</b> A lista é desta semana e fica nesta semana: nada vermelho, nenhum aviso, nenhuma dívida na semana seguinte. Se você fizer na quarta-feira seguinte, é só voltar na aba dela e marcar.</li></ul><p>Errou o toque? Desmarcar salva na hora e não tira XP nenhum — aqui XP nunca é descontado.</p>`},
     sequencia:{t:"O foguinho: dias perfeitos seguidos",b:`<p>O foguinho conta os <b>dias perfeitos seguidos</b>. Ele fica <b>gelado</b> enquanto o dia de hoje não está completo e <b>acende em ouro</b> quando fecha. O número ao lado é a sequência; quando ela não é a sua melhor, aparece também <code>· melhor: N</code> — esse recorde nunca some, mesmo que a sequência recomece.</p><p><b>O que é um dia perfeito é você quem decide</b>, na grade do contrato de rotina. Vale o que a grade marcou para aquele dia, entre as duas coisas que o painel registra por dia:</p><ul><li><b>Notícia</b> naquele dia da grade: precisa marcar a notícia do dia.</li><li><b>Estudo</b> naquele dia da grade: precisa registrar um bloco de estudo com aquele dia.</li><li>Dia sem nada marcado na grade é descanso que <i>você</i> combinou: ele conta como perfeito e mantém a corrente.</li></ul><p>Enquanto a linha <b>Notícia</b> da grade estiver vazia, vale o plano: notícia todo dia.</p><p>O foguinho <b>não vale XP</b> — o preço de cada coisa continua na lista de tarefas da semana. Ele é só o retrato da sua constância.</p>`},
     lembretes:{t:"Lembretes no celular",b:`<p>Cada linha é um <b>link</b> que abre o Google Agenda com um evento já montado, repetindo até o fim da missão: a notícia todo dia, o bloco de estudo de segunda a sexta, a redação no dia da entrega, o encontro no dia e na hora do contrato, e a prova. Você escolhe quais quer: toque só nesses, ajuste a hora antes e salve na agenda.</p><ul><li><b>A hora</b> vem do seu contrato (a grade e a hora do encontro), e você pode trocar antes de adicionar. A hora não fica gravada aqui: serve só para montar o evento.</li><li><b>O aviso</b> é o da sua agenda, em geral 30 minutos antes. Para mudar ou tirar, é no Google Agenda, no próprio evento.</li><li><b>Mudou o contrato?</b> O evento já criado não muda: apague a série na agenda e adicione de novo.</li><li>Nada sai do app até você tocar no link, e lembrete não vale XP.</li></ul>`},
+    dicas:{t:"Dicas de prova",b:`<p>É o guia de <b>como se comporta a prova</b>, em seis blocos pelo momento a que cada um serve: a semana da prova, a véspera, a manhã e a chegada, na sala, a redação no dia e o 2º dia. O bloco do momento <b>abre sozinho</b> pela data e leva a marca <code>agora</code>; os outros você abre quando quiser, e pode deixar quantos quiser abertos. É leitura: <b>não vale XP</b>, não tem o que marcar e nada aqui entra no resumo nem no código de backup.</p><p>Cada dica tem três partes — <b>o que fazer</b>, um <b>porquê</b> curto e, embaixo, <b>de onde ela vem</b>. São quatro origens, e a diferença entre elas importa:</p><ul><li><code>regra do edital</code> — está escrito no edital do Enem, com o <b>número do item</b> ao lado. Não é opinião de ninguém: é o que vale na porta e na sala.</li><li><code>o Inep explica</code> — é a explicação do próprio Inep, principalmente sobre como a nota é calculada.</li><li><code>consenso de professores</code> — o que se repete entre professores e cursinhos. É conselho bom, não é regra: dá para testar e adaptar.</li><li><code>combinado no plano</code> — algo que o plano da missão já combinou com você.</li></ul><p>Quando há <b>dois caminhos</b> defensáveis de verdade — a hora de escrever a redação é o caso —, o guia mostra os <b>dois lado a lado</b>, A e B, com o que cada um tem de bom, e <b>não recomenda nenhum</b>. A escolha é sua, e o lugar de testar é o simulado da semana 5 e o ensaio geral da semana 7.</p><p>Algumas linhas valem só para um dos dias (<code>1º dia</code> ou <code>2º dia</code>): o guia mostra as do <b>próximo dia de prova</b> e esconde as do outro, para você não ler regra que hoje não serve. Depois de 15/11 ele mostra todas, com a etiqueta do dia em cada uma.</p><p><b>Toda hora aqui é horário de Brasília</b>, que é o horário oficial da prova em todo o país — em Curitiba é o relógio da parede, sem nada a converter.</p><p><b>Imprimir dicas de prova</b>, no fim da seção, põe o guia inteiro no papel: os seis blocos abertos, as linhas dos dois dias com a etiqueta de cada uma, e o endereço das fontes escrito por extenso.</p><p>O texto destas dicas é o mesmo do <b>plano da missão</b> (<i>Estratégia de prova</i>), que é de onde ele sai: mudou lá, muda aqui. As duas <b>fontes oficiais</b> no fim da seção abrem numa aba nova — nada sai do app até você tocar nelas.</p>`},
     medalhas:{t:"Medalhas",b:`<p>As medalhas automáticas destravam sozinhas a partir das notas e dos registros. As duas marcadas com "confirmada no encontro" você toca para marcar, depois que vocês confirmarem no encontro.</p>`},
     resumo:{t:"Resumo e backup",b:`${ONLINE?`<p><b>Com a conexão ao seu orientador,</b> o botão daqui vira <b>Enviar a semana</b>: um toque abre a semana no painel, sem copiar nada. O que você registra já sobe sozinho; enviar só antecipa o dia em que os registros da semana aparecem no painel, que sem isso abrem sozinhos no dia do encontro do contrato. Desse dia em diante a semana já está aberta, e o botão passa a dizer <b>Mandar o que você registrou até agora</b>: o toque não abre nada, só manda na hora o que você acabou de registrar. <b>Depois de enviada, a semana não fecha de novo</b> — o que você registrar nela continua chegando. Sem rede, o envio fica guardado e sai quando a rede voltar. <b>Copiar resumo e código</b> continua no bloco Backup, para quando você quiser mandar pelo WhatsApp mesmo assim.</p><p>A linha no topo da tela diz em que pé está o envio: <b>Tudo enviado</b>, <b>Enviando…</b>, quantos registros esperam a rede ou <b>Não foi possível enviar</b>, com <b>Tentar de novo</b>. Tocar nela mostra exatamente o que o seu orientador recebeu.</p>`:""}<p><b>Copiar resumo e código</b> põe as duas coisas na área de transferência de uma vez: o resumo da semana selecionada, para ler, e embaixo dele o código de backup, para importar no painel. Cole tudo numa mensagem só, antes do encontro.</p><p><b>O código</b> leva tudo o que está aqui: contrato, semanas, redações, folhas, briefings e banco — das notícias, só a que você vai apresentar em cada semana; as guardadas vão no arquivo de backup — e o seu nome, <b>${esc(NOME)}</b>, que é como o painel ${oriSpan("de")} chama estes dados. É o que entra no painel e o que restaura o seu progresso em outro aparelho. ${APP?"Mande a mensagem toda semana: é ela que leva o que você fez para o painel do orientador.":"O progresso fica salvo só neste navegador, então mande a mensagem toda semana."}</p><p><b>Atualizar</b> refaz o texto com os dados de agora. Quase sempre nada muda: o resumo já se refaz sozinho a cada coisa que você marca. Ele serve para quando a página ficou aberta desde ontem, ou se o texto parecer atrasado em relação ao que você registrou.</p><p><b>${APP?"Salvar arquivo…":"Baixar arquivo de backup"}</b> é para quando o código ficar grande demais para uma mensagem: mande o arquivo .txt junto com o resumo.</p>${APP?`<p><b>No aplicativo o progresso não fica no navegador:</b> ele mora num banco de dados na pasta de dados do seu usuário${FOLDER?` (<code>${esc(FOLDER)}</code>)`:""} — <code>%APPDATA%\\Missão ENEM</code> no Windows e <code>~/.config/missao-enem</code> no Linux. <b>Abrir pasta dos dados</b> abre essa pasta no gerenciador de arquivos. Desinstalar ou atualizar o app não mexe nela.</p><p><b>Cópias automáticas:</b> na primeira vez que o app salva em cada dia, ele guarda ali uma cópia do estado anterior, em JSON — o mesmo formato do arquivo de backup, então uma cópia também serve para mandar ${oriSpan("a")}. Ficam as <b>14 mais recentes</b>. Restaurar uma cópia pede confirmação mostrando os dois lados e deixa 8 segundos de Desfazer.</p>`:""}`},
     conexao:{t:"Conectar ao orientador",b:`<p>Conectar é opcional. Sem conta, o app funciona como sempre: você copia o resumo e o código e manda pelo WhatsApp.</p><ol><li><b>Entrar:</b> você digita o seu e-mail e o app manda um código de 6 dígitos para esse endereço. O código vale 10 minutos; se não chegar, olhe na pasta de spam ou use <b>Corrigir e-mail</b>. Não há senha, e neste computador você entra uma vez só.</li><li><b>Convite:</b> o seu orientador gera no painel um código de 8 letras e números e passa para você. Você digita, e o app mostra quem convidou e o que vai ser compartilhado.</li><li><b>Pedir conexão:</b> o pedido vai para o orientador, que aceita ou recusa. Só depois do aceite alguma coisa sai daqui.</li></ol><p><b>Ou convide você:</b> em <b>Convidar orientador</b> o app gera um código seu. O orientador digita no painel, vê o seu nome e o seu e-mail e pede a conexão; você lê o que vai ser compartilhado e aceita.</p><p><b>Idade:</b> o modo online é para estudantes a partir de 16 anos, e a data de nascimento é perguntada uma vez. Se você tem menos de 18 e o orientador não é o seu responsável legal, o seu responsável recebe um e-mail dizendo quem é o orientador, o que aparece no painel e como desfazer a conexão; o responsável não aprova nada.</p><p><b>O que o orientador passa a ver:</b> os totais ao vivo (XP da semana, XP total, patente e se houve registro), os registros de cada semana a partir do dia do encontro ou de quando você enviar a semana, o seu contrato de rotina e a redação que você <b>entregar</b> — o rascunho nunca chega lá. O orientador também guarda anotações próprias sobre as suas redações.</p><p><b>Vários aparelhos:</b> entrando com o mesmo e-mail no celular e no computador, a missão é uma só nos dois — registros, contrato, bancos, rascunhos, a folha passada a limpo, pareceres e mensagens. O que você marca num aparece no outro sem recarregar. Na primeira entrada num aparelho que já tinha outra missão, o app mostra as duas, com o XP, o banco e o último registro de cada uma, e pergunta qual vale; nada sobe nem é trocado antes de você escolher, e a que sai do lugar fica numa cópia automática. O tema, a pré-visualização das notas, as seções abertas e a aba da semana são de cada aparelho e não viajam.</p><p><b>Desfazer conexão</b> fica na janela que abre ao tocar na linha da conexão: vale na hora, mesmo sem rede, sem precisar de ninguém. O orientador deixa de ver os seus registros, e as anotações sobre você saem do painel. Tudo o que é seu — registros, pareceres, mensagens — continua aqui, e a conta continua entrada. Qualquer um dos dois pode desfazer.</p><p><b>Sincronização</b>, no bloco Backup, liga e desliga o envio: desligada, o app volta a ser o de antes. <b>Sair da conta</b> encerra a sessão neste computador e não apaga nada do que está aqui. <b>Excluir conta</b> apaga a conta e tudo o que subiu do servidor, com um código novo no seu e-mail para confirmar; neste computador nada muda.</p>`},
@@ -3086,7 +3279,7 @@
     serie("estudo", "Bloco de estudo", "segunda a sexta", [0,1,2,3,4], dataDe(8,4), horaCelula("Estudo","14:00"), 60, "Um bloco de estudo. Registre no Missão ENEM.");
     serie("redacao", "Redação da semana", DAY_LONG[entrega], [entrega], dataDe(7,entrega), horaCelula("Redação","16:00"), 60, "O dia de mandar a redação da semana.");
     serie("encontro", `Encontro com ${orientador()}`, DAY_LONG[encontro], [encontro], dataDe(7,encontro), horaDe(c.encontroHora,"19:00"), 40, "A chamada da semana: leitura em voz alta, correção e briefing.");
-    if(hoje<=ENEM) L.push({id:"prova", titulo:"ENEM · 1º dia (redação)", quando:"8/11", dias:null, inicio:ENEM, fim:ENEM, padrao:"13:30", minutos:330, detalhes:"Portões fecham às 13h. Documento com foto, canetas pretas transparentes, água. 2º dia: 15/11.", fixa:true});
+    if(hoje<=ENEM) L.push({id:"prova", titulo:"ENEM · 1º dia (redação)", quando:"8/11", dias:null, inicio:ENEM, fim:ENEM, padrao:"13:30", minutos:330, detalhes:acoesDicas(DICAS_PROVA,"vespera","dia1").join(" · ") + " · 2º dia: 15/11.", fixa:true});
     return L;
   }
   function hrefLembrete(l, hhmm){
@@ -3106,6 +3299,9 @@
   }
   const lembretesDlg = document.getElementById("lembretes");
   document.getElementById("lembretesAbre").addEventListener("click", () => { renderLembretes(); lembretesDlg.showModal(); });
+  // O gatilho é estático e o ouvinte é ligado UMA vez: o renderToday() troca o rótulo e os blocos de
+  // destino, nunca o nó (senão o foco de quem está nele cairia no <body> a cada commit).
+  document.getElementById("dicasAbre").addEventListener("click", e => abrirDicas(e.currentTarget.dataset.blocos));
   document.getElementById("lembretesFechar").addEventListener("click", () => lembretesDlg.close());
   lembretesDlg.addEventListener("click", e => { if(e.target===lembretesDlg) lembretesDlg.close(); });
   function contratoForm(open){ const f=document.getElementById("contratoForm"), b=document.getElementById("toggleContrato"); f.hidden = !open; b.textContent = open ? "Fechar" : "Editar"; b.setAttribute("aria-expanded", String(open)); }
@@ -4790,6 +4986,36 @@
     h.tabIndex = -1; h.focus({preventScroll:true});
   }
   document.querySelectorAll(".nav a").forEach(a=>a.addEventListener("click",e=>{ e.preventDefault(); openAndGo(a.getAttribute("href").slice(1)); }));
+
+  // ---------- o guia de dicas de prova: a seção do aluno (ADR-005 de dicas-de-prova)
+  // O desenho é por MOMENTO e não por render: a chave é `bloco|variante`, e enquanto ela não muda o
+  // corpo não é reescrito. Marcar uma tarefa em outro lugar chama renderAll(), e se isto redesenhasse
+  // ali o bloco que ele abriu à mão voltaria a fechar e o <summary> que tinha o foco seria recriado —
+  // a classe de defeito que a varredura de foco existe para pegar. A virada do dia muda a chave, e o
+  // render seguinte (o do Hoje, que já roda) desenha o momento novo.
+  let dicasChave = null;
+  function momentoHoje(){ return momentoDicas(new Date(), ENEM, ENEM2); }
+  function renderDicas(){
+    const m = momentoHoje(), chave = `${m.bloco}|${m.variante}`;
+    if(chave === dicasChave) return;
+    dicasChave = chave;
+    document.getElementById("dicasCorpo").innerHTML = dicasHTML(DICAS_PROVA, m);
+  }
+  // A chegada de um gancho do Hoje: abre a seção, abre OS BLOCOS PEDIDOS sem fechar os outros (o do
+  // momento continua aberto, e o que ele abriu à mão também), rola até o primeiro e põe o foco no h3
+  // dele — o mesmo pouso que openAndGo() dá a toda seção, um nível abaixo.
+  // Recebe a lista separada por espaço, que é o que o `data-blocos` carrega, ou um array: as duas
+  // formas porque um `String(["a","b"])` daria "a,b" e abriria bloco nenhum, em silêncio.
+  function abrirDicas(blocos){
+    const lista = Array.isArray(blocos) ? blocos : String(blocos||"").split(" ").filter(Boolean);
+    toggleSec("dicas", true);
+    const nos = lista.map(id=>document.querySelector(`#dicas details[data-bloco="${id}"]`)).filter(Boolean);
+    nos.forEach(d=>{ d.open = true; });
+    const alvo = nos[0] || document.getElementById("dicas");
+    const smooth = !(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+    alvo.scrollIntoView({behavior: smooth ? "smooth" : "auto", block:"start"});
+    focoNoTitulo(alvo);
+  }
   function renderSummaries(){
     const c = state.contrato, w = wk(current), meta = WEEKS[current-1];
     const set = (id,t)=>{ const el=document.getElementById("sum-"+id); if(el) el.textContent=t; };
@@ -4827,6 +5053,8 @@
     set("banco", `${state.bank.length} repertório${state.bank.length===1?"":"s"} · ${repCount(current)}/2 nesta semana`);
     const nb = state.estudo.length, mb = minutos(state.estudo);
     set("estudo", nb ? `${nb} bloco${nb===1?"":"s"}${mb?` · ${mb} min`:""}` : "vazio");
+    // A contagem e o momento, pela gêmea: fechada, a seção já diz quanto falta e qual parte vale hoje.
+    set("dicas", resumoDicas(DICAS_PROVA, momentoHoje()));
     set("medalhas", `${BADGES.filter(b=>b.manual?!!state.badges[b.id]:b.test(state)).length}/${BADGES.length} conquistadas`);
     set("resumo", "copie e mande antes do encontro");
     const sm = document.getElementById("summary"); sm.value = summary(); grow(sm);
@@ -5068,7 +5296,7 @@
     if(key && !(document.activeElement && document.activeElement!==document.body && document.activeElement.matches(key))){ const el = document.querySelector(key); if(el) el.focus({preventScroll:true}); }
   }
   function renderAll(){
-    keepFocus(()=>{ renderNome(); renderHero(); renderContrato(); renderTabs(); renderWeek(); renderRed(); renderParecer(); renderFicha(); renderCatalogo(); renderBrief(); renderBank(); renderEstudo(); renderBadges(); renderToday(); renderSummaries(); renderEnvio(); renderOutras(); });
+    keepFocus(()=>{ renderNome(); renderHero(); renderContrato(); renderTabs(); renderWeek(); renderRed(); renderParecer(); renderFicha(); renderCatalogo(); renderBrief(); renderBank(); renderEstudo(); renderBadges(); renderDicas(); renderToday(); renderSummaries(); renderEnvio(); renderOutras(); });
   }
   // `why` é o que ele acabou de fazer, em linguagem do painel: vira "+N XP · why".
   function commit(why){
@@ -5092,7 +5320,7 @@
 
   // ---------- hoje
   // O botão diz aonde leva, não o gesto.
-  const GO_LABEL = {"#contrato":"Abrir o contrato","#resumo":"Abrir o resumo","#redacao":"Abrir a redação","#redacoes":"Abrir as redações","#parecer":"Abrir o parecer","#semanas-wrap":"Abrir a semana","#pfazer":"Abrir o que ficou de fazer","#briefing":"Abrir o briefing","#banco":"Abrir o banco","#estudo":"Abrir o banco de estudo"};
+  const GO_LABEL = {"#contrato":"Abrir o contrato","#resumo":"Abrir o resumo","#redacao":"Abrir a redação","#redacoes":"Abrir as redações","#parecer":"Abrir o parecer","#semanas-wrap":"Abrir a semana","#pfazer":"Abrir o que ficou de fazer","#briefing":"Abrir o briefing","#banco":"Abrir o banco","#estudo":"Abrir o banco de estudo","#dicas":"Abrir as dicas de prova"};
   function goLabel(go){ return GO_LABEL[go] || "Abrir"; }
   const NARROW = matchMedia("(max-width:420px)");
   NARROW.addEventListener("change", ()=>renderToday());
@@ -5152,8 +5380,13 @@
     else if(contratoVazio) steps.push({k:"contrato", t:"Preencher o contrato de rotina", s:`É o primeiro passo. Você propõe, ${orientador()} valida.`, go:"#contrato", open:true});
     if(meta.final){
       // véspera (sáb 7/11): a chamada de 15 min e o checklist do plano; dia da prova: só a prova
-      if(daysLeft===1) steps.push({k:"vespera", t:`Véspera: chamada de 15 min com ${orientador()}`, s:"Confira local de prova, trajeto e documento. Portões fecham às 13h. Hoje sem estudo pesado; durma antes das 23h.", go:"#banco", label:"Rever o kit"});
-      else if(daysLeft>1) steps.push({k:"kit", t:"Reta final: revisar o kit de prova", s:"6 repertórios decorados, introdução e proposta na cabeça. Sem redação nova.", go:"#banco"});
+      // Os dois passos levam ao GUIA, e o subtítulo da véspera é o próprio checklist dele: as três
+      // primeiras linhas de "A véspera", na variante do 1º dia. O texto à mão que morava aqui — os
+      // portões, o documento, a hora de dormir — era a quarta cópia das mesmas frases no produto, e
+      // envelhecia sozinha quando o asset mudasse (ADR-001). O rótulo continua "Rever o
+      // kit" nos dois: é o que ele vai fazer lá, e as duas telas do PRD o chamam assim.
+      if(daysLeft===1) steps.push({k:"vespera", t:`Véspera: chamada de 15 min com ${orientador()}`, s:acoesDicas(DICAS_PROVA,"vespera","dia1").slice(0,3).join(" · "), go:"#dicas", blocos:"vespera", label:"Rever o kit"});
+      else if(daysLeft>1) steps.push({k:"kit", t:"Reta final: revisar o kit de prova", s:"6 repertórios decorados, introdução e proposta na cabeça. Sem redação nova.", go:"#dicas", blocos:"semana", label:"Rever o kit"});
     } else {
       // O gesto de domingo acontece onde o domingo começa: o botão do Hoje copia resumo e código, sem descer até a última seção.
       // O domingo tem duas metades. Antes da chamada: mandar o resumo. Depois dela: marcar o que a chamada
@@ -5239,13 +5472,16 @@
     // na lista abaixo — é exatamente o que ela é: um convite, não uma dívida.
     const daSemana = steps.filter(s=>!s.ficha);
     const main = daSemana[0] || (daysLeft<0 ? (days2>0 ? {t:"Redação feita. Falta o 2º dia.", s:"Domingo, 15/11: ciências da natureza e matemática. Revise com a escola e descanse; a missão fecha depois dele."}
-        : days2===0 ? {t:"2º dia. Boa prova de novo.", s:"Mesmo horário do primeiro: portões fecham às 13h. Documento com foto, duas canetas pretas transparentes, água."}
+        : days2===0 ? {t:"2º dia. Boa prova de novo.", s:acoesDicas(DICAS_PROVA,"manha","dia2").join(" · ")}
         : {t:"Missão cumprida", s:"As duas provas já foram. O balanço das 8 semanas fica logo aqui embaixo, e o código de backup guarda tudo, se você quiser."})
-      : daysLeft===0 ? {t:"É hoje. Boa prova.", s:"Portões fecham às 13h: saia com folga. Documento com foto, duas canetas pretas transparentes, água. Kit na cabeça: introdução, 6 repertórios, 5 elementos."}
+      // A manchete dos dois dias de prova diz o que o bloco "A manhã e a chegada" diz, na variante
+      // daquele dia — é a última coisa que ele lê antes de sair, e tem de ser a mesma frase que o
+      // guia, o painel do pai e o lembrete da agenda carregam (ADR-001).
+      : daysLeft===0 ? {t:"É hoje. Boa prova.", s:acoesDicas(DICAS_PROVA,"manha","dia1").join(" · ")}
       : {t:"Tudo em dia por hoje", s:"Descanse. Amanhã tem notícia de novo."});
     document.getElementById("todayBig").innerHTML = `${esc(main.t)}<small>${esc(main.s||"")}</small>`;
     const act = document.getElementById("todayActions");
-    act.innerHTML = daSemana[0] && !main.semBotao ? `<button data-go="${main.go||""}" data-act="${main.act||""}" data-taskid="${main.task||""}" data-exid="${main.ex??""}" data-open="${main.open?1:""}" data-modo="${main.modo||""}" data-ficha="">${main.act==="noticia"?"Marcar notícia de hoje":main.act==="bloco"?"Registrar bloco":(main.label||goLabel(main.go))}</button>` : "";
+    act.innerHTML = daSemana[0] && !main.semBotao ? `<button data-go="${main.go||""}" data-act="${main.act||""}" data-taskid="${main.task||""}" data-exid="${main.ex??""}" data-open="${main.open?1:""}" data-modo="${main.modo||""}" data-blocos="${main.blocos||""}" data-ficha="">${main.act==="noticia"?"Marcar notícia de hoje":main.act==="bloco"?"Registrar bloco":(main.label||goLabel(main.go))}</button>` : "";
     // O bloco de hoje vira uma linha de feito, ao lado da notícia do dia, e continua oferecendo mais um:
     // o limite de 5 é de XP, não de estudo — a sexta sessão fica guardada no banco.
     const feitoBloco = (hoje.length && daysLeft>0 && !meta.final && d<6)
@@ -5267,7 +5503,7 @@
     const sobra = resto.filter(s=>s!==atalho), nX = sobra.filter(s=>s.ficha).length;
     const depois = sobra.filter(s=>!s.ficha).slice(0, nX ? 2 : 3);
     document.getElementById("todayList").innerHTML =
-      (atalho ? `<div class="item"><span>${esc(atalho.t)}</span><button class="ghost" data-go="${atalho.go||""}" data-act="${atalho.act||""}" data-taskid="${atalho.task||""}" data-exid="${atalho.ex??""}" data-open="${atalho.open?1:""}" data-ficha="${esc(atalho.ficha||"")}">${atalho.act==="noticia"?"Marcar notícia":atalho.act==="bloco"?"Registrar bloco":(atalho.label||goLabel(atalho.go))}</button></div>` : "")
+      (atalho ? `<div class="item"><span>${esc(atalho.t)}</span><button class="ghost" data-go="${atalho.go||""}" data-act="${atalho.act||""}" data-taskid="${atalho.task||""}" data-exid="${atalho.ex??""}" data-open="${atalho.open?1:""}" data-blocos="${atalho.blocos||""}" data-ficha="${esc(atalho.ficha||"")}">${atalho.act==="noticia"?"Marcar notícia":atalho.act==="bloco"?"Registrar bloco":(atalho.label||goLabel(atalho.go))}</button></div>` : "")
       + (w.days[d] ? `<div class="item ok"><span>Notícia de hoje</span><span>+10</span></div>` : "")
       + (conectado() && !meta.final && d===encontro && enviada(n) && daysLeft>0 ? `<div class="item ok" id="todayEnviada"><span>${abriuSozinha(n) ? (envioEspera(n) ? "Registros vão ser enviados" : "Registros enviados") : (envioEspera(n) ? "Semana vai ser enviada" : "Semana enviada")} para ${esc(nomeOrientador())}${envioEspera(n) ? " quando houver rede" : ""}</span></div>` : "")
       // Marcar a notícia de ontem era impossível daqui: o atalho grava sempre w.days[hoje]. Só aparece
@@ -5302,6 +5538,24 @@
     hum.textContent = alerta ? `${alerta.materia} pesou nos últimos 3 blocos. Vale levar para o domingo.` : "";
     hum.hidden = !alerta;
     document.getElementById("lembretesLinha").hidden = daysLeft<=0;
+    // A linha quieta para o guia (ADR-005, US-008 e US-009). UMA variante por dia e nunca duas: a
+    // semana 5 e a 7 convidam a treinar a estratégia no simulado e no ensaio geral; do dia da prova
+    // em diante ela é o único caminho para o guia, porque ali o Hoje tem zero botões por regra.
+    // A semana é a REAL (`n`, de guessWeek()), não a aba: numa aba da semana 5 aberta em novembro o
+    // convite já não tem onde ser treinado, e a linha some — a mesma regra do `#lembretesLinha`.
+    // Fora destes dias não há linha: convite permanente vira ruído, e o Hoje diz o próximo passo.
+    const dica = daysLeft>0
+      ? (n===5 ? {t:"Treine a estratégia de prova no simulado", b:"sala"}
+        : n===7 ? {t:"Treine a estratégia de prova no ensaio geral", b:"sala"} : null)
+      : daysLeft===0 ? {t:"Na sala e a redação no dia", b:"sala redacao"}
+      : days2>=2 ? {t:"Rever o kit do 2º dia", b:"dia2"}
+      // Na véspera do 2º dia o mesmo convite leva A VÉSPERA junto: o checklist vale de novo, agora
+      // na variante do 2º dia (sem o kit mental, que é da redação).
+      : days2===1 ? {t:"Rever o kit do 2º dia", b:"dia2 vespera"}
+      : days2===0 ? {t:"Na sala", b:"sala"} : null;
+    const dicaLinha = document.getElementById("dicasLinha"), dicaBtn = document.getElementById("dicasAbre");
+    dicaLinha.hidden = !dica;
+    if(dica){ dicaBtn.textContent = dica.t; dicaBtn.dataset.blocos = dica.b; }
     // \u00AD = hífen suave: só quebra a palavra quando a célula é estreita demais.
     // Montada do zero a partir dos dias do contrato; o que vem depois vence. Assim "sábado" como encontro
     // dá sex Briefing · sáb Encontro, e nunca dois Encontros (o modelo antigo já nascia com domingo preenchido).
@@ -5342,6 +5596,9 @@
       if(b.dataset.modo){ redModo = b.dataset.modo; redModoSem = "s" + n; }
       // O parecer é o da semana real: o toque o abre ali, e é o toque — nunca a chegada — que muda a aba.
       if(b.dataset.go==="#parecer" && conectado()) parecerLido.add("s"+n);
+      // O guia abre pelos BLOCOS que o passo pediu, e não só pela seção: openAndGo() pousaria no
+      // título da seção e ele teria de procurar qual dos seis blocos é o da vez.
+      if(b.dataset.blocos){ abrirDicas(b.dataset.blocos); return; }
       if(b.dataset.go){ if(["#semanas-wrap","#briefing","#redacao","#pfazer"].includes(b.dataset.go) || (b.dataset.go==="#parecer" && conectado())){ current=n; fichaAtual={semana:n}; commit(); } openAndGo(b.dataset.go.slice(1)); }
     }); }
   }
@@ -6982,7 +7239,7 @@
   // No papel as notícias saem inteiras, a apresentada e as guardadas depois dela: um <details> fechado
   // não imprime o corpo. As que estavam fechadas voltam a fechar depois, como estavam.
   let printFechadas = [];
-  window.addEventListener("beforeprint",()=>{ printFechadas = [...document.querySelectorAll("#noticias details.noticia:not([open])")]; printFechadas.forEach(d=>{ d.open = true; }); });
+  window.addEventListener("beforeprint",()=>{ printFechadas = [...document.querySelectorAll("#noticias details.noticia:not([open]),#dicas details.bloco:not([open])")]; printFechadas.forEach(d=>{ d.open = true; }); });
   window.addEventListener("afterprint",()=>{ delete document.body.dataset.print; if(printWasHidden!==null){ contratoForm(!printWasHidden); printWasHidden = null; } printFechadas.forEach(d=>{ d.open = false; }); printFechadas = [];
     // A folha de papel sai do DOM: na tela ela não tem nada a dizer, e deixá-la ali duplicaria a folha.
     const ff = document.getElementById("fichaFolha"); ff.innerHTML = ""; ff.hidden = true;
@@ -7119,6 +7376,16 @@
   commit();
   quarentena = loadIssue==="corrompido";
   if(loadIssue) storeAlert(loadIssue);
+  // Deep link: abrir o arquivo em `…#dicas` (ou `#banco`, ou qualquer seção) tem de abrir a seção e
+  // pousar o foco nela, como o índice faz. Nenhuma seção fazia isso — o navegador rolava até o
+  // elemento e a seção continuava recolhida, mostrando só título e resumo. Uma linha, genérica de
+  // propósito: o que vale para o guia vale para todas, e os links do índice continuam com o
+  // preventDefault() deles (ADR-005; US-001 EC-5).
+  // POR ÚLTIMO, e não logo depois do setupCollapsible(): o `commit()` acima chama renderAll(), e o
+  // keepFocus() dele devolve o foco a quem o tinha ANTES do render — o foco posto na seção se perdia
+  // para o <body>, e a rolagem acontecia sobre uma página que ainda ia mudar de altura. Aqui a tela
+  // já está desenhada, que é o estado em que o pouso vale.
+  if(location.hash) openAndGo(location.hash.slice(1));
   if(!state.onboarded && !loadIssue && storeOK) showOb(0);
 })();
 </script>

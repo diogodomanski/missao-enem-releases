@@ -466,6 +466,23 @@
   @media (prefers-reduced-motion:reduce){details.card > summary::before{transition:none}}
   details.card > summary h2{margin:0;flex:1 1 auto}
   details.card > summary .sum{font-size:13px;color:var(--muted);flex:1 1 100%;margin-left:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* O `?` de um card recolhível vai para o FIM da linha do título, e não logo depois dele. O
+     <summary> inteiro é o controle que abre o card; o `?` é um controle DENTRO dele, e onde o dedo
+     mira um controle é no centro da caixa (é assim que a varredura T0 mede). Com o `?` colado ao
+     título, esse centro cai sobre ele quando o título é curto: medido a 375px em 24/10/2026, o `?` de
+     «Dicas de prova» ocupa x 177–203 e o centro do summary é 188 — tocar o meio da barra abria a
+     ajuda em vez de fechar o card. Os outros cards escapavam só porque o título é mais comprido
+     («Banco de estudo de Arthur» põe o `?` em 268), o que é acidente de texto, não desenho. No fim da
+     linha o centro da barra é sempre da barra, em qualquer título, e o `?` fica onde o `.acts` da
+     barra do topo e o `.actions` do cabeçalho do aluno já põem a ação secundária: à direita.
+     Vale só para o `<summary>`, e a diferença para o `.card > h2` estático (#cRoteiro, #cFicha, onde o
+     `?` continua colado ao título) não é descuido: ali a linha do título não é um controle, e o `?` ao
+     lado ANOTA o título. Aqui a linha inteira é o botão que abre o card, e o `?` é uma ação que passa
+     no meio dele. De quebra, os quatro cards empilhados abaixo da grade passam a alinhar o `?` numa
+     coluna só, em vez de cada um no x que o comprimento do título calhar de dar.
+     `margin-left:auto` e não `float`, porque o h2 desta tela é flex (`h2{display:flex}`) e flex item
+     ignora float. */
+  details.card > summary h2 .help{margin-left:auto}
   details.card[open] > summary .sum{display:none}
   /* exceção única: quando a redação passa do teto e rola dentro do campo, o cabeçalho continua dizendo
      o tamanho e que há texto abaixo — onde a barra de rolagem é sobreposta, é o único aviso que existe. */
@@ -727,6 +744,39 @@
   .linkish{background:none;border:0;padding:0;color:var(--blue);font-size:14px;text-decoration:underline;text-underline-offset:2px}
   .linkish:hover{color:var(--blue-ink)}
 
+  /* ---------- o guia de dicas de prova (ADR-005 de dicas-de-prova)
+     Cosmético, e só: nenhuma regra daqui decide o que se VÊ. Quem põe e tira o `hidden` das linhas
+     do outro dia, das etiquetas e da linha quieta é dicasHTML(), a gêmea dos dois apps — se a
+     visibilidade morasse no CSS, esta tela poderia esquecer uma regra e mostrar ao pai um texto
+     diferente do que o filho lê. É o MESMO desenho do app dele, com o ▾ na receita do card desta
+     tela (details.card > summary::before) e a mesma guarda de movimento. Nenhum acento novo. */
+  .dicas .bloco{border-top:1px solid var(--line)}
+  .dicas .bloco:first-child{border-top:0}
+  .dicas .bloco > summary{list-style:none;cursor:pointer;padding:10px 0;display:flex;align-items:center;gap:8px;min-width:0}
+  .dicas .bloco > summary::-webkit-details-marker{display:none}
+  .dicas .bloco > summary::before{content:"▾";color:var(--muted);font-size:14px;line-height:1;flex:0 0 auto;transform:rotate(-90deg);transition:transform .15s}
+  .dicas .bloco[open] > summary::before{transform:none}
+  @media (prefers-reduced-motion:reduce){.dicas .bloco > summary::before{transition:none}}
+  .dicas .bloco > summary h3{font-size:15px;margin:0;min-width:0;overflow-wrap:anywhere}
+  .dicas .agora{font-size:11px;font-weight:400;color:var(--muted)}
+  .dicas .itens{margin:0 0 12px;padding:0 0 0 22px}
+  .dicas .dica{margin:0 0 12px;min-width:0}
+  .dicas .dica > p{overflow-wrap:anywhere}
+  .dicas .acao{font-size:14px;color:var(--ink)}
+  .dicas .porque,.dicas .fecho{font-size:13px;color:var(--muted);margin-top:2px}
+  /* 11px cinza, a mesma etiqueta das pílulas desta tela: a origem é legenda, não acento. */
+  .dicas .origem,.dicas .dtag{font-size:11px;color:var(--muted)}
+  .dicas .origem{margin-top:3px}
+  .dicas .sodia{font-size:13px}
+  /* As duas vias são simétricas por construção: mesma largura, mesmo tipo, mesma tinta. Abaixo de
+     480px elas empilham — lado a lado, a 320px cada coluna ficaria com ~9 caracteres por linha. */
+  .dicas .vias{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px}
+  .dicas .via{min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .dicas .via b{font-size:13px;display:block;overflow-wrap:anywhere}
+  .dicas .via p{font-size:13px;color:var(--muted);margin:4px 0 0;overflow-wrap:anywhere}
+  @media (max-width:480px){.dicas .vias{grid-template-columns:1fr}}
+  .dicas .fontes{font-size:13px;margin-top:14px;padding-top:10px;border-top:1px solid var(--line);overflow-wrap:anywhere}
+
   /* toque: alvo de 44px sem mudar o desenho e campo nunca abaixo de 16px */
   @media (pointer:coarse){
     input,textarea,select,.notas input,#redacao,textarea.code{font-size:16px}
@@ -734,6 +784,8 @@
     .tabs button{padding:11px 14px}
     .chips button{min-height:44px}
     .chk label,.elems label{padding:11px 12px;font-size:14px}
+    .dicas .bloco > summary{min-height:44px}
+    .dicas .fontes a{display:inline-flex;align-items:center;min-height:44px}
     details.sub > summary{padding:12px 0;margin:-12px 0}
     /* A proposta da extra: aqui o padding negativo do .sub não entrega os 44. A área invisível que
        ele desenha entra 12px por cima dos vizinhos — a identificação acima, a linha do foco abaixo —,
@@ -817,7 +869,11 @@
     /* `.grid > .col` para vencer o display:contents de uma coluna: imprimir de janela estreita não reordena */
     .grid,.grid > .col{display:block}
     .grid .col.stick{position:static}
-    .card,details.card{border:0;padding:0;margin:0 0 18px;break-inside:avoid}
+    /* `auto` e não `avoid`, pela mesma razão do `.sec` do app do aluno: o card mais alto que uma
+       folha (#cDicas 3083px, #cEstudo com um banco de fim de missão, #cFicha no modo `semana`) não
+       cabia em lugar nenhum, e o Chrome o empurrava inteiro para a folha seguinte, deixando a
+       primeira só com a linha de título. Quem fica inteiro é `.dicas .bloco`, logo abaixo. */
+    .card,details.card{border:0;padding:0;margin:0 0 18px;break-inside:auto}
     details.card > summary{padding:0}
     details.card > summary::before{content:none}
     details.card > .body{padding:0}
@@ -826,7 +882,7 @@
     #cRed.over[open] > summary .sum{display:none}
     body[data-print="contrato"] .card:not(#cContrato),body[data-print="contrato"] .week{display:none}
     body[data-print="banco"] .card:not(#cBanco),body[data-print="banco"] .week{display:none}
-    body[data-print="semana"] .card:not(#cReg):not(#cFicha):not(#cBrief):not(#cRoteiro.prep):not(#cRed.folha){display:none}
+    body[data-print="semana"] .card:not(#cReg):not(#cFicha):not(#cBrief):not(#cRoteiro.prep):not(#cRoteiro.vespera):not(#cRed.folha){display:none}
     /* a folha dele vai ao papel com a semana; a cópia do pai (a transcrição) não, e a folha não rola */
     body[data-print="semana"] #cRed.folha #redacao{display:none}
     #arthurFolha .sheet-wrap{overflow:visible}
@@ -839,6 +895,17 @@
     body[data-print="ficha"] #xLista,body[data-print="ficha"] #xFlag,body[data-print="ficha"] #xForm{display:none}
     body[data-print="ficha"] #xFicha{margin:0;border:0;padding:0}
     body[data-print="ficha"] #xLido .xenunciado > summary{display:none}
+    /* O GUIA DE PROVA (ADR-003 de dicas-de-prova), o sétimo modo: só este card, e o guia INTEIRO.
+       `imprime()` já abre todo <details> e o `afterprint` devolve, então os seis blocos saem abertos
+       de graça. O que falta vencer é o `hidden` que dicasHTML() põe nas linhas do outro dia e nas
+       etiquetas de dia: no papel as duas variantes saem juntas, cada uma com a sua etiqueta, porque
+       uma folha impressa em outubro tem de servir nas duas provas. Com tudo visível, a linha quieta
+       do bloco de um dia só não tem o que dizer e sai. É o mesmo recurso do #contratoForm[hidden]:
+       `[hidden]` é atributo, e só `!important` o vence. */
+    body[data-print="dicas"] .card:not(#cDicas),body[data-print="dicas"] .week{display:none}
+    body[data-print="dicas"] #cDicas .dicas li[hidden],body[data-print="dicas"] #cDicas .dicas .dtag[hidden]{display:revert !important}
+    body[data-print="dicas"] #cDicas .dicas .sodia{display:none}
+    .dicas .bloco{break-inside:avoid}
     input,textarea{border:0;border-bottom:1px solid var(--muted);border-radius:0;background:var(--surface)}
   }
 
@@ -1302,6 +1369,20 @@
       <div class="actions"><button data-print="estudo">Imprimir banco de estudo</button></div></div>
   </details>
 
+  <!-- O MESMO guia que está no app dele (ADR-001 e ADR-005 de dicas-de-prova), aqui num card
+       fechado e em leitura: o corpo inteiro sai de `dicasHTML()`, a gêmea verbatim, então o texto
+       é o dele caractere por caractere — é isso que deixa o pai dizer "abra o terceiro bloco" na
+       chamada e os dois estarem olhando a mesma linha. Não há campo nenhum aqui dentro, e nada
+       deste card grava `state`: não é lugar de anotar, é a folha de consulta do domingo e da
+       véspera. Fica ABAIXO da grade, ao lado dos outros dois bancos de consulta (#cBanco,
+       #cEstudo), e por isso fora da fila de `order` do celular — a ordem do domingo é a da grade.
+       O "Imprimir dicas de prova" mora no corpo, nunca no <summary>: card fechado é só título +
+       resumo, como em todo <details class="card"> desta tela (ADR-003). -->
+  <details class="card" id="cDicas">
+    <summary><h2>Dicas de prova <button class="help" data-help="dicas" aria-label="Ajuda: dicas de prova">?</button></h2><span class="sum" id="sumDicas"></span></summary>
+    <div class="body"><div id="dicasCorpoO"></div><div class="actions"><button data-print="dicas">Imprimir dicas de prova</button></div></div>
+  </details>
+
   <!-- Cópias automáticas e pasta de dados só existem no app (ADR-006): no navegador ficam `hidden`. -->
   <details class="card" id="copies" hidden>
     <summary><h2>Cópias automáticas</h2><span class="sum" id="copiesSum"></span></summary>
@@ -1316,7 +1397,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 284 · 22/10/2026</p></div>
+  <div class="in"><p class="versao">versão 287 · 24/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -1401,6 +1482,13 @@
   ];
   const ELEMS = [["agente","Agente"],["acao","Ação"],["meio","Meio"],["fim","Finalidade"],["det","Detalhamento"]];
   const BCHECKS = [["semler","Falou sem ler"],["tres","Ficou em 3 min"],["brasil","Respondeu “e o Brasil?”"],["ganhaperde","Disse quem ganha e quem perde"],["repert","Ligou a um tipo de tema"]];
+  // Os dois dias da prova, as MESMAS duas linhas do app do aluno — scripts/check-weeks.mjs compara
+  // a linha inteira entre os dois arquivos (DATAS_RE). O painel as ganhou com o guia de dicas de
+  // prova, que lê o momento pela data (ADR-004 de dicas-de-prova): até aqui ele derivava a prova
+  // inline, em três lugares, e nomeá-las é o primeiro passo do item `missao-enem-por-edicao` do
+  // backlog — as derivações inline continuam onde estão.
+  const ENEM = new Date(2026,10,8);
+  const ENEM2 = new Date(2026,10,15);  // 2º dia: ciências da natureza e matemática
   // O calendário do plano: 14/09/2026 é a segunda-feira da semana 1. Mora aqui no topo, antes de
   // qualquer uso (guessWeek() roda na carga, abreEm() a cada render): declarada depois, a primeira
   // chamada cairia na zona morta do const e o painel não carregaria. A mesma constante do app dele.
@@ -1468,6 +1556,107 @@
   ];
   /* /build:temas */
 
+  // ---------- dicas de prova (ADR-001 e ADR-004 de dicas-de-prova)
+  // GERADO PELO BUILD a partir de src/conteudo/dicas-de-prova-2026.json, o guia que o Diogo cura à
+  // mão: ele não tem skill que o escreva, e por isso mora em src/conteudo/ e não nos assets de uma.
+  // Igual nos dois apps por construção — não há cópia à mão para divergir —, e as duas `fontes`
+  // chegam aqui já RESOLVIDAS para { tema, titulo, url } a partir da lista conferida, para o endereço
+  // ter uma casa só. `npm run check` recusa bloco fora da ordem ou com outro título, item acima do
+  // limite, origem `edital` sem o número do item, `fontes` que não está na lista e o nome do aluno no
+  // texto. Não edite entre os marcadores: edite o asset e rode `npm run build`.
+  /* build:dicas */
+  const DICAS_PROVA = {
+    "edicao": 2026,
+    "blocos": [{"id":"semana","titulo":"A semana da prova","itens":[{"id":"semana-1","acao":"Sem redação nova. Revise o kit mental.","porque":"Introdução pronta, seis repertórios, os cinco elementos da proposta: é o que você leva na cabeça.","origem":"plano"},{"id":"semana-2","acao":"Confira o local no Cartão de Confirmação e faça o trajeto.","porque":"Saber quanto tempo leva tira a única variável que você não controla no domingo.","origem":"professores"},{"id":"semana-3","acao":"Separe o kit material: documento, duas canetas, água, lanche.","porque":"Documento oficial com foto, canetas pretas de corpo transparente. Separado na segunda, nada falta no domingo.","origem":"edital","item":"11.1.30"},{"id":"semana-4","acao":"Teste as duas canetas numa folha.","porque":"Tinta preta de verdade, sem falhar: o cartão-resposta é lido por máquina.","origem":"professores"},{"id":"semana-5","acao":"Acorde cedo a semana toda.","porque":"A prova começa às 13h30 e vai até as 19h; o corpo precisa estar acordado nesse horário, não no da madrugada.","origem":"professores"},{"id":"semana-6","acao":"Redação extra só até 4/11; depois disso nada novo.","porque":"Correção que chega na véspera é ruído, não ajuda.","origem":"plano","dia":"dia1"}]},{"id":"vespera","titulo":"A véspera","itens":[{"id":"vespera-1","acao":"Local de prova, trajeto e horário conferidos.","porque":"Portões abrem às 12h e fecham às 13h; a prova começa às 13h30.","origem":"edital","item":"11.1.6"},{"id":"vespera-2","acao":"Documento oficial com foto na mochila.","porque":"Original. Digital só e-Título, CNH ou CIN no app oficial ou no Gov.br. Carteira de estudante e cópia não valem.","origem":"edital","item":"10.1"},{"id":"vespera-3","acao":"Duas canetas pretas de material transparente.","porque":"Lápis, borracha e corretivo ficam em casa: fora do envelope são proibidos.","origem":"edital","item":"11.1.30"},{"id":"vespera-4","acao":"Água e lanche em embalagem transparente.","porque":"O lanche passa pela vistoria do chefe de sala; transparente passa rápido.","origem":"plano"},{"id":"vespera-5","acao":"Kit mental: introdução, seis repertórios, cinco elementos.","porque":"Uma passada, em voz alta, e pronto.","origem":"plano","dia":"dia1"},{"id":"vespera-6","acao":"Celular desligado, alarmes incluídos, para o envelope.","porque":"Qualquer som dentro do envelope elimina.","origem":"edital","item":"11.1.10"},{"id":"vespera-7","acao":"Dormir antes das 23h.","porque":"Sábado sem redação, sem estudo pesado, sem maratona de jogo.","origem":"plano"}]},{"id":"manha","titulo":"A manhã e a chegada","itens":[{"id":"manha-1","acao":"Almoce cedo e leve. Saia para chegar às 12h.","porque":"É quando os portões abrem; às 13h eles fecham e não há exceção.","origem":"edital","item":"11.1.6"},{"id":"manha-2","acao":"Na porta da sala até 13h. Das 13h às 13h30 você espera sentado.","porque":"Banheiro nesse intervalo só acompanhado por fiscal.","origem":"edital","item":"11.1.17"},{"id":"manha-3","acao":"Envelope: celular, relógio, boné, óculos escuros, Cartão.","porque":"Lacrado debaixo da carteira até a saída definitiva.","origem":"edital","item":"11.1.12"},{"id":"manha-4","acao":"Prova das 13h30 às 19h: 5h30 para 90 questões e a redação.","origem":"edital","item":"1.7","dia":"dia1"},{"id":"manha-5","acao":"Prova das 13h30 às 18h30: 5h para 90 questões.","origem":"edital","item":"9.4","dia":"dia2"},{"id":"manha-6","acao":"Horário de Brasília em todo o país.","porque":"Em Curitiba é o relógio da parede: nada a converter.","origem":"edital","item":"1.7"}]},{"id":"sala","titulo":"Na sala","itens":[{"id":"sala-1","acao":"Folheie a prova inteira e comece pelas fáceis.","porque":"Dois minutos mostram onde estão os pontos certos. A ordem do caderno não é regra.","origem":"professores"},{"id":"sala-2","acao":"Cerca de 3 minutos por questão. Sem caminho, pula.","porque":"90 questões em 4 horas, depois da redação; o tempo que uma difícil come é o de duas fáceis.","origem":"professores"},{"id":"sala-3","acao":"Marque o que pulou e volte por ordem.","porque":"Círculo no número e uma nota curta (\"B ou D\", \"falta conta\"). Volte nas meio-resolvidas, depois nas de assunto conhecido, por último nas sem caminho.","origem":"professores"},{"id":"sala-4","acao":"Responda todas. Em branco conta como errada.","porque":"O chute vale pouco, mas nunca tira ponto; a questão vazia tira. Acertar as fáceis com consistência é o que a TRI mais paga.","origem":"inep"},{"id":"sala-5","acao":"Trocar de resposta com um motivo concreto melhora a nota.","porque":"\"Primeira intuição\" é mito: em 33 estudos, metade das trocas foi de errada para certa, um quarto o contrário.","origem":"professores"},{"id":"sala-6","acao":"Gabarito por blocos, com 30 minutos reservados no fim.","porque":"Preencher tudo de uma vez no fim é onde o erro de linha acontece.","origem":"professores"},{"id":"sala-7","acao":"Saída só depois de 2 horas; caderno só nos últimos 30 minutos.","porque":"A partir das 15h30 você pode sair; a partir das 18h30 (18h no 2º dia) pode levar o caderno e o rascunho.","origem":"edital","item":"11.1.34"}]},{"id":"redacao","titulo":"A redação no dia","itens":[{"id":"redacao-1","acao":"Reserve de 1h a 1h30 para a redação; decida antes quando ela entra.","porque":"É a nota de maior peso e a única que não tem chute.","origem":"professores"},{"id":"redacao-2","tipo":"caminhos","acao":"Dois caminhos: quando escrever.","caminhos":[{"nome":"Redação primeiro","pro":"Cabeça fresca, o maior peso garantido, nenhum relógio no pescoço."},{"nome":"Depois de um bloco de fáceis","pro":"Aquecimento, pontos no bolso, e os textos da prova já trazem repertório."}],"fecho":"Escolha no simulado da semana 5 e confirme no ensaio geral da semana 7.","origem":"professores"},{"id":"redacao-3","acao":"15 minutos de leitura e esqueleto: tese, dois argumentos, proposta.","porque":"Rascunho curto, não o texto inteiro duas vezes.","origem":"professores"},{"id":"redacao-4","acao":"Passe a limpo com folga: só a Folha de Redação conta.","porque":"Rascunho e marcações no caderno não são corrigidos.","origem":"edital","item":"14.1"},{"id":"redacao-5","acao":"Zero: até 7 linhas, fuga ao tema, nome no texto, letra ilegível.","porque":"Linha copiada dos textos motivadores não conta para o mínimo de 7.","origem":"edital","item":"14.7"},{"id":"redacao-6","acao":"Caneta preta transparente também na redação.","porque":"Letra que dois avaliadores leiam; o corretor nunca viu a sua.","origem":"edital","item":"14.1"},{"id":"redacao-7","acao":"Dez minutos finais de revisão: acentos, pontuação, conectivos.","porque":"O seu ajuste da semana é o que você procura primeiro.","origem":"plano"}]},{"id":"dia2","titulo":"O 2º dia","itens":[{"id":"dia2-1","acao":"Natureza e Matemática: 90 questões, 5h, até 18h30. Sem redação.","origem":"edital","item":"9.4"},{"id":"dia2-2","acao":"Mesmo kit, mesmas regras de sala e de envelope.","porque":"Documento, canetas, celular desligado, portões às 13h.","origem":"edital","item":"11.1.6"},{"id":"dia2-3","acao":"Sem redação, sobra folga: use-a nas contas, não na pressa.","porque":"Cerca de 3 minutos por questão deixa meia hora livre.","origem":"professores"},{"id":"dia2-4","acao":"Saída depois de 2 horas; caderno só a partir das 18h.","origem":"edital","item":"11.1.34"},{"id":"dia2-5","acao":"Véspera é sábado 14/11: o checklist vale de novo, sem o kit mental.","origem":"plano"},{"id":"dia2-6","acao":"Entre as provas: escola no ritmo de sempre, nada de maratona.","porque":"Descanso é parte da prova.","origem":"plano"}]}],
+    "fontes": [{"tema":"edital-2026","titulo":"Edital do Enem 2026 (MEC/Inep)","url":"https://mecnormas.mec.gov.br/pesquisa/detalhar/11900"},{"tema":"cartilha","titulo":"Cartilha do Participante — A redação do Enem (Inep)","url":"https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/outros-documentos"}]
+  };
+  /* /build:dicas */
+
+  // ---------- o guia de dicas de prova (ADR-004 e ADR-005 de dicas-de-prova)
+  // momentoDicas, resumoDicas, acoesDicas e dicasHTML são CÓPIA VERBATIM entre os dois apps, e
+  // scripts/check-weeks.mjs reprova qualquer diferença: o guia é a fonte única de todo texto de dia
+  // de prova do produto — a seção do aluno, o card do painel, o passo da véspera, a manchete do Hoje,
+  // o roteiro da véspera e o lembrete da agenda saem destas quatro —, e divergir é o Arthur ler uma
+  // instrução e o pai outra sobre a MESMA manhã. São puras: nenhuma lê `state`, `document` ou
+  // `window`, e a data chega por parâmetro. As chaves ficam equilibradas dentro de todo literal,
+  // porque o funcao() do check é um casador de chaves que não entende string.
+  // Elas leem o literal que o build escreveu SEM guarda nenhuma — seis blocos na ordem, itens com
+  // `acao` e `origem`, `edital` com o número do item, dois caminhos com fecho, duas fontes
+  // resolvidas —, porque `validaDicas()` recusa o asset antes de ele chegar aqui, como
+  // `normalizeParecer()` faz pelo parecerHTML. O `find()` que pode não achar é outra coisa: ali o
+  // bloco inexistente é CONTRATO (depois de 15/11 não há momento, e um id de fora devolve vazio).
+
+  // O momento por DIA DO CALENDÁRIO, nunca por hora (ADR-001): o bloco que abre e a variante de dia.
+  // `d1`/`d2` são os dias até cada prova, negativo depois dela. Às 23h59 do dia 8 ainda é a manhã do
+  // dia 8 — hora do dia aqui seria o app trocando de assunto no meio da prova.
+  function momentoDicas(hoje, enem, enem2){
+    const zero = new Date(hoje).setHours(0,0,0,0), dias = d => Math.ceil((d - zero)/864e5);
+    const d1 = dias(enem), d2 = dias(enem2);
+    const variante = d1 >= 0 ? "dia1" : d2 >= 0 ? "dia2" : "todas";
+    const bloco = d1 >= 7 ? "sala" : d1 >= 2 ? "semana" : d1 === 1 ? "vespera" : d1 === 0 ? "manha"
+      : d2 >= 2 ? "dia2" : d2 === 1 ? "vespera" : d2 === 0 ? "manha" : null;
+    return {bloco, variante, d1, d2};
+  }
+
+  // A linha de resumo: a contagem e o momento. O título do bloco entra em minúscula porque ele é a
+  // segunda metade de uma frase — `faltam 16 dias · na sala` —, e o número NUNCA é negativo: passada
+  // a missão o guia deixa de contar e diz só que está ali para reler (US-003 EC-2).
+  function resumoDicas(dicas, m){
+    const b = dicas.blocos.find(x => x.id === m.bloco);
+    if(!b) return `${dicas.blocos.length} blocos · para reler`;
+    const momento = b.titulo.charAt(0).toLowerCase() + b.titulo.slice(1);
+    const n = m.d1 >= 0 ? m.d1 : m.d2, alvo = m.d1 >= 0 ? "" : " para o 2º dia";
+    if(n === 0) return `é hoje · ${momento}`;
+    return `${n === 1 ? "falta 1 dia" : `faltam ${n} dias`}${alvo} · ${momento}`;
+  }
+
+  // As linhas de ação que um bloco mostra numa variante, na ordem do asset. Linha sem etiqueta vale
+  // nos dois dias; em `todas` (depois de 15/11) valem todas. É daqui que saem o passo da véspera, a
+  // manchete do dia da prova, o roteiro do painel e o lembrete da agenda: uma fonte, quatro leitores.
+  function acoesDicas(dicas, bloco, variante){
+    const b = dicas.blocos.find(x => x.id === bloco);
+    return b ? b.itens.filter(i => !i.dia || variante === "todas" || i.dia === variante).map(i => i.acao) : [];
+  }
+
+  // O markup inteiro do guia. Quem decide o que se VÊ é esta função, não o CSS de cada tela
+  // (ADR-005): a linha do outro dia sai com `hidden`, a etiqueta de dia só aparece em `todas`, e o
+  // bloco que ficaria sem nenhuma linha visível ganha a linha quieta — uma tela não pode esquecer
+  // uma regra de CSS e mostrar outro texto. `open` e o `agora` são só do bloco do momento. As três
+  // partes da dica são <p> para a cópia sair em três linhas, e todo texto passa por esc().
+  function dicasHTML(dicas, m){
+    const ROTULOS = {edital:"regra do edital", inep:"o Inep explica", professores:"consenso de professores", plano:"combinado no plano"};
+    const ETIQUETAS = {dia1:" · 1º dia", dia2:" · 2º dia"};
+    const v = m.variante;
+    const mostra = i => !i.dia || v === "todas" || i.dia === v;
+    const origem = i => `<p class="origem">${esc(ROTULOS[i.origem])}`
+      + (i.origem === "edital" ? ` · item ${esc(i.item)}` : "")
+      + (i.dia ? `<span class="dtag"${v === "todas" ? "" : " hidden"}>${esc(ETIQUETAS[i.dia])}</span>` : "")
+      + `</p>`;
+    // O item de dois caminhos é simétrico por construção: as duas vias levam a mesma classe e a
+    // mesma forma, e quem escolhe é ele no simulado. Nenhuma leva `recomendado` nem um ✓.
+    const corpo = i => i.tipo === "caminhos"
+      ? `<div class="vias">`
+        + i.caminhos.map((c, k) => `<div class="via"><b>${"AB".charAt(k)}) ${esc(c.nome)}</b><p>${esc(c.pro)}</p></div>`).join("")
+        + `</div><p class="fecho">${esc(i.fecho)}</p>`
+      : (i.porque ? `<p class="porque">${esc(i.porque)}</p>` : "");
+    const dica = i => `<li class="dica${i.tipo === "caminhos" ? " caminhos" : ""}"`
+      + (i.dia ? ` data-dia="${esc(i.dia)}"` : "") + (mostra(i) ? "" : " hidden")
+      + `><p class="acao">${esc(i.acao)}</p>` + corpo(i) + origem(i) + `</li>`;
+    const bloco = b => {
+      const agora = b.id === m.bloco, itens = b.itens;
+      const quieta = !itens.some(mostra)
+        ? `<li class="sodia muted">${v === "dia2" ? "Não vale para o 2º dia." : "Não vale para o 1º dia."}</li>` : "";
+      return `<details class="bloco" data-bloco="${esc(b.id)}"${agora ? " open" : ""}>`
+        + `<summary><h3>${esc(b.titulo)}${agora ? ` <span class="agora">agora</span>` : ""}</h3></summary>`
+        + `<ol class="itens">${itens.map(dica).join("")}${quieta}</ol></details>`;
+    };
+    return `<div class="dicas" data-variante="${esc(v)}">`
+      + dicas.blocos.map(bloco).join("")
+      + `<p class="fontes"><b>Fontes oficiais:</b> `
+      + dicas.fontes.map(f => `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.titulo)}</a>`).join(" · ")
+      + `</p></div>`;
+  }
+
   // ---------- links conferidos do parecer (BR-20 de parecer-aluno)
   // GERADO PELO BUILD a partir de .agents/skills/preparar-encontro/assets/materiais.json: a lista
   // conferida à mão, a mesma que o validador da skill usa para recusar endereço inventado.
@@ -1486,7 +1675,8 @@
     {"tema":"coesao","titulo":"Coesão e coerência (Toda Matéria)","url":"https://www.todamateria.com.br/coesao-e-coerencia/","usar":"C4: retomada, pronome sem referente, progressão entre parágrafos"},
     {"tema":"dissertativo","titulo":"O texto dissertativo-argumentativo (Toda Matéria)","url":"https://www.todamateria.com.br/texto-dissertativo-argumentativo/","usar":"C2/C3: tese, projeto de texto, introdução e conclusão; C5: a proposta de intervenção"},
     {"tema":"repertorio","titulo":"Repertório sociocultural (Toda Matéria)","url":"https://www.todamateria.com.br/repertorio-sociocultural/","usar":"C2: repertório só citado, não ligado ao argumento"},
-    {"tema":"cartilha","titulo":"Cartilha do Participante — A redação do Enem (Inep)","url":"https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/outros-documentos","usar":"o documento oficial, com as cinco competências e redações nota 1000 comentadas"}
+    {"tema":"cartilha","titulo":"Cartilha do Participante — A redação do Enem (Inep)","url":"https://www.gov.br/inep/pt-br/areas-de-atuacao/avaliacao-e-exames-educacionais/enem/outros-documentos","usar":"o documento oficial, com as cinco competências e redações nota 1000 comentadas"},
+    {"tema":"edital-2026","titulo":"Edital do Enem 2026 (MEC/Inep)","url":"https://mecnormas.mec.gov.br/pesquisa/detalhar/11900","usar":"a regra da prova por item; o guia de véspera cita os itens"}
   ];
   /* /build:materiais */
 
@@ -1747,6 +1937,7 @@
     contrato:{t:"Contrato de rotina de <span data-nome></span>",b:`<p>Cópia somente leitura do contrato preenchido no painel do aluno: encontro, dia de envio, limite de jogo, recompensas por patente e a grade da semana. Se algo precisa mudar, combinem na chamada; a edição é feita lá.</p>`},
     banco:{t:"Banco de repertório de <span data-nome></span>",b:`<p>Os repertórios cadastrados, do mais recente para o mais antigo, com a semana e os temas para que servem. Meta até a prova: 10 no banco, 6 decorados. Use na semana 7 para montar o kit de prova com <span data-nome></span>.</p>`},
     estudo:{t:"Banco de estudo de <span data-nome></span>",b:`<p>Tudo o que foi registrado até aqui, agrupado por semana, da mais recente para a mais antiga — não só a semana selecionada. Cada linha traz matéria, conteúdo, dia, tempo e os textos escritos em cada bloco.</p><p><b>Como vem indo cada matéria</b>, acima dos grupos: uma linha por matéria com a marca dominante de cada semana e em quantos blocos daquela semana — <code>Física · S6 pesou 2/3 · S7 fluiu 1/1</code> —, da semana mais antiga para a mais nova. É a leitura <b>semana a semana</b>, a que mostra a matéria que vem pesando antes de o padrão ter três semanas de idade; semana com bloco e sem marca nenhuma aparece como <i>sem registro</i>. É texto, não gráfico, e segue o chip escolhido.</p><p>Os chips filtram por matéria e valem só enquanto a página estiver aberta. Use perto da prova para montar a revisão com <span data-nome></span>: o que foi muito visto, o que ficou de fora. “Imprimir banco de estudo” leva só este card para o papel.</p>`},
+    dicas:{t:"Dicas de prova",b:`<p>O <b>mesmo guia</b> que está no app de <span data-nome></span>, aqui em leitura: seis blocos pelo momento da prova — a semana da prova, a véspera, a manhã e a chegada, na sala, a redação no dia e o 2º dia. O bloco do momento <b>já vem aberto</b> pela data e leva a marca <code>agora</code>; os outros você abre quando quiser. O texto é o mesmo, caractere por caractere, nos dois apps: é isso que deixa você dizer “abra o terceiro bloco” na chamada e os dois olharem a mesma linha.</p><p>Cada dica tem três partes — o que fazer, um porquê curto e, embaixo, a origem. São quatro origens, e a diferença entre as quatro é justamente o que você precisa na hora de responder “por que assim?”:</p><ul><li><code>regra do edital</code> — está escrito no edital do Enem, com o <b>número do item</b> ao lado. Não é opinião de ninguém: é o que vale na porta e na sala.</li><li><code>o Inep explica</code> — é a explicação do próprio Inep, principalmente sobre como a nota é calculada.</li><li><code>consenso de professores</code> — o que se repete entre professores e cursinhos. É conselho bom, não é regra: dá para testar e adaptar na chamada.</li><li><code>combinado no plano</code> — algo que o plano da missão já combinou com <span data-nome></span>.</li></ul><p>Onde há <b>dois caminhos</b> defensáveis de verdade — a hora de escrever a redação é o caso —, o guia mostra os dois lado a lado, A e B, com o que cada um tem de bom, e <b>não recomenda nenhum</b>. A escolha é de <span data-nome></span>, no simulado da semana 5 e no ensaio geral da semana 7: na chamada, pergunte qual foi a escolha e por quê, em vez de escolher.</p><p>Algumas linhas valem só para um dos dias (<code>1º dia</code> ou <code>2º dia</code>): o guia mostra as do <b>próximo dia de prova</b> e esconde as do outro, para não misturar regra que naquele dia não serve. Depois de 15/11 o guia mostra todas, com a etiqueta do dia em cada uma.</p><p><b>Toda hora aqui é horário de Brasília</b>, que é o horário oficial da prova em todo o país — em Curitiba é o relógio da parede, sem nada a converter.</p><p>Nada aqui é tarefa: é leitura, <b>não vale XP</b>, não há o que marcar e este card não grava nada — nenhum campo, nenhuma anotação. O <b>roteiro da chamada da véspera</b> (semana 8) é o bloco <i>A véspera</i> deste guia: mudou o guia, muda o roteiro.</p><p><b>Imprimir dicas de prova</b>, no fim do card, põe o guia inteiro no papel: os seis blocos abertos e as linhas dos dois dias com a etiqueta de cada uma. O texto é o mesmo do <b>plano da missão</b> (<i>Estratégia de prova</i>), que é a fonte: mudou lá, muda aqui. As duas <b>fontes oficiais</b> no fim do guia abrem numa aba nova — nada sai do painel antes do toque.</p>`},
     correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora pelo modelo, no servidor, sem esperar o domingo. Ela só existe no modo conectado, e quem a liga é você: <b>com a sua chave</b>, <b>por aluno</b> e <b>com um teto por semana</b>.</p><ul><li><b>A chave é sua.</b> Ela é guardada no servidor, cifrada, e nunca volta para esta tela: o campo é só de escrita, e o que você lê aqui é a data em que ela foi cadastrada. <b>Salvar chave</b> pergunta ao fornecedor se ela serve antes de guardar — chave recusada não é guardada em lugar nenhum. <b>Remover chave</b> desliga a correção automática de todos os seus alunos na hora; a que estiver rodando termina.</li><li><b>Por aluno, com teto.</b> Ligar pede que você reconheça uma linha: a folha passada a limpo de <span data-nome></span> é enviada ao fornecedor do modelo para ser corrigida. <b>Correções por semana</b> vai de 0 a 20 (o padrão é 2); 0 equivale a desligado, e a ficha de <span data-nome></span> diz <i>0 de 0 nesta semana</i>. O crédito volta na segunda-feira, pelo calendário da missão.</li><li><b>Só a folha passada a limpo é corrigida</b>, nunca o rascunho — é ela que um corretor leria na prova. Sem folha, a ficha de <span data-nome></span> oferece só <b>Pedir correção</b>, que vem para você.</li><li><b>Falha não custa crédito.</b> Correção que não volta ou demora demais não gasta nada, e a ficha de <span data-nome></span> volta ao estado anterior. <b>A garantia é do servidor</b>, que só conta o crédito quando fecha a correção com um parecer — e o crédito de um parecer que volta numa forma que o app não entende, o que só acontece com um aparelho atrás do servidor, é devolvido ao teto da semana; uma correção devolvida sai também das duas contas do cartão do aluno. Esse cartão mostra as últimas falhas com o motivo curto; três seguidas trocam a linha por <i>A correção automática está falhando: confira a chave</i>, e <b>nada é desligado sozinho</b>.</li><li><b>Você recebe uma cópia</b> de todo parecer automático: ele aparece na ficha da redação, em <b>Redações extras</b>, com <i>Parecer automático</i> no cabeçalho. Montando o seu por cima e enviando, é o seu que passa a valer, e o automático fica legível atrás de um toque.</li><li><b>Avisos por e-mail:</b> cada pedido de correção de <span data-nome></span> manda um e-mail para o endereço da sua conta, sem o texto da redação. Desligando aqui, os pedidos continuam aparecendo na faixa do painel e no passo do domingo. <b>Só a recusa imediata do servidor de e-mail é detectada</b> — um endereço que recusa depois, em silêncio, continua marcado como funcionando, e nesse caso os avisos param de chegar sem que o painel saiba. Detectada a recusa, os avisos são desligados e esta linha diz isso.</li></ul><p>O que sai daqui para o fornecedor do modelo: a folha passada a limpo de <span data-nome></span>, o tema e a proposta. Nome, e-mail e o resto do painel não saem.</p>`},
     extras:{t:"Redações extras",b:`<p>As redações que <span data-nome></span> escreve por conta própria, fora da redação da semana. Cada uma conta na semana em que foi registrada e vale 50 XP, pelas duas primeiras de cada semana.</p><ul><li><b>Você só vê o que foi mandado.</b> Enquanto a correção não é pedida, a redação não aparece aqui — nem o rascunho, nem a folha passada a limpo. Pedida a correção, o que você lê é a versão daquele instante: o texto pode ter mudado depois, e isso não muda o que está nesta tela. Apagada no aparelho de <span data-nome></span>, a linha diz <b>apagada pelo aluno</b> e o texto entregue continua legível.</li><li><b>Sem folha passada a limpo</b> a entrega vem com o rascunho, dito como rascunho, e o parecer sai com <i>lido do rascunho</i>.</li><li><b>Corrigir à mão:</b> preencha a ficha — as cinco notas, uma força, um ajuste — e toque em <b>Montar o parecer</b>. Sai um parecer na mesma forma dos outros três, com o glossário das competências, o ajuste e o que estudar. Montar de novo substitui o anterior.</li><li><b>O ajuste é um só</b>, na competência do foco da semana. Quando o seu texto fala de outra competência, o painel pergunta se o foco desta redação não é outro: <b>Foco desta redação</b> muda só esta.</li><li><b>Com a skill:</b> <b>Copiar o comando</b> leva a proposta e o texto para o Claude Code — a skill não precisa do plano para uma extra — e <b>Colar o preparo</b> traz a ficha e o parecer de volta. O preparo de uma extra não entra na semana, e o da semana não entra aqui.</li><li><b>Combinado com <span data-nome></span>:</b> o que vocês acertarem na chamada. Até 200 caracteres por item; viaja na próxima entrega do parecer. Remover um antes de mandar o tira da lista do outro lado.</li><li><b>O que ficou de fazer</b> mostra as marcas do último código ou da última descida. Você lê e não muda: marcar é gesto de quem escreveu.</li></ul>`},
     evolucao:{t:"Evolução",b:`<p>Nota total por semana, usando a nota da ficha (ou, se você não lançou, a registrada no painel do aluno). Abaixo, a última nota de cada competência. A partir da segunda semana com nota, “ponto fraco” marca a mais baixa delas, quando está abaixo de 160 e no menor valor que já teve. Use o prompt “Analisar a evolução” quando tiver três ou mais semanas lançadas.</p>`},
@@ -3001,6 +3192,30 @@
     }).join("");
   }
 
+  // O guia de dicas de prova, o mesmo do app dele (ADR-005 de dicas-de-prova). Duas regras, e as duas
+  // importam:
+  //
+  // O CORPO é desenhado por MOMENTO, nunca por render. A chave é `bloco|variante`, e enquanto ela
+  // não muda o HTML não é reescrito. `render()` roda a cada tecla da ficha e a cada gravação de outra
+  // aba; se isto redesenhasse ali, o bloco que o pai abriu à mão fecharia no meio da leitura e o
+  // <summary> que tinha o foco seria recriado — a classe de defeito que a varredura de foco existe
+  // para pegar. A virada do dia muda a chave, e o render seguinte desenha o momento novo.
+  //
+  // A LINHA DE RESUMO é refeita SEMPRE, e de propósito: `faltam 16 dias` envelhece com o relógio sem
+  // que o bloco mude (de 16 para 15 o momento continua sendo `na sala`), e ela é um nó de texto dentro
+  // do <summary> — reescrevê-la não recria controle nenhum nem move o foco.
+  //
+  // Não lê `aluno()` e não grava `state`: o guia é o mesmo com ou sem backup importado, e é por isso
+  // que o render vindo do evento `storage` (com o `save()` suspenso) pode chamá-lo sem consequência.
+  let dicasChaveO = null;
+  function renderDicasO(){
+    const m = momentoDicas(new Date(), ENEM, ENEM2), chave = `${m.bloco}|${m.variante}`;
+    document.getElementById("sumDicas").textContent = resumoDicas(DICAS_PROVA, m);
+    if(chave === dicasChaveO) return;
+    dicasChaveO = chave;
+    document.getElementById("dicasCorpoO").innerHTML = dicasHTML(DICAS_PROVA, m);
+  }
+
   // ---- renders
   // Idade do backup, e se ele é anterior ao começo de uma semana que já começou: nesse caso "nada marcado"
   // não diz nada sobre a semana, diz que o backup está velho — e é isso que o card precisa dizer.
@@ -3253,7 +3468,7 @@
       como: peloRoteiro
         ? (m.final ? "Quando a chamada da véspera terminar, marque aqui. As suas anotações ficam no card Minhas anotações da semana."
                    : `Quando a chamada terminar, marque aqui. O que ${nome} percebeu, os critérios do briefing e as suas anotações ficam na ficha e nos cards ao lado — nada disso marca o passo.`)
-        : (m.final ? "O roteiro é o checklist de véspera: local e horário, canetas, kit mental, dormir cedo. Abra, faça a chamada e volte para marcar."
+        : (m.final ? `O roteiro é o bloco "A véspera" das dicas de prova, linha por linha — o mesmo texto que ${nome} tem no app. Abra, faça a chamada e volte para marcar.`
                    : "Em cada bloco o roteiro diz o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada. Abra, faça a chamada e volte para marcar."),
       rotulo: peloRoteiro ? "A chamada foi feita" : "Abrir o roteiro",
       // `irPara()` ANTES de marcar a sessão: ele põe o foco no título do roteiro, e aí o
@@ -3346,8 +3561,20 @@
   }
   function renderScript(){
     const m=WEEKS[current-1], prev=current>1?wk(current-1).f:null, el=document.getElementById("script"), p=m.final?null:wk(current).prep;
+    // `prep` diz "tem preparo colado" e é o que leva o roteiro ao papel no modo `semana`; `vespera`
+    // diz "este roteiro É o checklist da véspera". Na semana 8 nunca há preparo (o `p` acima é nulo
+    // por construção), e sem a segunda classe o roteiro da véspera era o ÚNICO roteiro que não ia ao
+    // papel — justamente o que ADR-003 diz que se usa longe da tela, com o celular lacrado.
     document.getElementById("cRoteiro").classList.toggle("prep", !!p);
-    if(m.final){ el.innerHTML=`<div class="flag">${m.foco}</div><ol><li>Local de prova, trajeto, horário (portões 13h).</li><li>Documento, duas canetas pretas transparentes, água e lanche.</li><li>Kit mental: introdução, 6 repertórios, 5 elementos.</li><li>Dormir antes das 23h. Sem maratona de jogo.</li></ol><p class="muted mt">Domingo: uma mensagem de manhã, só isso.</p>`; return; }
+    document.getElementById("cRoteiro").classList.toggle("vespera", !!m.final);
+    // A chamada da véspera NÃO tem roteiro próprio: ela é o bloco "A véspera" do guia de dicas de
+    // prova, lido daqui (ADR-001 de dicas-de-prova). Estas quatro linhas eram cópia à mão do
+    // checklist do plano, a quinta de cinco cópias do mesmo texto, e nenhuma delas conferia as
+    // outras: o pai podia ler "duas canetas" enquanto o app do filho dizia outra coisa sobre a
+    // MESMA manhã. Agora são as linhas de ação do asset, na ordem dele, na variante do 1º dia
+    // (a véspera do 2º dia é 14/11, e ali o kit mental não entra — quem decide é `acoesDicas`).
+    // Só a ação: o porquê e o rótulo de origem ficam no card, que o pai abre se quiser.
+    if(m.final){ el.innerHTML=`<div class="flag">${m.foco}</div><ol>${acoesDicas(DICAS_PROVA,"vespera","dia1").map(a=>`<li>${esc(a)}</li>`).join("")}</ol><p class="muted mt">Domingo: uma mensagem de manhã, só isso.</p>`; return; }
     let h=`<div class="flag">Foco desta semana: ${m.foco}</div>`;
     if(prev&&(prev.ajuste||prev.forca)) h+=`<p class="mt notaext"><b>Da semana passada</b><br>Força: ${esc(prev.forca||"—")}<br>Ajuste combinado: ${esc(prev.ajuste||"—")}${prev.paragrafo?` · parágrafo ${esc(prev.paragrafo)} reescrito?`:""}</p>`;
     if(p&&p.insights.length) h+=`<ul class="insights">${p.insights.map(i=>`<li>${i.tom==="atencao"?"<b>Atenção</b> ":i.tom==="bom"?"<b>Bom</b> ":""}${esc(i.texto)}</li>`).join("")}</ul>`;
@@ -5700,7 +5927,7 @@
   // Preenche os <span data-nome> do markup estático com o nome do aluno visível. Roda a cada render e
   // também depois de o diálogo de ajuda montar o corpo, que tem spans próprios.
   function renderNome(){ document.querySelectorAll("[data-nome]").forEach(el=>{ el.textContent = nomeAluno(); }); }
-  function render(){ renderNome(); renderTop(); renderAlunos(); renderTabs(); renderArthur(); renderArthurBrief(); renderAviso(); renderExtras(); renderPassos(); renderScript(); renderParecer(); renderFinal(); bindForm(); renderRed(); renderChart(); renderContrato(); renderBanco(); renderEstudoBanco(); }
+  function render(){ renderNome(); renderTop(); renderAlunos(); renderTabs(); renderArthur(); renderArthurBrief(); renderAviso(); renderExtras(); renderPassos(); renderScript(); renderParecer(); renderFinal(); bindForm(); renderRed(); renderChart(); renderContrato(); renderBanco(); renderEstudoBanco(); renderDicasO(); }
   render();
   // O portão do painel hospedado. Sem sessão, o <main> fica escondido e só o diálogo #conta aparece,
   // sem Fechar e sem Esc: não há painel atrás dele. Com sessão, as anotações deste navegador entram e o

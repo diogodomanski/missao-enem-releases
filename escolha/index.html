@@ -418,7 +418,10 @@
     body{background:var(--surface);font-size:12px}
     main{max-width:none;padding:0}
     .navwrap,.nav,.fila,.today,button,.foot,.noprint,.toast,dialog{display:none !important}
-    .sec{border:0;padding:0;margin:0 0 18px;break-inside:avoid}
+    /* `auto` e não `avoid`, a mesma regra dos dois apps: com `avoid`, a #ficha era empurrada
+       inteira para a folha 2 e a 1 saía só com a linha de título, e no documento inteiro #lados e
+       #roteiro faziam o mesmo. Não devolva o `avoid` aqui. */
+    .sec{border:0;padding:0;margin:0 0 18px;break-inside:auto}
     .ficha,.lados,.duo > div,.lista > div,ol.passos li{background:var(--surface);padding:0}
     body[data-print="ficha"] .sec:not(#ficha){display:none}
     body[data-print="ficha"] .campo i{border-bottom:1px solid var(--muted)}
@@ -1111,7 +1114,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 284 · 22/10/2026</p></div>
+  <div class="in"><p class="versao">versão 287 · 24/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 
