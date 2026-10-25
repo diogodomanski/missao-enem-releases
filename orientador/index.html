@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Missão ENEM — Orientador</title>
 <style>
-  /* build:tokens largura="1080px" corpo="15px" campo="15px" primaria="var(--ink)" */
+  /* build:tokens largura="1320px" corpo="15px" campo="15px" primaria="var(--ink)" */
   /* Paleta e medidas do shell. Fonte única: este arquivo é injetado nos três HTMLs pelo build.
      Não edite o bloco gerado dentro do HTML — edite aqui e rode `python3 scripts/build.py`. */
   :root{
@@ -62,7 +62,7 @@
     /* --footer é a altura total da barra fixa de baixo, fio de 1px incluído, e serve ao mesmo
        propósito: entra no padding do body e no quanto o toast sobe para não pousar sobre ela. */
     --footer:28px;
-    --wide:1080px;
+    --wide:1320px;
     /* Medidas que mudam de tela para tela. Antes eram divergências que só quem já conhecia o código
        sabia de cor (campo de 16px no aluno e de 15px no orientador); agora cada arquivo as declara
        no próprio marcador do build, e o CSS compartilhado lê a variável. */
@@ -602,6 +602,29 @@
   .passo.agora .tit{font-weight:700;color:var(--ink)}
   .passo .flag{margin:8px 0 0;max-width:72ch}
   .passo .actions{margin:10px 0 0}
+  /* O domingo fechado tem forma (25/10/2026). Com os passos todos feitos o quadro era quatro ✓ cinzas e
+     uma linha de contagem: o fim do ritual da semana sem nenhuma frase para ele. O fecho diz o que FICA
+     para a semana nas palavras da ficha — a força e o ajuste —, no verde suave e no azul suave do
+     parecer, que é o vocabulário que pai e filho já leem juntos na chamada (verde é o presente, azul
+     suave é o próximo passo). Nenhum acento novo, nenhum controle: é leitura, e aponta a próxima semana.
+     Mora FORA de #passos, que é refeito por innerHTML a cada render: assim ele persiste, e a entrada
+     (a curva da promoção de patente) só roda quando o último passo fecha nesta sessão — nunca na carga
+     e nunca ao trocar de aba, onde não há nada acontecendo. */
+  .fecho{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:10px}
+  .fecho > p{margin:0;font-size:14px;color:var(--muted);max-width:72ch}
+  .fecho > p > b{display:block;font-size:16px;color:var(--ink);margin-bottom:2px}
+  .fecho .fica{display:grid;gap:8px;margin:0}
+  @media (min-width:721px){.fecho .fica{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+  .fecho .fica > div{border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.4;min-width:0;overflow-wrap:anywhere;display:grid;gap:4px;align-content:start}
+  .fecho .fica > div > b{font-size:14px}
+  .fecho .fica .forca{background:var(--green-soft)}
+  .fecho .fica .forca > b{color:var(--green)}
+  .fecho .fica .ajuste{background:var(--blue-soft);color:var(--blue-ink)}
+  .fecho .fica .ajuste > b{color:var(--blue-ink)}
+  @media (prefers-reduced-motion:no-preference){
+    .fecho.entra{animation:fecho .45s cubic-bezier(.16,1,.3,1) both}
+    @keyframes fecho{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  }
   .vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
   #arthurWeek .flag{margin:0 0 10px} /* o aviso de backup velho vem antes dos números da semana */
   /* "Como foi:" fica à distância da régua em que a linha "Feito:" fica, e um nome de 40 caracteres
@@ -635,14 +658,17 @@
      O seletor é o maxlength e não uma classe nova: `notas` e `bobs` são caderno livre, não têm teto de
      caracteres e seguem com a alça e a altura deles. */
   #cFicha textarea[maxlength="300"],#xForm textarea[maxlength="300"]{field-sizing:content;min-height:3.4em;max-height:9em;resize:none;line-height:1.45}
-  /* A medida de leitura dos cards de consulta. O <main> do painel tem 1080px, e prosa de 13–14px
-     esticada nessa largura dá linhas de 124 caracteres de mediana e 145 no pior caso (medido com
+  /* A medida de leitura dos cards de consulta. O <main> do painel tinha 1080px (1320 desde
+     25/10/2026: o conteúdo ficava concentrado no meio de uma tela de 1920 com 420px vazios de cada
+     lado), e prosa de 13–14px esticada nessa largura dá linhas de 124 caracteres de mediana e 145 no pior caso (medido com
      canvas.measureText, com tudo aberto): o #cParecer, que é o card que pai e filho leem JUNTOS no
      telefone, ficava em 137–140. O arquivo já conhecia a medida e a aplicava em três peças pequenas —
      .week .theme 70ch, .passo .flag 72ch, #xLista > .vazio 58ch — e em nenhuma prosa longa. 72ch é a
      mesma do .flag. Só parágrafo e item de lista: tile da nota, grade do glossário e linha de ações
-     não são texto corrido e seguem a largura do card. */
-  #cParecer p,#cParecer li,#cEvo p,#cIA p,#cIA li,#mudou p,#mudou li,.foot > span{max-width:72ch}
+     não são texto corrido e seguem a largura do card. O roteiro entrou com os 1320px: a coluna dele
+     foi de 517 para 637px e os itens, de ~54 para ~67 caracteres por linha — ainda na medida, e a
+     regra é a guarda para a largura não crescer de novo sem ela. */
+  #cParecer p,#cParecer li,#cEvo p,#cIA p,#cIA li,#mudou p,#mudou li,#cRoteiro li,#cRoteiro .flag,.foot > span{max-width:72ch}
   .short{max-width:140px}
   details.sub{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
   details.sub > summary{list-style:none;cursor:pointer;font-size:14px;font-weight:700;color:var(--muted);display:flex;align-items:center;gap:6px;user-select:none}
@@ -710,7 +736,11 @@
   .chips .convite button{border:0;background:transparent;padding:4px 10px}
 
   /* o gráfico redesenha na largura do card (viewBox de 320 a 720); abaixo de 560 os rótulos viram S1…S7 */
-  .grafico{width:100%;max-width:720px;height:auto;display:block;margin-top:8px}
+  /* Sem teto de largura: o viewBox é a largura do card (renderChart), então nada escala e os pontos só
+     se afastam. Com 720px fixos, no painel de 1320 o gráfico parava a um terço do fim do card. */
+  .grafico{width:100%;height:auto;display:block;margin-top:8px}
+  /* A nota da semana com contexto: a frase em tinta, acima da linha cinza das competências. */
+  .evoctx{margin:10px 0 0;font-size:14px;color:var(--ink)}
   .foot{color:var(--muted);font-size:13px;margin-top:28px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
   .kv b,.stat{font-variant-numeric:tabular-nums}
   label.filebtn{display:inline-flex;flex-direction:row;align-items:center;padding:8px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font-size:inherit;cursor:pointer;position:relative}
@@ -1146,6 +1176,7 @@
     <h2>Passo a passo do domingo <button class="help" data-help="passos" aria-label="Ajuda: passo a passo do domingo">?</button></h2>
     <p class="muted" id="passosSum"></p>
     <ol class="passos" id="passos"></ol>
+    <div class="fecho" id="passosFecho" hidden></div>
   </section>
 
   <div class="grid">
@@ -1319,6 +1350,7 @@
   <section class="card" id="cEvo">
     <h2>Evolução <button class="help" data-help="evolucao" aria-label="Ajuda: evolução">?</button></h2>
     <div class="tablewrap"><svg id="grafico" class="grafico" viewBox="0 0 720 220" role="img" aria-label="Notas por semana"></svg></div>
+    <p class="evoctx" id="evoCtx" hidden></p>
     <p class="muted mt" id="evoLine"></p>
   </section>
 
@@ -1397,7 +1429,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 287 · 24/10/2026</p></div>
+  <div class="in"><p class="versao">versão 289 · 25/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <!-- O painel hospedado sem modo online (online.json sem endereço no build): não há como entrar, e o
@@ -1925,7 +1957,7 @@
   function conectado(){ const s = syncSt; return !!(s && s.session && s.enabled && s.connection && s.connection.state==="active"); }
   const HELP = {
     fluxo:{t:"Como usar este painel",b:`<p><b>Se estiver em dúvida por onde começar, siga o quadro <i>Passo a passo do domingo</i>, no topo:</b> ele mostra em qual dos quatro passos você está e traz o botão do passo de agora. O resto desta tela é para quando você quiser algo fora desse caminho.</p><p>A tela segue o domingo:</p><ul><li><b>Antes:</b> <span data-nome></span> toca em “Copiar resumo e código” no painel e te manda uma mensagem só. Você cola a mensagem inteira em <b>Importar dados de <span data-nome></span></b>. Isso traz a redação, o que foi marcado, o briefing, o contrato e o banco. Depois, <b>Preparar com o Claude</b> monta a ficha e as perguntas do encontro.</li><li><b>Na chamada:</b> à esquerda, o que chegou (redação e registro da semana); à direita, o que você faz (roteiro, ficha, briefing, anotações), na ordem dos 40 minutos.</li><li><b>Depois:</b> a curva de notas em Evolução. Contrato e banco ficam recolhidos para consulta.</li></ul><p>Os backups das suas anotações estão no rodapé; só precisa deles ao trocar de aparelho.</p>${APP?`<p><b>No aplicativo as anotações não ficam no navegador:</b> elas moram num banco próprio na pasta de dados do seu usuário${FOLDER?` (<code>${esc(FOLDER)}</code>)`:""} — <code>%APPDATA%\\Missão ENEM</code> no Windows e <code>~/.config/missao-enem</code> no Linux —, separado do banco do aluno. <b>Abrir pasta dos dados</b>, no rodapé, abre essa pasta.</p><p><b>Cópias automáticas:</b> na primeira vez que o app salva em cada dia, ele guarda ali uma cópia do estado anterior, em JSON — o mesmo formato do arquivo de backup. Ficam as 14 mais recentes, e restaurar uma delas pede confirmação e deixa 8 segundos de Desfazer.</p><p><b>Esqueceu a senha?</b> Apague o <code>config.json</code> dessa pasta: o app volta a aceitar a senha que veio na instalação. A senha trocada aqui vale só neste aparelho e nunca entra no backup das anotações.</p>`:""}`},
-    passos:{t:"Passo a passo do domingo",b:`<p>O domingo tem quatro passos, e o quadro sabe em qual você está. Três deles se marcam sozinhos a partir do que já existe no painel; <b>o único que você marca é a chamada</b>, porque ela acontece no telefone e nada nesta tela pode saber que ela aconteceu. O botão dela tem duas metades: abre o roteiro e, depois, marca a chamada como feita.</p><ol><li><b>Importar o que <span data-nome></span> mandou</b> — o botão abre o mesmo diálogo do topo. Fecha quando o código entra, e reabre se o código for anterior a esta semana.</li><li><b>Preparar com o Claude</b> — o botão copia o comando; você cola no Claude Code aberto na pasta do projeto, copia a resposta inteira e volta aqui, onde o mesmo passo passa a oferecer <b>Colar o preparo</b>. Fecha quando o preparo entra. No caminho normal você não precisa abrir o card <b>Preparar com o Claude</b>.</li><li><b>A chamada de 40 minutos</b> — o botão abre o roteiro, que em cada bloco diz o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada. Terminada a chamada, o mesmo botão passa a dizer <b>A chamada foi feita</b>, e é ele que fecha o passo. O que <span data-nome></span> percebeu, os critérios do briefing e as suas anotações ficam na ficha e nos cards ao lado: são o registro do encontro, não a marca dele.</li><li><b>Mandar a tarefa da semana</b> — a mensagem pronta para o WhatsApp, com o parágrafo a reescrever, os exercícios do ajuste e o combinado da próxima semana. Fecha quando você copia. Mande junto o <b>parecer</b> (card Parecer da redação → Copiar o parecer): é a correção escrita para <span data-nome></span>, que fica guardada no painel do aluno.</li></ol><p>Os outros modelos de <b>Preparar com o Claude</b> não são passos do domingo: são ferramentas de outros momentos, e os grupos da lista lá dizem de qual. Na reta final o quadro tem dois passos, porque não há redação nova.</p>${ONLINE?`<p><b>Com o aluno conectado</b>, o primeiro passo fecha sozinho quando a semana do aluno abre e chega, e o último é <b>Enviar o parecer</b>: o parecer e a mensagem vão juntos para o app do aluno, sem WhatsApp.</p>`:""}`},
+    passos:{t:"Passo a passo do domingo",b:`<p>O domingo tem quatro passos, e o quadro sabe em qual você está. Três deles se marcam sozinhos a partir do que já existe no painel; <b>o único que você marca é a chamada</b>, porque ela acontece no telefone e nada nesta tela pode saber que ela aconteceu. O botão dela tem duas metades: abre o roteiro e, depois, marca a chamada como feita.</p><ol><li><b>Importar o que <span data-nome></span> mandou</b> — o botão abre o mesmo diálogo do topo. Fecha quando o código entra, e reabre se o código for anterior a esta semana.</li><li><b>Preparar com o Claude</b> — o botão copia o comando; você cola no Claude Code aberto na pasta do projeto, copia a resposta inteira e volta aqui, onde o mesmo passo passa a oferecer <b>Colar o preparo</b>. Fecha quando o preparo entra. No caminho normal você não precisa abrir o card <b>Preparar com o Claude</b>.</li><li><b>A chamada de 40 minutos</b> — o botão abre o roteiro, que em cada bloco diz o que perguntar, o que esperar como resposta e o que dizer se a resposta vier errada. Terminada a chamada, o mesmo botão passa a dizer <b>A chamada foi feita</b>, e é ele que fecha o passo. O que <span data-nome></span> percebeu, os critérios do briefing e as suas anotações ficam na ficha e nos cards ao lado: são o registro do encontro, não a marca dele.</li><li><b>Mandar a tarefa da semana</b> — a mensagem pronta para o WhatsApp, com o parágrafo a reescrever, os exercícios do ajuste e o combinado da próxima semana. Fecha quando você copia. Mande junto o <b>parecer</b> (card Parecer da redação → Copiar o parecer): é a correção escrita para <span data-nome></span>, que fica guardada no painel do aluno.</li></ol><p>Os outros modelos de <b>Preparar com o Claude</b> não são passos do domingo: são ferramentas de outros momentos, e os grupos da lista lá dizem de qual. Na reta final o quadro tem dois passos, porque não há redação nova.</p><p>Feitos todos, o quadro fecha com o que fica para a semana — a força e o ajuste da ficha, nas suas palavras —, o XP da semana e a próxima. Na reta final, o balanço das 8 semanas.</p>${ONLINE?`<p><b>Com o aluno conectado</b>, o primeiro passo fecha sozinho quando a semana do aluno abre e chega, e o último é <b>Enviar o parecer</b>: o parecer e a mensagem vão juntos para o app do aluno, sem WhatsApp.</p>`:""}`},
     dados:{t:"O que <span data-nome></span> registrou",b:`<p>Leitura automática do backup de <span data-nome></span> para a semana selecionada: XP, blocos de estudo, repertórios, dias de notícia, o que está marcado como feito e a nota lançada. Use no fechamento para validar o XP. Você não edita aqui; se algo estiver errado, a correção é feita no painel do aluno, e um código novo traz a mudança.</p><p>Abaixo dos números vêm os blocos da semana, um por linha, do mais novo para o mais antigo: matéria, conteúdo, dia, tempo e, quando foram escritos, o “o que é” e o “onde aparece”. Do sexto bloco em diante a linha vem marcada como <b>sem XP</b> — o estudo aconteceu, só não soma mais; blocos vindos da versão antiga do app aparecem como <b>bloco antigo</b>.</p><p><b>Como foi:</b> logo abaixo dos números, uma linha diz onde a semana pesou e onde fluiu — <code>Como foi: pesou em Física (3 de 3) · ok em Matemática (1 de 2) · 1 sem registro</code> —, nomeando cada matéria uma vez com a marca que mais apareceu e em quantos blocos daquela matéria; a mesma marca vem na etiqueta de cada bloco, abaixo. É <b>a leitura de <span data-nome></span></b> sobre como aquela sessão de estudo foi: <b>opcional</b>, e <b>não muda o XP</b> nem entra em medalha ou patente. Bloco salvo sem marca entra como <i>sem registro</i>, nunca como “Ok”. Num <b>empate</b> entre duas marcas a linha diz a pior das duas, de propósito — empate, como bloco sem marca, é motivo para <b>perguntar</b> na chamada, nunca para concluir. A mesma matéria vista semana a semana fica no card <b>Banco de estudo</b>.</p><p>No topo, ao lado do XP acumulado, aparece quanto o XP subiu desde o backup anterior: é o número para abrir a chamada.</p>`},
     roteiro:{t:"Roteiro do encontro (40 min)",b:`<p>Montado para a semana selecionada: o foco de correção, o ajuste combinado na semana anterior (para cobrar continuidade), a pauta do briefing e o que combinar para a próxima. As perguntas por competência estão dentro da ficha de correção. A regra é conduzir por perguntas, não por afirmações, e fechar sempre com <b>uma</b> força e <b>um</b> ajuste.</p><p>Com o preparo colado (Preparar com o Claude → Preparar o encontro), cada bloco traz o que perguntar, <b>o que esperar como resposta</b> — com o trecho da redação — e o que dizer se a resposta vier errada; a leitura em voz alta ganha os tropeços prováveis, o fechamento o XP e a próxima semana. Quando a redação foi passada a limpo, a leitura traz também a <b>translineação</b>: cada palavra dividida errado no fim de uma linha, com o número da linha da folha e as duas metades como estão escritas; sem nenhuma errada, ela diz que estão todas certas. A folha em andamento é conferida como está (“não finalizada”), e a da semana que exige a folha é “transcrita do papel”. No fim, “Copiar mensagem” leva para o WhatsApp o parágrafo a reescrever, os exercícios do ajuste e o combinado da próxima. Com o preparo, “Imprimir semana” leva o roteiro para o papel.</p>`},
     redacao:{t:"Redação da semana",b:`<p>Se <span data-nome></span> escreveu no painel, o texto chega pela importação. Se veio como foto, peça a transcrição ou transcreva no Claude e cole aqui. O texto fica salvo nesta semana e entra sozinho no prompt “Avaliar a redação”.</p><p><b>As linhas do cabeçalho</b> são contadas como na folha de <span data-nome></span>: na largura e no recuo medidos da letra do aluno (sem código importado, 68 caracteres e recuo de 4). É o mesmo número que aparece no painel do aluno e o que a skill usa. Se você trocar o texto aqui, a conta segue o seu texto, na largura medida.</p><p><b>A folha passada a limpo</b>, quando existe, é o que o card mostra: as linhas numeradas como foram escritas, se está em andamento ou finalizada e se a semana exigia. As duas formas da mesma redação não ficam empilhadas: os botões <b>Folha passada a limpo</b> e <b>Transcrição</b>, acima do campo, escolhem o que fica na tela. A folha é o padrão, porque a correção lê a folha. A escolha vale enquanto a página estiver aberta e não muda o papel. É só leitura — o que você digita no campo não a muda. Na semana que exige a folha ela é a cópia da folha de papel, linha por linha, e uma linha mais longa que a largura medida aparece sublinhada, sem ser erro. Se o rascunho mudou depois de passado a limpo, uma linha avisa. Com folha, <b>Imprimir semana</b> leva a folha para o papel no lugar do texto. Na conversa, olhem os fins de linha: é onde está a translineação.</p><p><b>Com o aluno conectado,</b> a redação chega <b>entregue</b>: quando o aluno toca em Entregar a redação, vem o texto daquele instante e a folha passada a limpo, se já tinha começado, com a data — <i>entregue em</i>. O rascunho que continua em edição não chega. Se uma entrega mais nova chega com o campo já preenchido — a entrega anterior ou a sua transcrição —, o card diz <i>Há uma entrega mais nova</i> e o campo só muda quando você toca em <b>Usar</b>. O comando do preparo leva o que está no campo; sem entrega e sem texto, vai sem redação.</p>`},
@@ -1940,7 +1972,7 @@
     dicas:{t:"Dicas de prova",b:`<p>O <b>mesmo guia</b> que está no app de <span data-nome></span>, aqui em leitura: seis blocos pelo momento da prova — a semana da prova, a véspera, a manhã e a chegada, na sala, a redação no dia e o 2º dia. O bloco do momento <b>já vem aberto</b> pela data e leva a marca <code>agora</code>; os outros você abre quando quiser. O texto é o mesmo, caractere por caractere, nos dois apps: é isso que deixa você dizer “abra o terceiro bloco” na chamada e os dois olharem a mesma linha.</p><p>Cada dica tem três partes — o que fazer, um porquê curto e, embaixo, a origem. São quatro origens, e a diferença entre as quatro é justamente o que você precisa na hora de responder “por que assim?”:</p><ul><li><code>regra do edital</code> — está escrito no edital do Enem, com o <b>número do item</b> ao lado. Não é opinião de ninguém: é o que vale na porta e na sala.</li><li><code>o Inep explica</code> — é a explicação do próprio Inep, principalmente sobre como a nota é calculada.</li><li><code>consenso de professores</code> — o que se repete entre professores e cursinhos. É conselho bom, não é regra: dá para testar e adaptar na chamada.</li><li><code>combinado no plano</code> — algo que o plano da missão já combinou com <span data-nome></span>.</li></ul><p>Onde há <b>dois caminhos</b> defensáveis de verdade — a hora de escrever a redação é o caso —, o guia mostra os dois lado a lado, A e B, com o que cada um tem de bom, e <b>não recomenda nenhum</b>. A escolha é de <span data-nome></span>, no simulado da semana 5 e no ensaio geral da semana 7: na chamada, pergunte qual foi a escolha e por quê, em vez de escolher.</p><p>Algumas linhas valem só para um dos dias (<code>1º dia</code> ou <code>2º dia</code>): o guia mostra as do <b>próximo dia de prova</b> e esconde as do outro, para não misturar regra que naquele dia não serve. Depois de 15/11 o guia mostra todas, com a etiqueta do dia em cada uma.</p><p><b>Toda hora aqui é horário de Brasília</b>, que é o horário oficial da prova em todo o país — em Curitiba é o relógio da parede, sem nada a converter.</p><p>Nada aqui é tarefa: é leitura, <b>não vale XP</b>, não há o que marcar e este card não grava nada — nenhum campo, nenhuma anotação. O <b>roteiro da chamada da véspera</b> (semana 8) é o bloco <i>A véspera</i> deste guia: mudou o guia, muda o roteiro.</p><p><b>Imprimir dicas de prova</b>, no fim do card, põe o guia inteiro no papel: os seis blocos abertos e as linhas dos dois dias com a etiqueta de cada uma. O texto é o mesmo do <b>plano da missão</b> (<i>Estratégia de prova</i>), que é a fonte: mudou lá, muda aqui. As duas <b>fontes oficiais</b> no fim do guia abrem numa aba nova — nada sai do painel antes do toque.</p>`},
     correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora pelo modelo, no servidor, sem esperar o domingo. Ela só existe no modo conectado, e quem a liga é você: <b>com a sua chave</b>, <b>por aluno</b> e <b>com um teto por semana</b>.</p><ul><li><b>A chave é sua.</b> Ela é guardada no servidor, cifrada, e nunca volta para esta tela: o campo é só de escrita, e o que você lê aqui é a data em que ela foi cadastrada. <b>Salvar chave</b> pergunta ao fornecedor se ela serve antes de guardar — chave recusada não é guardada em lugar nenhum. <b>Remover chave</b> desliga a correção automática de todos os seus alunos na hora; a que estiver rodando termina.</li><li><b>Por aluno, com teto.</b> Ligar pede que você reconheça uma linha: a folha passada a limpo de <span data-nome></span> é enviada ao fornecedor do modelo para ser corrigida. <b>Correções por semana</b> vai de 0 a 20 (o padrão é 2); 0 equivale a desligado, e a ficha de <span data-nome></span> diz <i>0 de 0 nesta semana</i>. O crédito volta na segunda-feira, pelo calendário da missão.</li><li><b>Só a folha passada a limpo é corrigida</b>, nunca o rascunho — é ela que um corretor leria na prova. Sem folha, a ficha de <span data-nome></span> oferece só <b>Pedir correção</b>, que vem para você.</li><li><b>Falha não custa crédito.</b> Correção que não volta ou demora demais não gasta nada, e a ficha de <span data-nome></span> volta ao estado anterior. <b>A garantia é do servidor</b>, que só conta o crédito quando fecha a correção com um parecer — e o crédito de um parecer que volta numa forma que o app não entende, o que só acontece com um aparelho atrás do servidor, é devolvido ao teto da semana; uma correção devolvida sai também das duas contas do cartão do aluno. Esse cartão mostra as últimas falhas com o motivo curto; três seguidas trocam a linha por <i>A correção automática está falhando: confira a chave</i>, e <b>nada é desligado sozinho</b>.</li><li><b>Você recebe uma cópia</b> de todo parecer automático: ele aparece na ficha da redação, em <b>Redações extras</b>, com <i>Parecer automático</i> no cabeçalho. Montando o seu por cima e enviando, é o seu que passa a valer, e o automático fica legível atrás de um toque.</li><li><b>Avisos por e-mail:</b> cada pedido de correção de <span data-nome></span> manda um e-mail para o endereço da sua conta, sem o texto da redação. Desligando aqui, os pedidos continuam aparecendo na faixa do painel e no passo do domingo. <b>Só a recusa imediata do servidor de e-mail é detectada</b> — um endereço que recusa depois, em silêncio, continua marcado como funcionando, e nesse caso os avisos param de chegar sem que o painel saiba. Detectada a recusa, os avisos são desligados e esta linha diz isso.</li></ul><p>O que sai daqui para o fornecedor do modelo: a folha passada a limpo de <span data-nome></span>, o tema e a proposta. Nome, e-mail e o resto do painel não saem.</p>`},
     extras:{t:"Redações extras",b:`<p>As redações que <span data-nome></span> escreve por conta própria, fora da redação da semana. Cada uma conta na semana em que foi registrada e vale 50 XP, pelas duas primeiras de cada semana.</p><ul><li><b>Você só vê o que foi mandado.</b> Enquanto a correção não é pedida, a redação não aparece aqui — nem o rascunho, nem a folha passada a limpo. Pedida a correção, o que você lê é a versão daquele instante: o texto pode ter mudado depois, e isso não muda o que está nesta tela. Apagada no aparelho de <span data-nome></span>, a linha diz <b>apagada pelo aluno</b> e o texto entregue continua legível.</li><li><b>Sem folha passada a limpo</b> a entrega vem com o rascunho, dito como rascunho, e o parecer sai com <i>lido do rascunho</i>.</li><li><b>Corrigir à mão:</b> preencha a ficha — as cinco notas, uma força, um ajuste — e toque em <b>Montar o parecer</b>. Sai um parecer na mesma forma dos outros três, com o glossário das competências, o ajuste e o que estudar. Montar de novo substitui o anterior.</li><li><b>O ajuste é um só</b>, na competência do foco da semana. Quando o seu texto fala de outra competência, o painel pergunta se o foco desta redação não é outro: <b>Foco desta redação</b> muda só esta.</li><li><b>Com a skill:</b> <b>Copiar o comando</b> leva a proposta e o texto para o Claude Code — a skill não precisa do plano para uma extra — e <b>Colar o preparo</b> traz a ficha e o parecer de volta. O preparo de uma extra não entra na semana, e o da semana não entra aqui.</li><li><b>Combinado com <span data-nome></span>:</b> o que vocês acertarem na chamada. Até 200 caracteres por item; viaja na próxima entrega do parecer. Remover um antes de mandar o tira da lista do outro lado.</li><li><b>O que ficou de fazer</b> mostra as marcas do último código ou da última descida. Você lê e não muda: marcar é gesto de quem escreveu.</li></ul>`},
-    evolucao:{t:"Evolução",b:`<p>Nota total por semana, usando a nota da ficha (ou, se você não lançou, a registrada no painel do aluno). Abaixo, a última nota de cada competência. A partir da segunda semana com nota, “ponto fraco” marca a mais baixa delas, quando está abaixo de 160 e no menor valor que já teve. Use o prompt “Analisar a evolução” quando tiver três ou mais semanas lançadas.</p>`},
+    evolucao:{t:"Evolução",b:`<p>Nota total por semana, usando a nota da ficha (ou, se você não lançou, a registrada no painel do aluno). Abaixo, a última nota de cada competência. A partir da segunda semana com nota, “ponto fraco” marca a mais baixa delas, quando está abaixo de 160 e no menor valor que já teve. Use o prompt “Analisar a evolução” quando tiver três ou mais semanas lançadas.</p><p>Acima dessa linha, a nota da semana da aba com contexto — contra a semana anterior com nota, a melhor até ali e a competência que mais subiu —, a mesma frase que aparece no app de <span data-nome></span>. Só olha para trás e só aparece com as cinco competências lançadas.</p>`},
     conta:{t:"Conta e convites",b:`<p>A conta é opcional. Sem conta, o painel funciona como sempre: você importa o código que o aluno manda. A senha deste painel não muda e não tem relação com a conta.</p><ol><li><b>Entrar:</b> você digita o seu e-mail e recebe um código de 6 dígitos, que vale 10 minutos. Se não chegar, olhe a pasta de spam ou use <b>Corrigir e-mail</b>. Neste computador você entra uma vez só.</li><li><b>Convidar aluno:</b> gera um código de 8 letras e números, que vale 7 dias e serve uma vez. <b>Copiar</b> põe só o código na área de transferência; passe ao aluno por onde quiser. <b>Cancelar convite</b> o desativa na hora.</li><li><b>Aceitar:</b> o aluno digita o código, vê o seu nome e o que você vai ver, e pede a conexão. O pedido aparece aqui com o nome e o e-mail do aluno, com <b>Aceitar</b> e <b>Recusar</b>. Nada chega antes do aceite.</li></ol><p><b>O aluno também convida:</b> se o aluno passar um código gerado no app, digite em <b>Recebeu um código de um aluno?</b>. Você vê o nome e o e-mail e pede a conexão; o aluno lê o que você vai ver e aceita.</p><p><b>Responsável legal:</b> ao aceitar ou pedir, o painel pergunta se você é o responsável legal do aluno. Se não for, e o aluno tiver menos de 18 anos, é o aluno quem informa o e-mail do responsável, que recebe um aviso de quem você é, do que você vê e de como desfazer a conexão; o responsável não aprova nada. A conta de orientador é para quem tem 18 anos ou mais: uma conta criada antes disso pede a confirmação uma vez.</p><p>Se este painel já tem as anotações de um aluno com o mesmo e-mail — ou um aluno só, sem e-mail, que veio de antes —, é essa entrada que passa a ser a do aluno conectado, com tudo o que você já anotou.</p><p><b>Desfazer conexão:</b> qualquer um dos dois desfaz, sem o outro concordar. Quando a conexão acaba, saem deste painel, das cópias automáticas e do servidor o aluno e todas as anotações que você fez — ficha, notas, preparo, parecer, redação colada —, sem prazo de carência. Se for você a desfazer, o painel oferece antes <b>Salvar o arquivo das anotações</b>; esse arquivo é seu, e, restaurado, traz o aluno de volta como aluno por código, sem conexão. Desfazer daqui precisa de rede. Se for o aluno a desfazer, a saída daqui acontece no próximo contato com a rede, e um aviso diz isso.</p><p><b>Vários aparelhos:</b> entrando com a mesma conta em outro computador, as suas anotações vão junto — a ficha, as notas, o preparo colado, a redação transcrita, de todos os alunos, os por código inclusive. O que você preenche num aparece no outro. Um mesmo campo mudado nos dois sem rede fica com a mudança mais recente. Nada disso o aluno vê: o que chega ao aluno é só o que <b>Enviar o parecer</b> entrega. <b>Restaurar anotações</b>, conectado, vale em todos os seus aparelhos.</p><p><b>A lista de alunos:</b> com dois ou mais, os nomes aparecem acima das semanas, em ordem alfabética, cada um com o XP da semana, se houve registro nesta semana e a data do último; tocar num nome abre o painel daquele aluno, e as anotações dos outros ficam como estão. O aluno que chega por código colado leva <b>por código</b>; dois com o mesmo nome mostram o e-mail. Os convites esperando, e os vencidos, vêm depois dos alunos, com <b>Cancelar convite</b>. A lista não muda de ordem pela atividade de ninguém.</p><p><b>Sincronização</b> liga e desliga a conexão neste computador; <b>Sair da conta</b> encerra a sessão e não apaga nada do painel. <b>Excluir conta</b> apaga a sua conta de orientador, as conexões e o que estava no servidor, com um código novo no seu e-mail para confirmar; neste computador as anotações ficam. Se o mesmo e-mail é responsável na Missão Olimpíadas, aquela conta continua: daqui sai só o que é da Missão ENEM.</p>`},
   };
 
@@ -3510,11 +3542,39 @@
   // Não num ouvinte de focus: no Tab comum ele venceria a revelação do próprio navegador.
   const passoBtn = document.createElement("button"); passoBtn.type = "button";
   codeDlg.addEventListener("close", ()=>{ if(document.activeElement === passoBtn) passoBtn.scrollIntoView({block:"nearest"}); });
+  // O que o quadro diz quando os passos acabaram (ver .fecho no CSS): a força e o ajuste da ficha nas
+  // palavras do pai, o XP da semana e a próxima. Sem força ou ajuste a frase diz o que falta e por quê,
+  // sem botão: a ficha está logo abaixo, e o preparo os preenche como palpite na maior parte dos domingos.
+  // Na semana 8 não há ficha nem próxima: o fecho é o balanço das 8 semanas, que é o que ele leva.
+  function fechoDoDomingo(){
+    const m = WEEKS[current-1], nome = nomeAluno();
+    if(m.final) return `<p><b>Véspera fechada.</b>${aluno().dados ? ` ${esc(aTally())}. É o que ${esc(nome)} leva para a prova.` : ""}</p>`;
+    const f = wk(current).f || {}, cheio = v => !!(v && String(v).trim());
+    const forca = cheio(f.forca) ? f.forca.trim() : "", ajuste = cheio(f.ajuste) ? f.ajuste.trim() : "";
+    const bloco = (cls, rotulo, txt) => `<div class="${cls}"><b>${rotulo}</b><span>${esc(txt)}</span></div>`;
+    const fica = (forca ? bloco("forca", "Força", forca) : "") + (ajuste ? bloco("ajuste", "Ajuste", ajuste) : "");
+    const falta = !forca && !ajuste ? "a força e o ajuste" : !forca ? "a força" : !ajuste ? "o ajuste" : "";
+    const nota = scoreOf(current,"nota"), prox = WEEKS[current] || null;
+    const linha = [`${aWeekXP(current)} XP nesta semana`, nota!=="" && nota!=null ? `nota ${nota}` : "",
+      prox ? `a próxima é a semana ${prox.n} (${prox.range})${prox.final ? ", a reta final" : prox.foco ? `: ${prox.foco}` : ""}` : ""].filter(Boolean).join(" · ");
+    return `<p><b>Domingo fechado.</b>${falta ? `A ficha ainda não tem ${falta}: é o que fica para a semana de ${esc(nome)}.` : `O que fica para a semana de ${esc(nome)}, nas suas palavras:`}</p>`
+      + (fica ? `<div class="fica">${fica}</div>` : "")
+      + `<p>${esc(linha)}</p>`;
+  }
+  const agoraAntes = {};   // por semana, o `agora` do último render: o fecho só entra animado quando o último passo fecha nesta sessão
   function renderPassos(){
     const lista = passosDoDomingo(), agora = lista.findIndex(p=>!p.feito), tinha = document.activeElement === passoBtn;
     document.getElementById("passosSum").textContent = agora < 0
       ? `Os ${lista.length} passos do domingo, feitos.`
       : `Passo ${agora+1} de ${lista.length}`;
+    const fecho = document.getElementById("passosFecho");
+    if(agora < 0){
+      fecho.innerHTML = fechoDoDomingo();
+      const entra = agoraAntes[current] >= 0;
+      fecho.hidden = false;
+      fecho.classList.toggle("entra", entra);
+    } else { fecho.hidden = true; fecho.innerHTML = ""; fecho.classList.remove("entra"); }
+    agoraAntes[current] = agora;
     document.getElementById("passos").innerHTML = lista.map((p,i)=>{
       const est = p.feito ? "feito" : i===agora ? "agora" : "depois";
       const lido = p.feito ? "Feito. " : i===agora ? "Agora. " : "";
@@ -4404,7 +4464,9 @@
   function renderChart(){
     const svg=document.getElementById("grafico"), H=220,L=40,R=16,T=16,B=36;
     // largura do card: no celular o desenho encolhe em vez de rolar de lado (rótulos curtos abaixo de 560)
-    const W=Math.max(320, Math.min(720, svg.parentElement.clientWidth||720)), compact=W<560;
+    // Sem teto: o viewBox é a largura real do card, então texto e pontos ficam no tamanho de sempre
+    // e só a distância entre as semanas cresce com a janela (ver .grafico).
+    const W=Math.max(320, svg.parentElement.clientWidth||720), compact=W<560;
     svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
     const val=v=>{ const n=Number(v); return v!=null&&v!==""&&Number.isFinite(n)?Math.min(1000,Math.max(0,n)):null; };
     const pts=WEEKS.filter(m=>!m.final).map(m=>({n:m.n, v:val(scoreOf(m.n,"nota"))}));
@@ -4448,6 +4510,31 @@
     const semX = semNota.length ? `${semNota.length} redaç${semNota.length===1?"ão extra":"ões extras"} sem nota completa` : "";
     const base = parts.length ? `Última nota por competência: ${parts.join(" · ")}${delta}` : "";
     document.getElementById("evoLine").textContent = [base, semX].filter(Boolean).join(" · ");
+    evoCtx();
+  }
+  // A nota da semana da aba com contexto, para o pai: a gêmea do scoreCtx() do aluno, com as mesmas
+  // regras — só olha para trás (editar a semana 3 depois da 5 não muda a história da 3) e exige as
+  // cinco competências, porque aqui a frase é uma COMPARAÇÃO e comparar parcial com fechada engana.
+  // Lê por scoreOf(): a ficha primeiro, o painel do aluno depois, como a curva. Sem "sua" e sem pronome
+  // de pessoa (O2b): quem lê é o orientador, e o texto do modo local não marca o gênero de ninguém.
+  function evoCtx(){
+    const el = document.getElementById("evoCtx"), m = WEEKS[current-1];
+    const nota = n => { const v = scoreOf(n,"nota"); return v==="" || v==null ? null : Number(v); };
+    const cur = m.final ? null : nota(current);
+    if(cur===null){ el.hidden = true; el.textContent = ""; return; }
+    const scored = WEEKS.filter(x=>!x.final && x.n!==current && nota(x.n)!==null).map(x=>({n:x.n, v:nota(x.n)}));
+    const before = scored.filter(x=>x.n<current), prev = before[before.length-1];
+    let t = "";
+    if(!prev) t = scored.length ? "" : `Primeira nota da missão: ${cur}. É o ponto de partida; daqui em diante o jogo é contra essa nota.`;
+    else {
+      const d = cur-prev.v, best = before.reduce((a,x)=>x.v>a.v?x:a, before[0]);
+      t = `Semana ${current}: ${cur}, ` + (d>0 ? `+${d} sobre a semana ${prev.n}` : d<0 ? `${-d} abaixo da semana ${prev.n}` : `igual à semana ${prev.n}`);
+      if(cur>best.v) t += " · a melhor até aqui"; else if(cur===best.v && best.n!==prev.n) t += ` · empatou com a melhor (semana ${best.n})`; else if(d<0) t += ` · a melhor continua ${best.v} (semana ${best.n})`;
+      let up = null; CS.forEach(c=>{ const a = scoreOf(prev.n,c), b = scoreOf(current,c); if(a===""||b===""||Number(b)<=Number(a)) return; if(!up || Number(b)-Number(a)>up.d) up = {c, a:Number(a), b:Number(b), d:Number(b)-Number(a)}; });
+      if(up) t += ` · ${up.c.toUpperCase()} subiu de ${up.a} para ${up.b}`;
+      t += ".";
+    }
+    el.textContent = t; el.hidden = !t;
   }
 
   // ---- prompts

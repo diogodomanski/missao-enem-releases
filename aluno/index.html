@@ -774,6 +774,7 @@
   .modo input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
   .modo label:has(input:checked){background:var(--green-soft);color:var(--green);border-color:transparent;font-weight:700}
   .modo label:has(input:focus-visible){outline:3px solid var(--blue);outline-offset:2px}
+  .modo.letra{margin:2px 0 10px}
   /* Em alto contraste o sistema troca as cores de fundo e as três pílulas ficam iguais: o que sobra
      como "isto está marcado" é um contorno. Vale para os dois grupos `.modo` — a folha e o humor do
      bloco são o mesmo componente e a mesma linguagem de marcado, e escopar mais estreito deixaria a
@@ -1475,6 +1476,13 @@
            começando em 1, e só a de cima tinha rótulo — a de baixo, que é onde ele escreve, não tinha
            nenhum. O `aria-label` da região já dizia "Passar a limpo"; o que faltava era na tela. -->
       <p class="cap">Sua folha, para passar a limpo</p>
+      <!-- A letra da folha é escolha DESTE aparelho (como o tema): de mão, a Handlee, que é o padrão
+           e o papel; ou de máquina, o --mono do rascunho, para quem lê melhor a própria cópia em letra
+           de forma. A margem continua sendo a letra — medida na que estiver na tela. -->
+      <div class="modo letra" id="limpoLetra" role="radiogroup" aria-label="Letra da folha">
+        <label><input type="radio" name="limpoLetra" value="mao"><span>Letra de mão</span></label>
+        <label><input type="radio" name="limpoLetra" value="mono"><span>Letra de máquina</span></label>
+      </div>
       <p class="sheet-hint" id="limpoDica" hidden>Deite o celular para ver a linha inteira ›</p>
       <div id="limpoFolha" class="limpofolha hand"></div>
       <div class="lines" id="limpoStat"></div>
@@ -1728,7 +1736,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 287 · 24/10/2026</p></div>
+  <div class="in"><p class="versao">versão 289 · 25/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
@@ -2357,7 +2365,7 @@
     briefing:{t:"Ficha de briefing",b:`<p>Guarde aqui as notícias da semana que valerem a pena — quantas quiser. <b>Uma delas é a que você vai apresentar</b> no domingo, <b>sem ler</b>, em até 3 minutos (a pauta sugerida aparece ao lado do título). Ela vem primeiro, com a etiqueta <b>Vou apresentar</b>; as outras ficam guardadas logo abaixo, recolhidas no tema, e abrem com um toque.</p><ul><li><b>Nova notícia</b> abre mais uma ficha. A primeira da semana já nasce como a que você vai apresentar; as seguintes nascem guardadas.</li><li><b>Apresentar esta</b>, numa guardada, troca a escolha: ela passa para o topo e a anterior vira guardada. Dá para trocar quando quiser, até depois do encontro.</li><li><b>Apagar</b> tira na hora e deixa 8 segundos de Desfazer. Apagando a que você ia apresentar, a mais antiga das guardadas assume.</li><li><b>O que conta é a apresentada:</b> é ela que o painel Hoje pede para preencher, que entra no resumo e que o painel ${oriSpan("de")} mostra inteira, como a ficha de ${esc(NOME)} para o domingo. Das guardadas o resumo diz só quantas são, e elas não vão na mensagem: o arquivo de backup é que leva todas.</li><li><b>XP não muda:</b> o briefing vale 50 XP uma vez, marcado depois de apresentar. Guardar mais notícias não vale mais nem menos.</li></ul><p>Cada ficha tem os mesmos campos:</p><ul><li><b>Fonte:</b> de onde veio (site, podcast, jornal).</li><li><b>O que aconteceu:</b> uma frase, sem opinião.</li><li><b>Por que importa:</b> qual é a consequência.</li><li><b>Quem ganha / quem perde:</b> países, grupos, empresas.</li><li><b>E o Brasil?</b> como o país é afetado ou se posiciona.</li><li><b>Serve de repertório para:</b> em que tipo de tema de redação essa notícia poderia ser citada.</li><li><b>Pergunta que eu não sei responder:</b> leve uma dúvida real para discutir com ${oriSpan()}.</li></ul>`},
     banco:{t:"Banco de repertório",b:`<p>Repertório é o que você cita para provar um argumento: autor, lei, dado, obra, fato histórico. O banco guarda os seus, prontos para usar.</p><ul><li><b>Nome:</b> ex.: <code>Hannah Arendt</code>, <code>Lei 10.639/2003</code>, <code>IBGE 2023</code>.</li><li><b>O que é:</b> uma linha para lembrar do que se trata.</li><li><b>Frase pronta:</b> a frase já escrita como você usaria na redação.</li><li><b>Serve para temas de:</b> palavras-chave para achar depois (ex.: desinformação, democracia).</li></ul><p>Dois novos por semana valem 15 XP cada. Meta até a prova: 10 no banco, 6 decorados.</p>`},
     estudo:{t:"Banco de estudo",b:`<p>O banco é o seu caderno de revisão e o lugar onde os blocos se registram: <b>tudo</b> o que você estudou fica aqui, junto, para reler antes da prova. O card de cada semana conta quanto daquela semana já foi; a lista é esta.</p><p>O formulário diz, em cima, <b>em que semana</b> o bloco entra — é a semana que estiver aberta em Semanas. Chegou por engano na semana errada? Volte às Semanas, abra a aba certa e registre por lá.</p><ul><li><b>Agrupado por semana</b>, da mais nova para a mais velha, com o total de blocos e de minutos de cada uma.</li><li><b>Os chips de matéria</b> filtram a lista: tocar em <code>Química</code> deixa só Química na tela; <code>Todas</code> traz tudo de volta. O filtro vale para esta visita — recarregar volta para Todas.</li><li><b>Editar</b> conserta um bloco já salvo; <b>Apagar</b> tira na hora e deixa 8 segundos de Desfazer.</li></ul><p><b>Como foi estudar</b>, acima dos grupos, soma as marcas de cada matéria na missão inteira: <code>Física · 4 pesou · 1 ok · 2 sem registro</code>. Os blocos que você salvou sem marcar entram em <b>sem registro</b> — nunca como “Ok” —, e matéria sem marca nenhuma não ganha linha. A leitura segue o chip escolhido.</p><p>Quando os <b>3 blocos</b> mais recentes de uma matéria forem todos <b>Pesou</b>, o painel Hoje põe uma linha dizendo isso — sem botão e sem XP, só para você levar ao domingo. A linha desaparece quando o bloco seguinte daquela matéria não pesar.</p><p>Do <b>sexto bloco</b> de uma semana em diante a linha vem marcada com “sem XP”: os 20 XP valem para os cinco primeiros, mas o bloco continua guardado — é para revisar que ele existe.</p><p><b>A nota (“O que é, com as suas palavras”) aceita formatação do WhatsApp</b>, até 10.000 caracteres. São os mesmos marcadores que você já usa lá:</p><ul><li><code>*negrito*</code>, <code>_itálico_</code>, <code>~tachado~</code>.</li><li>Linha começando com <code>- </code> ou <code>* </code> vira item de lista; começando com <code>1. </code> vira lista numerada, e o Enter continua a numeração sozinho (Enter num item vazio encerra a lista).</li><li><b>Os botões abaixo do campo</b> põem os marcadores por você, e cada um é a marca que ele aplica: <code>B</code> negrito, <code>I</code> itálico, <code>S</code> tachado, e os dois desenhos de lista — com marcadores e numerada. Parando o mouse em cima, cada botão diz o nome.</li><li>Pelo teclado, a mesma coisa: <b>Ctrl+B</b> negrito, <b>Ctrl+I</b> itálico, <b>Ctrl+Shift+X</b> tachado. Ctrl+Z desfaz a marcação inteira de uma vez.</li><li>A <b>pré-visualização</b> ao lado mostra como a nota vai ficar no banco. O <b>olho</b>, no fim da barra, esconde e mostra: escondida, o campo passa a ocupar a largura inteira do formulário. O painel lembra a sua escolha neste aparelho.</li></ul><p>Para o marcador aparecer como texto, ponha um <b>espaço depois do marcador</b>: <code>* isto</code> sai com o asterisco à mostra. Conta e nome com <code>_</code> no meio (<code>2*3*4</code>, <code>snake_case</code>) já saem literais sozinhos. Notas antigas que tenham <code>*</code> ou <code>_</code> passam a sair formatadas onde a regra se aplica — abra o bloco e a pré-visualização mostra antes de salvar.</p>`},
-    ficha:{t:"A ficha da redação",b:`<p>Esta seção é a <b>ficha</b> da redação aberta: a da semana da aba, ou uma redação extra que você escolheu em <b>Redações</b>. As duas têm os mesmos blocos, e por isso a mesma ficha serve às duas.</p><ul><li><b>A identificação</b>, no topo, diz o que a redação é — <i>Semana 3</i> ou <i>Extra · semana 3</i> —, o tema, de onde veio o tema e quando ela mudou pela última vez.</li><li><b>O estado</b> é a etiqueta logo abaixo, e é sempre um destes oito: <i>não começada</i>, <i>rascunho</i>, <i>registrada</i>, <i>passada a limpo</i>, <i>correção pedida</i>, <i>corrigindo</i>, <i>corrigida</i> e <i>lida</i>. Ele é calculado do que está guardado: você nunca o escolhe.</li><li><b>O foco</b> é a competência que a semana treina, e vale também para as extras daquela semana. Nas semanas 1, 5, 7 e 8 o plano não aponta uma só, e aí o ajuste vai para a competência mais baixa daquela redação.</li><li><b>O que ficou de fazer</b>, no fim, lista o próximo passo e o que a correção pediu. O <b>?</b> daquele bloco explica as regras dele.</li><li><b>Imprimir esta redação</b> leva a ficha inteira para o papel: identificação, folha, notas, parecer e a lista.</li><li>Numa redação extra, <b>Voltar à lista</b> — ou a tecla Esc — devolve você ao catálogo, na linha de onde você veio.</li></ul><p>A redação fica salva por semana e vai no código de backup, então ${oriSpan()} recebe junto. A seção tem dois modos.</p><ul><li><b>Rascunho:</b> você escreve ou cola no campo, e a folha pautada logo abaixo se arruma sozinha, quebrando a linha onde a palavra não cabe. É o rascunho que vale para a correção, para o Copiar redação e para o parecer.</li><li><b>Passar a limpo:</b> uma folha em branco de 30 linhas que não quebra nada por você, com o rascunho em cima para ler. Você decide onde cada linha acaba e onde separar a palavra com hífen; Enter vai para a linha de baixo. A folha é escrita numa letra de mão, e a margem é a letra, não um número de caracteres: um “m” ocupa mais que um “i”, como no papel. A linha recusa o que passa da margem, sem aviso: ela só mostra que encheu. Não dá para colar: a folha se passa à mão. E nada é corrigido enquanto você escreve. A separação das palavras é conferida no domingo, e o que estiver errado chega no parecer.</li></ul><p><b>Linhas:</b> a folha do ENEM tem 30 linhas, e até 7 linhas a redação é zerada. O contador conta as linhas da folha desenhada, na sua <b>largura</b> de linha (o padrão é 68 caracteres) e com o recuo do parágrafo. Os parágrafos são 4 (introdução, dois de desenvolvimento, conclusão com proposta) ou 5, separados no rascunho por uma linha em branco. Para medir a sua largura: em <b>Medir pela minha letra</b>, copie até três linhas de uma folha que você escreveu à mão, letra por letra; a média vira a largura. Uma folha já começada no passar a limpo guarda a largura com que nasceu.</p><p><b>Nas semanas que pedem a folha</b> (a 5 e a 7), você escreve à mão e passa a limpo aqui do jeito que saiu no papel, linha por linha, com as mesmas quebras e os mesmos hífens. Ali a linha aceita até 120 caracteres, porque a linha de verdade pode ser mais longa que a sua média; a que passar da sua largura fica marcada, sem ser recusada. O painel Hoje lembra depois que você marcar a redação.</p><p><b>Finalizar, reabrir, recomeçar:</b> marque a folha como finalizada quando acabar; dá para reabrir. Recomeçar apaga a folha, com Desfazer por 8 segundos. A folha passada a limpo não vale XP e não muda o XP de nenhuma tarefa: o painel ${oriSpan("de")} mostra a folha de ${esc(NOME)} linha por linha, e o resumo diz se ela foi finalizada.</p><p><b>Este campo se comporta como papel:</b> o navegador não sublinha em vermelho, não sugere e não corrige nada do que você escreve, nos dois modos. A correção acontece no encontro, com ${oriSpan()} — errar aqui e descobrir depois é o treino. Teclados do celular ou extensões instaladas no navegador que ignorem isso estão fora do alcance do app.</p><p><b>Com a conexão ao orientador,</b> a redação só chega ao painel quando você toca em <b>Entregar a redação</b>: vai o rascunho como está naquele instante, e a folha passada a limpo, se você começou. O que você mudar depois não chega sozinho — a seção diz <i>você editou depois</i>, e entregar de novo substitui a entrega anterior. Entregar marca a tarefa <i>Redação entregue até sexta</i>, com o XP de sempre, e o bônus quando a entrega é até quinta; se você já tinha marcado à mão, nada se repete. <b>Desmarcar a entrega</b> não desmarca a tarefa nem tira XP, e não muda o que o orientador já viu. Redação feita no papel continua valendo: marque a tarefa à mão, como sempre.</p><p>Na reta final (semana 8) não há redação nova nem folha: releia as das semanas anteriores.</p>`},
+    ficha:{t:"A ficha da redação",b:`<p>Esta seção é a <b>ficha</b> da redação aberta: a da semana da aba, ou uma redação extra que você escolheu em <b>Redações</b>. As duas têm os mesmos blocos, e por isso a mesma ficha serve às duas.</p><ul><li><b>A identificação</b>, no topo, diz o que a redação é — <i>Semana 3</i> ou <i>Extra · semana 3</i> —, o tema, de onde veio o tema e quando ela mudou pela última vez.</li><li><b>O estado</b> é a etiqueta logo abaixo, e é sempre um destes oito: <i>não começada</i>, <i>rascunho</i>, <i>registrada</i>, <i>passada a limpo</i>, <i>correção pedida</i>, <i>corrigindo</i>, <i>corrigida</i> e <i>lida</i>. Ele é calculado do que está guardado: você nunca o escolhe.</li><li><b>O foco</b> é a competência que a semana treina, e vale também para as extras daquela semana. Nas semanas 1, 5, 7 e 8 o plano não aponta uma só, e aí o ajuste vai para a competência mais baixa daquela redação.</li><li><b>O que ficou de fazer</b>, no fim, lista o próximo passo e o que a correção pediu. O <b>?</b> daquele bloco explica as regras dele.</li><li><b>Imprimir esta redação</b> leva a ficha inteira para o papel: identificação, folha, notas, parecer e a lista.</li><li>Numa redação extra, <b>Voltar à lista</b> — ou a tecla Esc — devolve você ao catálogo, na linha de onde você veio.</li></ul><p>A redação fica salva por semana e vai no código de backup, então ${oriSpan()} recebe junto. A seção tem dois modos.</p><ul><li><b>Rascunho:</b> você escreve ou cola no campo, e a folha pautada logo abaixo se arruma sozinha, quebrando a linha onde a palavra não cabe. É o rascunho que vale para a correção, para o Copiar redação e para o parecer.</li><li><b>Passar a limpo:</b> uma folha em branco de 30 linhas que não quebra nada por você, com o rascunho em cima para ler. Você decide onde cada linha acaba e onde separar a palavra com hífen; Enter vai para a linha de baixo. A folha é escrita numa letra de mão, e a margem é a letra, não um número de caracteres: um “m” ocupa mais que um “i”, como no papel. Se você lê melhor a sua cópia em letra de forma, <b>Letra de máquina</b>, logo acima da folha, troca a letra neste aparelho — a margem passa a ser medida na letra que está na tela, e a escolha não vai no código de backup. A linha recusa o que passa da margem, sem aviso: ela só mostra que encheu. Não dá para colar: a folha se passa à mão. E nada é corrigido enquanto você escreve. A separação das palavras é conferida no domingo, e o que estiver errado chega no parecer.</li></ul><p><b>Linhas:</b> a folha do ENEM tem 30 linhas, e até 7 linhas a redação é zerada. O contador conta as linhas da folha desenhada, na sua <b>largura</b> de linha (o padrão é 68 caracteres) e com o recuo do parágrafo. Os parágrafos são 4 (introdução, dois de desenvolvimento, conclusão com proposta) ou 5, separados no rascunho por uma linha em branco. Para medir a sua largura: em <b>Medir pela minha letra</b>, copie até três linhas de uma folha que você escreveu à mão, letra por letra; a média vira a largura. Uma folha já começada no passar a limpo guarda a largura com que nasceu.</p><p><b>Nas semanas que pedem a folha</b> (a 5 e a 7), você escreve à mão e passa a limpo aqui do jeito que saiu no papel, linha por linha, com as mesmas quebras e os mesmos hífens. Ali a linha aceita até 120 caracteres, porque a linha de verdade pode ser mais longa que a sua média; a que passar da sua largura fica marcada, sem ser recusada. O painel Hoje lembra depois que você marcar a redação.</p><p><b>Finalizar, reabrir, recomeçar:</b> marque a folha como finalizada quando acabar; dá para reabrir. Recomeçar apaga a folha, com Desfazer por 8 segundos. A folha passada a limpo não vale XP e não muda o XP de nenhuma tarefa: o painel ${oriSpan("de")} mostra a folha de ${esc(NOME)} linha por linha, e o resumo diz se ela foi finalizada.</p><p><b>Este campo se comporta como papel:</b> o navegador não sublinha em vermelho, não sugere e não corrige nada do que você escreve, nos dois modos. A correção acontece no encontro, com ${oriSpan()} — errar aqui e descobrir depois é o treino. Teclados do celular ou extensões instaladas no navegador que ignorem isso estão fora do alcance do app.</p><p><b>Com a conexão ao orientador,</b> a redação só chega ao painel quando você toca em <b>Entregar a redação</b>: vai o rascunho como está naquele instante, e a folha passada a limpo, se você começou. O que você mudar depois não chega sozinho — a seção diz <i>você editou depois</i>, e entregar de novo substitui a entrega anterior. Entregar marca a tarefa <i>Redação entregue até sexta</i>, com o XP de sempre, e o bônus quando a entrega é até quinta; se você já tinha marcado à mão, nada se repete. <b>Desmarcar a entrega</b> não desmarca a tarefa nem tira XP, e não muda o que o orientador já viu. Redação feita no papel continua valendo: marque a tarefa à mão, como sempre.</p><p>Na reta final (semana 8) não há redação nova nem folha: releia as das semanas anteriores.</p>`},
     redacoes:{t:"Redações",b:`<p>É o catálogo de tudo o que você escreveu: as oito semanas do plano e cada <b>redação extra</b> que você começou, da mais nova para a mais velha. Tocar numa linha abre a ficha dela ali em cima, em <b>A ficha da redação</b> — não há um segundo editor: é sempre a mesma folha.</p><ul><li><b>Cada linha</b> traz a identificação, o estado, a nota total quando o corretor já deu, e quantas coisas ainda faltam naquela redação.</li><li><b>Os chips</b> filtram por estado: <i>corrigida</i>, <i>com pendências</i>, <i>sem parecer</i>. Os números deles são o mapa da lista inteira e não mudam quando você filtra; <b>Todas</b> traz tudo de volta, e recarregar a página também.</li><li><b>Nova redação extra</b> abre o banco de temas. Dá para começar uma extra de 14/09 até o fim da quarta 4/11; depois disso as que já existem continuam inteiras — você termina, passa a limpo, pede a correção e lê o parecer.</li><li><b>A semana 8</b> aparece como linha de texto, sem botão: na reta final não há redação nova.</li><li><b>Imprimir a lista</b> leva uma linha por redação para o papel, com o filtro ignorado: sai a lista toda.</li></ul><p>Cada extra registrada vale <b>50 XP</b>, pelas duas primeiras de cada semana. Do dia da prova em diante o catálogo fica só para ler e imprimir.</p>`},
     temas:{t:"Banco de temas",b:`<p>Os temas vêm embutidos no próprio arquivo: nada é buscado na internet, e o banco funciona offline. São dois grupos.</p><ul><li><b>Prováveis ${ENEM.getFullYear()}:</b> as apostas desta edição, em três faixas — alta, média e baixa. Cada uma tem a proposta escrita na forma da prova, o eixo e um repertório para começar.</li><li><b>Edições anteriores:</b> os temas que já caíram, com o enunciado oficial, do mais recente para o mais antigo.</li></ul><p>Tema que uma semana do plano já treina <b>não aparece aqui</b>: ele vai cair na redação daquela semana. O que você já treinou numa extra continua na lista, marcado com <i>já treinado</i> — repetir é decisão sua, e treinar o mesmo tema duas vezes é um jeito legítimo de medir a evolução.</p><p><b>Tema livre</b> é para um tema da escola, do cursinho ou seu: até 200 caracteres, e a ficha nasce sem proposta — você escreve direto na folha.</p><p>A redação extra nasce na semana de hoje e fica nela para sempre, mesmo que você termine de escrever na semana seguinte: é por isso que o XP e o foco dela são os daquela semana.</p>`},
     correcao:{t:"Correção automática",b:`<p>É a correção de uma <b>redação extra</b> feita na hora, sem esperar o domingo. Ela existe só quando ${oriSpan()} liga a chave para você e quando o seu app está conectado à conta: no modo local o caminho é <b>Pedir correção</b>, e o parecer chega pelo WhatsApp como sempre.</p><ul><li><b>Só a folha passada a limpo é corrigida.</b> É ela que um corretor leria na prova, com as suas quebras de linha e os seus hífens. Enquanto a folha não existir, a ficha pede <i>Passar a limpo</i> e o botão não aparece.</li><li><b>Créditos por semana:</b> ${oriSpan()} escolhe quantas correções por semana você pode pedir (o padrão é 2). A ficha diz quantas sobraram; os créditos voltam na segunda-feira.</li><li><b>Se não funcionar, não custa nada:</b> correção que falha ou demora demais não gasta crédito, e a ficha volta ao estado anterior para você tentar de novo ou pedir a ${oriSpan("")} correção. Quem garante isso é o servidor, que só conta o crédito quando a correção volta. <b>E a que volta num formato que este app não entende também não custa:</b> o crédito volta para a semana, e a ficha diz isso na hora.</li><li><b>O que sai daqui:</b> a sua folha passada a limpo e o tema vão para o fornecedor do modelo que corrige, e uma cópia do parecer vai para o painel ${oriSpan("de")}: toda correção automática sua aparece lá. O rascunho não sai.</li></ul><p>O parecer automático tem a mesma forma do que ${oriSpan()} manda, e diz na primeira linha que é automático. Chegando depois um parecer ${oriSpan("de")}, esse passa a valer, e o automático fica guardado atrás de um toque.</p>`},
@@ -3121,6 +3129,26 @@
   }
 
   // ---------- hero
+  // A semana em que o XP acumulado passou o degrau: a escada lê isto só depois da prova.
+  function semanaDaPatente(xpMin){ let acc = 0; for(const m of WEEKS){ acc += weekXP(m.n); if(acc>=xpMin) return m.n; } return WEEKS.length; }
+  const reduzMov = ()=>!!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+  // A barra VIRA A PÁGINA na promoção: enche até o fim e recomeça do zero na patente nova. Sem isto
+  // ela encolhia de ~95% para ~5% no único momento em que o app comemora — lia como perda no instante
+  // da conquista. É a transição de sempre (.xpbar > i, .5s), duas vezes, e nenhuma animação nova; com
+  // prefers-reduced-motion não há transição e a largura só troca. `barRank` é a patente que a barra
+  // desenhou por último (na primeira pintura não há de onde subir); `barAlvo` é o destino, que um
+  // render no meio da virada pode trocar sem recomeçá-la.
+  let barRank = null, barVira = false, barAlvo = "0%";
+  function viraBarra(fill, alvo){
+    barAlvo = alvo;
+    if(barVira) return;
+    barVira = true;
+    let tm = null;
+    const volta = ()=>{ clearTimeout(tm); fill.removeEventListener("transitionend", volta); fill.style.transition = "none"; fill.style.width = "0%"; void fill.offsetWidth; fill.style.transition = ""; barVira = false; fill.style.width = barAlvo; };
+    fill.addEventListener("transitionend", volta);
+    tm = setTimeout(volta, 650); // com a aba escondida a transição não dispara: o relógio cobre
+    fill.style.width = "100%";
+  }
   function renderHero(){
     const xp = totalXP(), {rank,next} = rankFor(xp);
     document.getElementById("rank").textContent = rank[1];
@@ -3130,10 +3158,15 @@
     // Na reta final (semana 8) e do dia da prova em diante o herói para de pedir XP e esconde a barra: a semana 8
     // é de descanso e vale no máximo 300 XP; "faltam 650 para Ministro" ali seria o contrário do jogo.
     // Depois da prova ele mostra o balanço no lugar da promoção.
-    if(next){ nextEl.textContent = over ? "patente final da missão" : rest ? "patente da missão" : "faltam " + (next[0]-xp) + " XP para " + next[1]; fill.style.width = Math.round(100*(xp-rank[0])/(next[0]-rank[0]))+"%"; }
-    else { nextEl.textContent = "patente máxima"; fill.style.width = "100%"; }
+    nextEl.textContent = next ? (over ? "patente final da missão" : rest ? "patente da missão" : "faltam " + (next[0]-xp) + " XP para " + next[1]) : "patente máxima";
+    const alvo = next ? Math.round(100*(xp-rank[0])/(next[0]-rank[0]))+"%" : "100%";
+    const sobe = barRank!==null && rankIdx(rank[1])>rankIdx(barRank) && !rest && !reduzMov();
+    barRank = rank[1];
+    if(sobe) viraBarra(fill, alvo); else if(barVira) barAlvo = alvo; else fill.style.width = alvo;
     document.getElementById("xpbar").hidden = rest;
-    document.getElementById("ladder").innerHTML = RANKS.map(r=>`<span class="${r[0]===rank[0]?'now':(xp>=r[0]?'done':'')}">${r[1]}</span>`).join("");
+    // Do dia da prova em diante a escada diz em que semana cada patente chegou — o caminho inteiro,
+    // lido dos registros dele. Antes disso ela é só o degrau de agora: "quando" ainda é o futuro.
+    document.getElementById("ladder").innerHTML = RANKS.map(r=>`<span class="${r[0]===rank[0]?'now':(xp>=r[0]?'done':'')}">${r[1]}${over && r[0]>0 && xp>=r[0] ? ` · semana ${semanaDaPatente(r[0])}` : ""}</span>`).join("");
     document.getElementById("final").hidden = !over;
     if(over){
       // A frase vem antes do balanço: primeiro alguém falando com ele, depois os números que ele mesmo registrou.
@@ -3370,7 +3403,7 @@
     // Desmarcar não some XP (o commit só fala quando o total sobe), mas precisa dizer que registrou:
     // era a única mudança de estado do app que não devolvia nada, e corrigir um toque errado ficava no escuro.
     el.querySelectorAll("[data-task]").forEach(cb=>cb.addEventListener("change",e=>{ const id=e.target.dataset.task; w.tasks[id] = e.target.checked; if(!w.tasks.red) w.tasks.early=false;
-      commit(e.target.checked ? TASKS.find(t=>t.id===id).label : undefined);
+      commit(e.target.checked ? rotuloTarefa(id) : undefined);
       if(!e.target.checked) toast(`Desmarcado: ${TASKS.find(t=>t.id===id).label}`); }));
     // Um gesto: abre o banco de estudo, abre o formulário na semana desta aba e rola até ele. O href
     // sozinho levaria à seção e o Arthur teria de achar o "Novo bloco" lá dentro.
@@ -4575,7 +4608,7 @@
       return;
     }
     const ganhou = lastXP!==null && totalXP() > lastXP;
-    commit(r.queued ? "redação vai ser entregue quando houver rede" : `redação entregue para ${nomeOrientador()}`);
+    commit(r.queued ? "redação vai ser entregue quando houver rede" : `redação entregue para ${nomeOrientador()}${redOrdinal()}`);
     if(!ganhou) toast(r.queued ? "Vai ser entregue quando houver rede" : `Redação entregue para ${nomeOrientador()}`);
   }
   document.getElementById("entregar").addEventListener("click", entregar);
@@ -4688,7 +4721,11 @@
   // kerning do <input>), e a letra média nesse tamanho. Com toque o campo vai a 16px, e as duas contas
   // acompanham: a margem em letras não muda com o tamanho.
   function larguraTexto(inp, t){ const cs = getComputedStyle(inp); letraCtx.font = `${cs.fontStyle} ${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`; return letraCtx.measureText(t).width; }
-  const letraMedia = inp=>parseFloat(getComputedStyle(inp).fontSize) * parseFloat(getComputedStyle(limpoFolha).getPropertyValue("--hand-ch"));
+  // Em letra de máquina a letra média é o próprio caractere ("0" no --mono do campo): a coluna do
+  // .sheet já é `--cols × 1ch` ali, e 1ch é exatamente isto.
+  const letraMedia = inp=>limpoFolha.classList.contains("hand")
+    ? parseFloat(getComputedStyle(inp).fontSize) * parseFloat(getComputedStyle(limpoFolha).getPropertyValue("--hand-ch"))
+    : larguraTexto(inp, "0");
   // Até onde o texto pode ir, em px: a margem dele, ou a linha inteira do papel na semana exigida.
   const limpoMargem = (inp, a)=>limpoLarg(a) * letraMedia(inp);
   // A medida só vale com a Handlee carregada; pedir logo na carga custa 1–2 ms (ela é data:) e evita
@@ -4713,12 +4750,34 @@
   const limpoFolha = document.getElementById("limpoFolha");
   const limpoIns = ()=>[...limpoFolha.querySelectorAll("input")];
   const limpoIdx = el=>el.dataset.limpo!=null ? Number(el.dataset.limpo) : -1;
+  // A letra da folha é preferência DO APARELHO, como o tema e a pré-visualização da nota: fora do
+  // estado e fora do código de backup. Padrão "mão" (a Handlee, ADR-013): a folha é o papel. "Máquina"
+  // é o --mono do rascunho, para quem lê melhor a própria cópia em letra de forma. Storage bloqueado
+  // cai no padrão e a escolha vale até recarregar. A margem não muda de regra: é a letra da tela.
+  const LETRA_KEY = "missao-enem-letra";
+  let letraMao = (()=>{ try { return localStorage.getItem(LETRA_KEY)!=="mono"; } catch(_){ return true; } })();
+  function aplicaLetra(){
+    limpoFolha.classList.toggle("hand", letraMao);
+    document.querySelectorAll('input[name="limpoLetra"]').forEach(r=>{ r.checked = (r.value==="mao")===letraMao; });
+  }
+  aplicaLetra();
+  document.querySelectorAll('input[name="limpoLetra"]').forEach(r=>r.addEventListener("change",()=>{
+    if(!r.checked) return; letraMao = r.value==="mao";
+    try { localStorage.setItem(LETRA_KEY, letraMao ? "mao" : "mono"); } catch(_){}
+    aplicaLetra();
+    // A folha se remede na letra nova: `full` e `past` de cada linha, e a coluna.
+    if(limpoFolha.firstChild){ const a = alvoRedacao(); limpoIns().forEach(inp=>limpoLinha(inp, a)); limpoMeta(); }
+  }));
   // A coluna, em letras médias. Em semana que exige a folha a linha pode passar da largura dele: a
   // coluna acompanha a linha mais LARGA (medida, não contada), para o texto copiado do papel nunca ficar
   // escondido dentro do campo. O centésimo a mais é o lugar do cursor.
+  // Em QUALQUER semana, e não só na exigida, desde que a letra se escolhe: fora dela a linha mais larga
+  // é a largura por construção (a margem recusa) — até ele trocar a letra depois de escrever. A linha
+  // que coube em letra de mão pode não caber em letra de máquina, e a coluna cresce para o texto não se
+  // esconder dentro do campo, que é a razão da regra toda.
   function limpoCols(a){
-    if(!a.exigida) return limpoLarg(a);
-    const ins = limpoIns(), m = letraMedia(ins[0]);
+    const ins = limpoIns(); if(!ins.length) return limpoLarg(a);
+    const m = letraMedia(ins[0]);
     return Math.max(limpoLarg(a), ...ins.map(x=>Math.ceil(larguraTexto(x, x.value) / m * 100 + 1) / 100));
   }
   // full: não cabe mais uma letra média antes da margem, ou a linha chegou ao teto de 120 (a margem
@@ -5298,6 +5357,11 @@
   function renderAll(){
     keepFocus(()=>{ renderNome(); renderHero(); renderContrato(); renderTabs(); renderWeek(); renderRed(); renderParecer(); renderFicha(); renderCatalogo(); renderBrief(); renderBank(); renderEstudo(); renderBadges(); renderDicas(); renderToday(); renderSummaries(); renderEnvio(); renderOutras(); });
   }
+  // A redação é o maior esforço da semana, e o toast dela diz QUAL é: "a 3ª da missão" conta as semanas
+  // com a redação marcada, esta inclusive. Na primeira, "a primeira" — a não ser que seja também o
+  // primeiro XP da missão, quando o commit() já diz "o primeiro da missão" e dois "primeiro" é eco.
+  function redOrdinal(){ const k = WEEKS.filter(m=>!m.final && ((state.weeks[m.n]||{}).tasks||{}).red).length; return k<=1 ? (k===1 && lastXP!==0 ? " · a primeira da missão" : "") : ` · a ${k}ª da missão`; }
+  function rotuloTarefa(id){ return TASKS.find(t=>t.id===id).label + (id==="red" ? redOrdinal() : ""); }
   // `why` é o que ele acabou de fazer, em linguagem do painel: vira "+N XP · why".
   function commit(why){
     save(); renderAll();
@@ -5368,8 +5432,12 @@
       const atual = hojeOk ? perfectRun(gi) : perfectRun(gi-1), melhor = bestRun();
       fog.classList.toggle("on", hojeOk);
       document.getElementById("streakN").textContent = atual;
-      document.getElementById("streakBest").textContent = (melhor>atual && melhor>=2) ? ` · melhor: ${melhor}` : "";
-      fog.setAttribute("aria-label", `${atual===1?"1 dia perfeito seguido":atual+" dias perfeitos seguidos"}${melhor>atual&&melhor>=2?`, melhor sequência: ${melhor}`:""}. `
+      // Quando a corrente É a melhor da missão, a pílula diz (`· recorde`): antes ela só falava do
+      // recorde quando ele estava atrás, e o dia em que ele passa a própria marca era o único calado.
+      // A partir de 3, senão todo começo de corrente seria recorde.
+      const recorde = atual>=3 && atual>=melhor;
+      document.getElementById("streakBest").textContent = (melhor>atual && melhor>=2) ? ` · melhor: ${melhor}` : recorde ? " · recorde" : "";
+      fog.setAttribute("aria-label", `${atual===1?"1 dia perfeito seguido":atual+" dias perfeitos seguidos"}${melhor>atual&&melhor>=2?`, melhor sequência: ${melhor}`:recorde?", a melhor sequência da missão":""}. `
         + (hojeOk ? "Hoje já está completo." : "Hoje ainda não está completo.") + " Toque para ver o que conta como dia perfeito.");
     }
     const steps = [], hoje = estudoHoje();
@@ -5580,7 +5648,7 @@
       if(b.dataset.act==="enviar"){ current=n; enviarSemana(); return; }
       if(b.dataset.act==="copiar"){ current=n; resumoEnviado = true; shareNow("Cole no WhatsApp e vá para a chamada: leve a redação para ler em voz alta."); renderToday(); return; }
       // O mesmo toast do checkbox da semana: o texto do XP é o rótulo da tarefa, em um lugar só.
-      if(b.dataset.act==="task"){ const id=b.dataset.taskid; current=n; w.tasks[id]=true; commit(TASKS.find(t=>t.id===id).label); return; }
+      if(b.dataset.act==="task"){ const id=b.dataset.taskid; current=n; w.tasks[id]=true; commit(rotuloTarefa(id)); return; }
       // O mesmo escritor da lista: a confirmação é escrita uma vez, em marcarFazer(), e ela grava em
       // `current` — daí o current=n antes, como em todo passo que marca aqui mesmo.
       if(b.dataset.act==="exercicio"){ current=n; fichaAtual={semana:n}; marcarFazer(b.dataset.exid, true); return; }
@@ -5740,7 +5808,7 @@
     // outro lugar: em zero a linha diz só o recorde. Com a corrente viva nada muda, e o
     // `N (melhor: M)` continua palavra por palavra. Sem recorde nenhum continua não havendo linha.
     if(seqMelhor) lines.push(seqAtual
-      ? `Dias perfeitos seguidos: ${seqAtual}${seqMelhor>seqAtual?` (melhor: ${seqMelhor})`:""}`
+      ? `Dias perfeitos seguidos: ${seqAtual}${seqMelhor>seqAtual?` (melhor: ${seqMelhor})`:seqAtual>=3?" (a melhor da missão)":""}`
       : `Dias perfeitos seguidos: melhor da missão, ${seqMelhor}`);
     if(w.redacao&&w.redacao.trim()){ const rs=redStats(w.redacao); lines.push(`Redação escrita: ${rs.lines} linha${rs.lines===1?"":"s"}, ${rs.paras} parágrafo${rs.paras===1?"":"s"}${limpoTxt?` · ${limpoTxt}`:""}`); }
     else if(limpoTxt) lines.push(`Redação: ${limpoTxt}`);
@@ -7225,7 +7293,7 @@
     const vm = fichaDe(), ff = document.getElementById("fichaFolha");
     const tem = !!(vm.limpo && limpoEscritas(vm.limpo));
     const linhas = tem ? vm.limpo.linhas : linhasDe(vm.redacao||"");
-    ff.classList.toggle("hand", tem);
+    ff.classList.toggle("hand", tem && letraMao); // a letra que ele escolheu para ler
     ff.innerHTML = (tem ? "" : `<p class="muted">rascunho</p>`) + folhaHTML(linhas, {cols: tem ? vm.limpo.larg : larg(), min:FOLHA.linhas, marca:false});
     ff.hidden = false;
   }
