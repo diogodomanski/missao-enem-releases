@@ -1774,7 +1774,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 320 · 26/10/2026</p></div>
+  <div class="in"><p class="versao">versão 321 · 26/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
@@ -6272,6 +6272,10 @@
     const r = decodeBackup(text); if(r.err) return r.err;
     const kind = backupKind(r.data);
     if(kind==="aluno" || kind==="orientador") return "Esse é um código de backup, não um parecer. Para restaurar um backup, use Restaurar backup, em Resumo para o orientador.";
+    // A mesma causa do RB1, nesta porta: a espécie `proposta` entrou em backupKind() e esta escada caía
+    // na recusa genérica, que diz o que o código NÃO é e não onde ele entra. Nada se perde aqui — a
+    // recusa já existia —, mas quem acabou de receber a proposta pelo WhatsApp fica sem o caminho.
+    if(kind==="proposta") return "Esse é o código de uma proposta de redação, não um parecer. Cole em Redação da semana → A proposta desta redação → Colar a proposta.";
     if(kind!=="parecer") return `Esse código não é um parecer. Peça ${orientador("a")} a mensagem do botão Copiar o parecer.`;
     const p = normalizeParecer(r.data); if(!p) return `Esse parecer não tem a forma esperada (versão 1, semana de 1 a 7 e a nota). Peça ${orientador("a")} para copiar de novo.`;
     // Roteamento por `extra` (ADR-015 §3): com ele o parecer é de uma redação EXTRA e vai para a ficha
@@ -6630,6 +6634,11 @@
     // quem colou o código errado fica sabendo o que ele NÃO é e não o que fazer com ele.
     if(kind==="orientador") return "Esse código é do painel do orientador, não do seu — ele se restaura lá, em Restaurar anotações. O seu backup vem do botão Copiar resumo e código deste painel.";
     if(kind==="parecer") return "Esse é um parecer da redação, não um backup. Cole em Parecer da redação → Colar o parecer.";
+    // A proposta é a quarta espécie de código que circula pelo WhatsApp, e esta era a única porta sem a
+    // recusa dela (RB1): sem esta linha o documento cai na restauração como um backup VAZIO, e o
+    // contrato de rotina — que o `confirm()` não cita — é apagado. O painel já se protegia disto nas
+    // três portas dele (IT-077, `propostaNaoEntraAqui()`); aqui a frase nomeia o destino, como as irmãs.
+    if(kind==="proposta") return "Esse é o código de uma proposta de redação, não um backup. Cole em Redação da semana → A proposta desta redação → Colar a proposta.";
     if(kind==="desconhecido") return "Esse código não parece um backup da Missão ENEM. Use o que sai de Copiar resumo e código ou o arquivo de Baixar arquivo de backup.";
     // A marca da mensagem é lida ANTES de migrate(), que a apaga com o resto do envelope.
     const soApresentadas = !!r.data.soApresentadas;
@@ -6667,6 +6676,12 @@
       const linhas = [`Aqui ${APP?"neste app":"neste navegador"}: ${aqui} XP, ${blocos_(state.estudo.length)}, ${state.bank.length} no banco.`,
         `Neste código: ${vem} XP, ${blocos_(incoming.estudo.length)}, ${incoming.bank.length} no banco${quando?`, copiado em ${quando}`:""}.`];
       if(vem<aqui) linhas.push(`\nEsse código está atrasado: você perde ${aqui-vem} XP e o que fez desde então. Confira se pegou a mensagem certa.`);
+      // O contrato entrava no `hasData` acima — ele é o que FAZ a pergunta aparecer — e não entrava em
+      // nenhuma linha dela (RB2): um código sem contrato sobre um aparelho com contrato dizia
+      // `0 XP, 0 blocos, 0 no banco` dos dois lados e apagava em silêncio a peça mais cara de
+      // reconstruir, a que o painel Hoje lê e que o pai validou numa chamada de 20 min. Um aviso só, e
+      // só quando ele se perde de fato: dizer tudo o que sai viraria inventário, e aviso longo não se lê.
+      if(state.contrato.encontro && !incoming.contrato.encontro) linhas.push(`\nVocê perde o contrato de rotina: esse código não traz contrato, e os dias, os horários e a validação ${orientador("de")} voltam a não preenchido.`);
       if(!confirm(`Restaurar substitui tudo o que está aqui.\n\n${linhas.join("\n")}\n\nRestaurar mesmo assim?`)){ toast("Nada foi alterado"); return null; }
     }
     state = incoming; current = guessWeek(); fichaAtual = {semana:current}; resetMemo(); setQuarentena(false); commit(); toast("Backup restaurado"); importOK = true; return null;
