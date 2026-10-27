@@ -139,15 +139,21 @@
   @supports (height:1dvh){dialog{max-height:calc(100dvh - 32px)}}
   dialog::backdrop{background:var(--scrim)}
   dialog .dh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:16px 18px 8px}
-  dialog .dh h2{margin:0;font-size:17px}
+  /* O h2 pode carregar texto digitado pelo usuário (o título de um tema no cabeçalho do #code), e
+     palavra sem espaço não quebra sozinha: sem anywhere ela estica a linha e o dialog, que é
+     overflow:auto, ganha rolagem HORIZONTAL. Com anywhere o mínimo automático já encolhe, então o
+     item de flex não precisa de min-width:0 — medido, os números são idênticos com e sem ele. */
+  dialog .dh h2{margin:0;font-size:17px;overflow-wrap:anywhere}
   dialog .db{padding:0 18px 18px;font-size:14px;line-height:1.55}
   dialog .db p{margin:8px 0}
   dialog .db ul{margin:6px 0;padding-left:18px}
   dialog .db li{margin:4px 0}
   dialog .db code{background:var(--bg);padding:1px 6px;border-radius:6px;font-size:13px}
 
-  /* O toast pousa acima da barra de baixo, não sobre ela: --footer já é a altura toda dela. */
-  .toast{position:fixed;left:0;right:0;bottom:calc(var(--footer) + 16px + env(safe-area-inset-bottom));width:max-content;max-width:calc(100vw - 32px);margin:0 auto;background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:99px;font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:3}
+  /* O toast pousa acima da barra de baixo, não sobre ela: --footer já é a altura toda dela. Ele também
+     mostra texto digitado pelo usuário (nome de repertório, título de tema), e o max-width recorta o
+     max-content: sem anywhere o fim da frase fica fora da cápsula. */
+  .toast{position:fixed;left:0;right:0;bottom:calc(var(--footer) + 16px + env(safe-area-inset-bottom));width:max-content;max-width:calc(100vw - 32px);margin:0 auto;background:var(--ink);color:var(--surface);padding:10px 16px;border-radius:99px;font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:opacity .2s;z-index:3;overflow-wrap:anywhere}
   .toast.show{opacity:1}
   .toast b{font-weight:700}
   @media (prefers-reduced-motion:reduce){.toast{transition:none}}
@@ -1470,10 +1476,12 @@
     <header><h2 aria-labelledby="redTitulo redWeek"><span id="redTitulo">Redação da semana</span> <span class="muted" id="redWeek"></span> <button class="help" data-help="ficha" aria-label="Ajuda: ficha da redação">?</button></h2><div class="actions"><button id="fichaVoltar" hidden>Voltar à lista</button><button id="copyRed">Copiar redação</button></div></header>
     <p class="fichaid" id="fichaId"></p>
     <p class="fichaest"><span class="chip estado" id="fichaEstado"></span></p>
-    <!-- A proposta, escrita na forma da prova. A extra traz só o enunciado (o tema dela vem do banco,
-         e ele acabou de o ler no diálogo de temas, por isso o card nasce fechado); a redação da semana
-         traz o DOCUMENTO que o orientador liberou — condição de prova, coletânea na ordem do Inep com a
-         fonte de cada texto, e o enunciado (tema-surpresa-no-app, ADR-001). Sem proposta, o card diz o
+    <!-- A proposta, escrita na forma da prova. A redação da semana traz o DOCUMENTO que o orientador
+         liberou — condição de prova, coletânea na ordem do Inep com a fonte de cada texto, e o enunciado
+         (tema-surpresa-no-app, ADR-001); a extra traz o documento do tema do banco, que ela copiou ao
+         nascer, e o card se abre sozinho na primeira vez que ela é desenhada, porque a coletânea é a
+         única parte do tema que ele não leu no diálogo de temas. Extra sem coletânea é só o enunciado,
+         e aí o card nasce fechado, como antes. Sem proposta, o card diz o
          que esperar e é por onde o código colado entra; na reta final ele não existe.
          O ? do card chama preventDefault() no <summary>: ajuda não recolhe o que se está lendo. -->
     <details class="card enun" id="fichaEnunciado" hidden><summary>A proposta desta redação <span class="sum" id="fichaPropostaSum"></span> <button class="help" data-help="proposta" aria-label="Ajuda: a proposta da redação">?</button></summary>
@@ -1774,7 +1782,7 @@
 <footer class="shell-footer">
   <!-- O lugar vazio à esquerda é de propósito: é onde entra o que a barra vier a hospedar.
        Não crie div vazia para reservá-lo. -->
-  <div class="in"><p class="versao">versão 321 · 26/10/2026</p></div>
+  <div class="in"><p class="versao">versão 341 · 27/10/2026</p></div>
 </footer>
 <!-- /build:footer -->
 <div class="toast" id="toast" role="status"></div>
@@ -2003,11 +2011,11 @@
     {"id":"p2026-02","grupo":"provavel","faixa":"alta","ano":null,"titulo":"Desafios para a proteção de crianças e adolescentes no ambiente digital brasileiro","eixo":"infância e ambiente digital","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a proteção de crianças e adolescentes no ambiente digital brasileiro\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa alta","repertorio":"ECA Digital (Lei 15.211/2025), em vigor desde 17/03/2026, somado ao ECA (Lei 8.069/1990) e à Lei 15.100/2025, dos celulares nas escolas. O ECA Digital é uma proposta de intervenção completa e em vigor: serve de modelo de C5.","semana":4},
     {"id":"p2026-03","grupo":"provavel","faixa":"media","ano":null,"titulo":"Desafios para o cuidado da saúde mental dos adolescentes no Brasil","eixo":"saúde mental","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para o cuidado da saúde mental dos adolescentes no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Lei 14.819/2024, que cria a Política Nacional de Atenção Psicossocial nas Comunidades Escolares, e Byung-Chul Han (Sociedade do cansaço).","semana":6},
     {"id":"p2026-04","grupo":"provavel","faixa":"media","ano":null,"titulo":"Caminhos para enfrentar a invisibilidade da população em situação de rua no Brasil","eixo":"população em situação de rua","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para enfrentar a invisibilidade da população em situação de rua no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Decreto 7.053/2009, que institui a Política Nacional para a População em Situação de Rua, e Fernando Braga da Costa (Homens invisíveis), de onde sai o conceito de invisibilidade social.","semana":3},
-    {"id":"p2026-05","grupo":"provavel","faixa":"media","ano":null,"titulo":"Desafios para a valorização e a formação de professores no Brasil","eixo":"educação e trabalho docente","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a valorização e a formação de professores no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Constituição de 1988, art. 206 (valorização dos profissionais da educação), e o Plano Nacional de Educação (Lei 13.005/2014), que fixou metas de carreira e de formação.","semana":null,"ensaio":true,"apoio":[{"rotulo":"Texto I","corpo":"O novo Plano Nacional de Educação foi sancionado em 14 de abril de 2026 e entrou em vigor com a publicação no Diário Oficial da União no dia seguinte. Entre os objetivos gerais da lei está valorizar os profissionais da educação e fortalecer as carreiras docentes da educação básica e superior, asseguradas condições de trabalho adequadas. A valorização do magistério é tratada especificamente nas metas 17.b, 17.c e 17.d do Anexo I.","fonte":"Lei nº 15.388, de 14 de abril de 2026 (Plano Nacional de Educação 2026–2035), publicada no DOU de 15/04/2026."},{"rotulo":"Texto II","corpo":"Entre 2015 e 2025, o número de professores do ensino médio com até 24 anos caiu 31,1%, de 17,3 mil para 11,9 mil, enquanto o de docentes com 60 anos ou mais mais que dobrou, subindo 104,5%, de 18,2 mil para 37,3 mil. No mesmo período, os contratos temporários cresceram 40,4%, de 146 mil para 205 mil, e os efetivos caíram de 305 mil para 255 mil. O estudo projeta que, em 2040, haverá um professor de até 24 anos para cada seis com 60 anos ou mais.","fonte":"Instituto Semesp, estudo “Apagão dos Professores: o desafio da renovação dos professores no Brasil” (2ª edição), apresentado em 16/09/2026."},{"rotulo":"Texto III","corpo":"Em 2024, o rendimento médio mensal bruto dos professores da educação básica no Brasil foi de R$ 5.481,01, contra R$ 6.368,97 dos demais profissionais com a mesma escolaridade — 86,1% do salário dos pares de nível superior. A equiparação desse rendimento é justamente o objeto da Meta 17 do Plano Nacional de Educação.","fonte":"IBGE, PNAD Contínua, 2º trimestre de 2024, compilado no Anuário Brasileiro da Educação Básica 2025, capítulo 6 — Professores."},{"rotulo":"Texto IV","corpo":"O Indicador de Adequação da Formação Docente, calculado a partir do Censo Escolar, mostra que, em 2024, apenas 68,4% das turmas do ensino médio e 60,4% das turmas dos anos finais do ensino fundamental eram atendidas por professores com licenciatura na área em que ensinam. Na Educação de Jovens e Adultos do ensino fundamental o índice cai para 27,0%.","fonte":"MEC/Inep/DEED, Censo Escolar (dados de 2024), compilado no Anuário Brasileiro da Educação Básica 2025, capítulo 6 — Professores."}]},
+    {"id":"p2026-05","grupo":"provavel","faixa":"media","ano":null,"titulo":"Desafios para a valorização e a formação de professores no Brasil","eixo":"educação e trabalho docente","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a valorização e a formação de professores no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Constituição de 1988, art. 206 (valorização dos profissionais da educação), e o Plano Nacional de Educação (Lei 13.005/2014), que fixou metas de carreira e de formação.","semana":null,"ensaio":true,"apoio":[{"rotulo":"Texto I","corpo":"O novo Plano Nacional de Educação foi sancionado em 14 de abril de 2026 e entrou em vigor com a publicação no Diário Oficial da União no dia seguinte. Entre os objetivos gerais da lei está valorizar os profissionais da educação e fortalecer as carreiras docentes da educação básica e superior, asseguradas condições de trabalho adequadas. A valorização do magistério é tratada especificamente nas metas 17.b, 17.c e 17.d do Anexo I.","fonte":"Lei nº 15.388, de 14 de abril de 2026 (Plano Nacional de Educação 2026–2036), publicada no DOU de 15/04/2026."},{"rotulo":"Texto II","corpo":"Entre 2015 e 2025, o número de professores do ensino médio com até 24 anos caiu 31,1%, de 17,3 mil para 11,9 mil, enquanto o de docentes com 60 anos ou mais mais que dobrou, subindo 104,5%, de 18,2 mil para 37,3 mil. No mesmo período, os contratos temporários cresceram 40,4%, de 146 mil para 205 mil, e os efetivos caíram de 305 mil para 255 mil. O estudo projeta que, em 2040, haverá um professor de até 24 anos para cada seis com 60 anos ou mais.","fonte":"Instituto Semesp, estudo “Apagão dos Professores: o desafio da renovação dos professores no Brasil” (2ª edição), apresentado em 16/09/2026."},{"rotulo":"Texto III","corpo":"Em 2024, o rendimento médio mensal bruto dos professores da educação básica no Brasil foi de R$ 5.481,01, contra R$ 6.368,97 dos demais profissionais com a mesma escolaridade — 86,1% do salário dos pares de nível superior. A equiparação desse rendimento é justamente o objeto da Meta 17 do Plano Nacional de Educação.","fonte":"IBGE, PNAD Contínua, 2º trimestre de 2024, compilado no Anuário Brasileiro da Educação Básica 2025, capítulo 6 — Professores."},{"rotulo":"Texto IV","corpo":"O Indicador de Adequação da Formação Docente, calculado a partir do Censo Escolar, mostra que, em 2024, apenas 68,4% das turmas do ensino médio e 60,4% das turmas dos anos finais do ensino fundamental eram atendidas por professores com licenciatura na área em que ensinam. Na Educação de Jovens e Adultos do ensino fundamental o índice cai para 27,0%.","fonte":"MEC/Inep/DEED, Censo Escolar (dados de 2024), compilado no Anuário Brasileiro da Educação Básica 2025, capítulo 6 — Professores."}]},
     {"id":"p2026-06","grupo":"provavel","faixa":"media","ano":null,"titulo":"Caminhos para universalizar o acesso à água e ao saneamento básico no Brasil","eixo":"saneamento e água","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para universalizar o acesso à água e ao saneamento básico no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Marco Legal do Saneamento (Lei 14.026/2020), com a meta de universalização em 2033, e a Constituição de 1988, art. 6º (direitos sociais).","semana":null,"ensaio":true,"apoio":[{"rotulo":"Texto I","corpo":"O Marco Legal do Saneamento Básico foi sancionado em 15 de julho de 2020 e fixou como meta a universalização do serviço até 31 de dezembro de 2033: 99% da população atendida com água potável e 90% com coleta e tratamento de esgoto.","fonte":"Lei nº 14.026, de 15 de julho de 2020, que atualiza o marco legal do saneamento básico."},{"rotulo":"Texto II","corpo":"A falta de saneamento adequado provocou mais de 344 mil internações no Brasil em 2024 — quase 950 por dia. Crianças com menos de 5 anos responderam por cerca de 70 mil dessas internações, 20% do total, e pessoas de 60 anos ou mais por cerca de 80 mil, 23,5%. Do total de internações, 64,8% foram de pessoas pretas ou pardas.","fonte":"Instituto Trata Brasil, estudo sobre saneamento e saúde com dados do DATASUS, divulgado em 19/03/2025."},{"rotulo":"Texto III","corpo":"As internações por doenças relacionadas ao saneamento ambiental inadequado custaram R$ 174,3 milhões ao SUS em 2024, a um custo médio de R$ 506,07 por internação. A universalização do saneamento evitaria cerca de 86.760 internações por ano, com economia anual estimada de R$ 49,9 milhões para o sistema de saúde.","fonte":"Instituto Trata Brasil, estudo sobre saneamento e saúde com dados do DATASUS de 2024, março de 2025."},{"rotulo":"Texto IV","corpo":"Em 2023, 11.544 óbitos no Brasil foram atribuídos a doenças relacionadas ao saneamento inadequado. Entre indígenas, a taxa de mortalidade por essas doenças é quatro vezes maior que a da população geral. No Maranhão, as doenças de transmissão feco-oral chegam a 42,5 casos por 10 mil habitantes, seis vezes a média nacional.","fonte":"Instituto Trata Brasil / DATASUS, divulgado em 19/03/2025."}]},
-    {"id":"p2026-07","grupo":"provavel","faixa":"media","ano":null,"titulo":"Desafios para o enfrentamento do endividamento por apostas online no Brasil","eixo":"apostas e endividamento","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para o enfrentamento do endividamento por apostas online no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Lei 14.790/2023, que regulamenta as apostas de quota fixa, com a regulamentação em vigor desde janeiro de 2025, e o Código de Defesa do Consumidor (Lei 8.078/1990).","semana":null,"ensaio":true,"apoio":[{"rotulo":"Texto I","corpo":"A Medida Provisória nº 1.394, de 25 de setembro de 2026, proibiu em todo o território nacional a exploração, a oferta, a intermediação e a publicidade das loterias de apostas de quota fixa, alcançando apostas esportivas e jogos on-line, inclusive quando oferecidos por empresas sediadas no exterior a pessoas localizadas no Brasil. O cronograma previu bloqueio de novos depósitos na data da publicação, saque voluntário dos saldos até 5 de outubro e retirada dos sites e aplicativos do ar a partir de 6 de outubro de 2026. A medida veio menos de três anos depois de a Lei nº 14.790/2023 ter regulamentado o setor.","fonte":"Ministério da Fazenda, Secretaria de Prêmios e Apostas — “Medida Provisória nº 1.394/2026: entenda as novas regras para as apostas de quota fixa”, setembro de 2026."},{"rotulo":"Texto II","corpo":"As apostas online provocaram uma saída líquida de R$ 62,5 bilhões do orçamento das famílias brasileiras em 2025 — a diferença entre o que foi depositado nas plataformas e o que voltou como prêmio —, equivalente a cerca de 0,68% da renda disponível das famílias. A movimentação total foi de R$ 350,97 bilhões no ano, com perda líquida média de R$ 4,7 bilhões por mês entre outubro de 2024 e março de 2026.","fonte":"Comsefaz e Centro Internacional Celso Furtado, 3ª edição do Boletim Fiscal dos Estados Brasileiros, com base nas Estatísticas de Pagamentos por Atividade Econômica do Banco Central, 26/09/2026."},{"rotulo":"Texto III","corpo":"Pesquisa de 2026 estima 50 milhões de apostadores nas capitais brasileiras, 10,5 milhões a mais que em 2025. Entre eles, 25% já deixaram de pagar alguma conta para apostar, 24% tiveram o nome negativado por causa das apostas e 13% deixaram de pagar serviços básicos como água e luz. O gasto médio mensal subiu de R$ 187 em 2025 para R$ 213 em 2026.","fonte":"CNDL e SPC Brasil, em parceria com a Offerwise Pesquisas — pesquisa “Apostas Online: entre o prazer do jogo e o risco financeiro”, 2026."},{"rotulo":"Texto IV","corpo":"Pesquisa Datafolha realizada em 20 e 21 de maio de 2026, com 1.907 entrevistas presenciais em 139 municípios de todas as regiões e margem de erro de 2 pontos percentuais, mostrou que 7% dos brasileiros de 18 anos ou mais fazem apostas online e que 57% da população considera as apostas um vício. Entre quem aposta ou já apostou, 35% dizem ter comprometido as próprias finanças.","fonte":"Datafolha, contratada pela Folha de S.Paulo (registro no TSE BR-07489/2026), divulgada em 15/07/2026."}]},
+    {"id":"p2026-07","grupo":"provavel","faixa":"media","ano":null,"titulo":"Desafios para o enfrentamento do endividamento por apostas online no Brasil","eixo":"apostas e endividamento","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para o enfrentamento do endividamento por apostas online no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa media","repertorio":"Lei 14.790/2023, que regulamenta as apostas de quota fixa, com a regulamentação em vigor desde janeiro de 2025, e o Código de Defesa do Consumidor (Lei 8.078/1990).","semana":null,"ensaio":true,"apoio":[{"rotulo":"Texto I","corpo":"A Medida Provisória nº 1.394, de 25 de setembro de 2026, proibiu em todo o território nacional a exploração, a oferta, a intermediação e a publicidade das loterias de apostas de quota fixa, alcançando apostas esportivas e jogos on-line, inclusive quando oferecidos por empresas sediadas no exterior a pessoas localizadas no Brasil. O cronograma previu bloqueio de novos depósitos na data da publicação, saque voluntário dos saldos até 5 de outubro e retirada dos sites e aplicativos do ar a partir de 6 de outubro de 2026. A medida veio menos de três anos depois de a Lei nº 14.790/2023 ter regulamentado o setor.","fonte":"Ministério da Fazenda, Secretaria de Prêmios e Apostas — “Medida Provisória nº 1.394/2026: entenda as novas regras para as apostas de quota fixa”, setembro de 2026."},{"rotulo":"Texto II","corpo":"As apostas online provocaram uma saída líquida de R$ 62,5 bilhões do orçamento das famílias brasileiras em 2025 — a diferença entre o que foi depositado nas plataformas e o que voltou como prêmio —, equivalente a cerca de 0,68% da renda disponível das famílias. A movimentação total foi de R$ 350,97 bilhões no ano, com perda líquida média de R$ 4,7 bilhões por mês entre outubro de 2024 e março de 2026.","fonte":"Comsefaz e Centro Internacional Celso Furtado, 3ª edição do Boletim Fiscal dos Estados Brasileiros, com base nas Estatísticas de Pagamentos por Atividade Econômica do Banco Central, apresentado em 22/07/2026."},{"rotulo":"Texto III","corpo":"Pesquisa de 2026 estima 50 milhões de apostadores nas capitais brasileiras, 10,5 milhões a mais que em 2025. Entre eles, 25% já deixaram de pagar alguma conta para apostar, 24% tiveram o nome negativado por causa das apostas e 13% deixaram de pagar serviços básicos como água e luz. O gasto médio mensal subiu de R$ 187 em 2025 para R$ 213 em 2026.","fonte":"CNDL e SPC Brasil, em parceria com a Offerwise Pesquisas — pesquisa “Apostas Online: entre o prazer do jogo e o risco financeiro”, 2026."},{"rotulo":"Texto IV","corpo":"Pesquisa Datafolha realizada em 20 e 21 de maio de 2026, com 1.907 entrevistas presenciais em 139 municípios de todas as regiões e margem de erro de 2 pontos percentuais, mostrou que 7% dos brasileiros de 18 anos ou mais fazem apostas online e que 57% da população considera as apostas um vício. Entre quem aposta ou já apostou, 35% dizem ter comprometido as próprias finanças.","fonte":"Datafolha, contratada pela Folha de S.Paulo (registro no TSE BR-07489/2026), divulgada em 15/07/2026."}]},
     {"id":"p2026-08","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Desafios para a mobilidade urbana nas cidades brasileiras","eixo":"mobilidade urbana","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a mobilidade urbana nas cidades brasileiras\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Política Nacional de Mobilidade Urbana (Lei 12.587/2012) e o Estatuto da Cidade (Lei 10.257/2001).","semana":null},
-    {"id":"p2026-09","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Desafios para a proteção de quem trabalha por aplicativo no Brasil","eixo":"trabalho por aplicativo","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a proteção de quem trabalha por aplicativo no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Constituição de 1988, art. 7º (direitos do trabalhador), e a CLT (Decreto-Lei 5.452/1943), que define o vínculo de emprego.","semana":null,"ensaio":true,"apoio":[{"rotulo":"Texto I","corpo":"No terceiro trimestre de 2025, cerca de 2,0 milhões de pessoas trabalhavam por meio de plataformas digitais de serviços no Brasil — 1,9% de uma população ocupada de 102,4 milhões. A maioria estava no transporte de passageiros: 1,2 milhão de pessoas, ou 58,9% do total.","fonte":"IBGE, PNAD Contínua: Trabalho por meio de plataformas digitais 2025 (estatística experimental), divulgada em 04/09/2026."},{"rotulo":"Texto II","corpo":"Dos 405 mil entregadores motociclistas que atuavam por aplicativo em 2025, apenas 79 mil tinham cobertura previdenciária — 19,4%, ou um em cada cinco. Eles ganhavam em média R$ 2.221 por mês e trabalhavam 44,9 horas por semana. Em 2022, a categoria somava 211 mil pessoas. Entre os 905 mil motoristas de automóvel por aplicativo, a jornada média era de 45,9 horas semanais e o rendimento, de R$ 14,40 por hora, abaixo dos R$ 16,00 por hora dos motoristas que atuavam fora de plataformas.","fonte":"IBGE, PNAD Contínua (dados de 2025), divulgados em 04/09/2026."},{"rotulo":"Texto III","corpo":"O Brasil registrou 34.211 acidentes de trabalho com entregadores motociclistas e ciclistas entre 2023 e julho de 2026. As notificações passaram de 8.630 em 2023 para 11.662 em 2025, alta de 34,92%, e a ocupação subiu à 10ª posição entre as mais notificadas por acidente de trabalho no Sistema de Informação de Agravos de Notificação.","fonte":"Ministério da Saúde (Sinan), levantamento a pedido do Ministério Público do Trabalho, divulgado em 07/08/2026."},{"rotulo":"Texto IV","corpo":"Em 12 de junho de 2026, a 114ª Conferência Internacional do Trabalho, em Genebra, aprovou a primeira convenção da Organização Internacional do Trabalho voltada especificamente ao trabalho intermediado por plataformas digitais. O instrumento estende a quem trabalha fora de uma relação de emprego formal direitos como liberdade de associação e negociação coletiva, ambiente de trabalho seguro e saudável, remuneração justa e o direito de contestar decisões algorítmicas que o afetem.","fonte":"Tribunal Superior do Trabalho, notícia institucional sobre a aprovação da convenção da OIT, junho de 2026."}]},
+    {"id":"p2026-09","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Desafios para a proteção de quem trabalha por aplicativo no Brasil","eixo":"trabalho por aplicativo","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a proteção de quem trabalha por aplicativo no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Constituição de 1988, art. 7º (direitos do trabalhador), e a CLT (Decreto-Lei 5.452/1943), que define o vínculo de emprego.","semana":null,"ensaio":true,"apoio":[{"rotulo":"Texto I","corpo":"No terceiro trimestre de 2025, cerca de 2,0 milhões de pessoas trabalhavam por meio de plataformas digitais de serviços no Brasil — 1,9% de uma população ocupada de 102,4 milhões. A maioria estava no transporte de passageiros: 1,2 milhão de pessoas, ou 58,9% do total.","fonte":"IBGE, PNAD Contínua: Trabalho por meio de plataformas digitais 2025 (estatística experimental), divulgada em 04/09/2026."},{"rotulo":"Texto II","corpo":"Dos 405 mil entregadores motociclistas que atuavam por aplicativo em 2025, apenas 79 mil tinham cobertura previdenciária — 19,4%, ou um em cada cinco. Eles ganhavam em média R$ 2.221 por mês e trabalhavam 44,9 horas por semana. Em 2022, a categoria somava 211 mil pessoas. Entre os 905 mil motoristas de automóvel por aplicativo, a jornada média era de 45,9 horas semanais e o rendimento, de R$ 14,40 por hora, abaixo dos R$ 16,00 por hora dos motoristas que atuavam fora de plataformas.","fonte":"IBGE, PNAD Contínua (dados de 2025), divulgados em 04/09/2026."},{"rotulo":"Texto III","corpo":"O Brasil registrou 34.211 acidentes de trabalho com entregadores motociclistas e ciclistas entre 2023 e julho de 2026. As notificações passaram de 8.582 em 2023 para 11.579 em 2025, alta de 34,92%, e a ocupação subiu à 10ª posição entre as mais notificadas por acidente de trabalho no Sistema de Informação de Agravos de Notificação.","fonte":"Ministério da Saúde (Sinan), levantamento a pedido do Ministério Público do Trabalho, divulgado em 07/08/2026."},{"rotulo":"Texto IV","corpo":"Em 12 de junho de 2026, a 114ª Conferência Internacional do Trabalho, em Genebra, aprovou a primeira convenção da Organização Internacional do Trabalho voltada especificamente ao trabalho intermediado por plataformas digitais. O instrumento estende a quem trabalha fora de uma relação de emprego formal direitos como liberdade de associação e negociação coletiva, ambiente de trabalho seguro e saudável, remuneração justa e o direito de contestar decisões algorítmicas que o afetem.","fonte":"Tribunal Superior do Trabalho, notícia institucional sobre a aprovação da convenção da OIT, junho de 2026."}]},
     {"id":"p2026-10","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Caminhos para reduzir o desperdício de alimentos e a insegurança alimentar no Brasil","eixo":"insegurança alimentar","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para reduzir o desperdício de alimentos e a insegurança alimentar no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Lei Orgânica de Segurança Alimentar e Nutricional (Lei 11.346/2006), que inscreve a alimentação adequada como direito, e a Lei 14.016/2020, da doação de alimentos.","semana":null},
     {"id":"p2026-11","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Desafios para a acolhida de migrantes e refugiados no Brasil","eixo":"migração","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Desafios para a acolhida de migrantes e refugiados no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Lei de Migração (Lei 13.445/2017) e Lei do Refúgio (Lei 9.474/1997).","semana":null},
     {"id":"p2026-12","grupo":"provavel","faixa":"baixa","ano":null,"titulo":"Caminhos para ampliar o letramento digital das pessoas idosas no Brasil","eixo":"idade e letramento digital","enunciado":"A partir da leitura dos textos motivadores e com base nos conhecimentos construídos ao longo de sua formação, redija um texto dissertativo-argumentativo em modalidade escrita formal da língua portuguesa sobre o tema \"Caminhos para ampliar o letramento digital das pessoas idosas no Brasil\", apresentando proposta de intervenção que respeite os direitos humanos.\n\nSelecione, organize e relacione, de forma coerente e coesa, argumentos e fatos para defesa de seu ponto de vista.","origem":"Provável 2026 · faixa baixa","repertorio":"Estatuto da Pessoa Idosa (Lei 10.741/2003, rebatizado pela Lei 14.423/2022) e o Marco Civil da Internet (Lei 12.965/2014).","semana":null},
@@ -2228,6 +2236,28 @@
   // à mão poria o parecer de uma redação na ficha de outra.
   // `auto` e `apagada` são do painel do pai, não do aparelho dele: são o retrato da entrega (ADR-014 §2),
   // e passam por aqui pela mesma regra do `registro` para que montaDados() possa levá-los.
+  // A coletânea que uma redação extra carrega: os textos de apoio e a condição de prova do tema do
+  // banco, COPIADOS para a extra no nascimento (BUG-20261026-coletanea-do-banco-nao-chega-ao-aluno).
+  // A régua é a MESMA do normalizeProposta() da proposta da semana — até seis textos, que é o que uma
+  // prova do Inep traz; texto sem corpo sai ANTES do corte, para um item quebrado não gastar uma das
+  // seis vagas e não levar junto o texto bom que vinha atrás; 40/1500/300 por campo e 400 na condição,
+  // que são os limites do banco —, porque é o MESMO documento, desenhado pela mesma propostaHTML()
+  // verbatim. Uma régua só: o nascimento da extra (no app do aluno) e a coerção da carga (nos dois)
+  // passam por aqui, do mesmo jeito que o resolveProposta() do painel passa a liberação pelo
+  // normalizeProposta() em vez de reescrever a régua ao lado dele.
+  // NÃO é o próprio normalizeProposta() porque ele exige uma semana de 1 a 7 e uma extra pode nascer na
+  // 8 — e porque o documento de uma extra não tem semana de entrega, nem quem liberou, nem quando: o
+  // tema é dela desde que ela nasceu.
+  // Condição só de espaço em branco é condição AUSENTE (BR-13), como lá: o bloco não se desenha, em vez
+  // de desenhar um rótulo com nada embaixo.
+  function normColetanea(d){
+    const s = v => v == null ? "" : String(v);
+    const apoio = (Array.isArray(d && d.apoio) ? d.apoio : [])
+      .filter(a=>a && typeof a === "object" && !Array.isArray(a) && s(a.corpo).trim()).slice(0, 6)
+      .map(a=>({rotulo: s(a.rotulo).slice(0, 40), corpo: s(a.corpo).slice(0, 1500), fonte: s(a.fonte).slice(0, 300)}));
+    const cond = s(d && d.condicao).slice(0, 400);
+    return {apoio, condicao: cond.trim() ? cond : ""};
+  }
   function normExtras(s){
     const ehObj = v => !!v && typeof v === "object" && !Array.isArray(v);
     const txt = (v, n) => (v == null ? "" : String(v)).slice(0, n);
@@ -2251,6 +2281,12 @@
         tema: txt(x.tema, 200).trim() || "(sem tema)",
         origem: Object.assign({tipo: og.tipo === "banco" ? "banco" : "livre"}, og.id == null ? {} : {id: txt(og.id, 40)}, {rotulo: txt(og.rotulo, 60)}),
         enunciado: txt(x.enunciado, 1500), redacao: livre(x.redacao)};
+      // A coletânea do tema, pela régua única de normColetanea(). Campo AUSENTE quando não há nada, como
+      // o `limpo` e o `registro`: um `apoio:[]` em cada extra encheria o código de backup de vazio, e o
+      // caso comum é a extra de tema livre, que não tem coletânea nenhuma.
+      const col = normColetanea(x);
+      if(col.apoio.length) it.apoio = col.apoio;
+      if(col.condicao) it.condicao = col.condicao;
       if(em(x.redEm)) it.redEm = em(x.redEm);
       const lp = normLimpo(x.limpo);
       if(lp) it.limpo = lp;
@@ -2964,6 +3000,13 @@
   }
   function rankFor(xp){ let r = RANKS[0], next = null; for(let i=0;i<RANKS.length;i++){ if(xp>=RANKS[i][0]) r = RANKS[i]; else { next = RANKS[i]; break; } } return {rank:r, next}; }
   function esc(s){ return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+  // O corte de 44 do nome de um item dentro do nome acessível de um botão. GÊMEA do painel, de
+  // propósito e FORA do VERBATIM do check-weeks.mjs: é a casa do `esc`, do `str` e do `obj`, que
+  // vivem nos dois apps sem portão — o que o portão vigia são as funções que desenham o MESMO
+  // documento para o pai e para o filho, e esta não desenha nada. Mexeu num app, lembre do outro.
+  // O 44 vem do painel, onde a etiqueta `do banco “…”` já o usava; aqui ele é herdado por
+  // consistência, não derivado — e um segundo número para o mesmo trabalho é como nasce divergência.
+  const corta44 = s=>{ const v = str(s); return v.length>44 ? v.slice(0, 44).trimEnd() + "…" : v; };
 
   // ---------- nota do bloco de estudo, formatada (ADR-012)
   // GÊMEA: esta função existe em cópia idêntica nos dois apps (Missao_ENEM_Arthur.html e
@@ -3573,6 +3616,13 @@
   // todas as telas e deve convergir, não bifurcar; `.estudo` é modificador para o pre-line e para as ações.
   // `banco` só decide o convite de explicar o bloco, que no card da semana seria cobrança (ele acabou de
   // salvar). A ordem importa: como faixa de largura inteira, as ações separavam o conteúdo do bloco.
+  // O nome do bloco em TEXTO PURO, e ele serve a DOIS lugares: o nome acessível das ações da linha e o
+  // toast que confirma que ela foi apagada. Não pode ser o `titulo` da linha — aquele é markup (`<b>`
+  // no meio) e `aria-label` é texto —, e não pode ser montado duas vezes: a ida (`Apagar Química ·
+  // Estequiometria`) e a volta (`Química · Estequiometria apagado`) têm de nomear o mesmo item com o
+  // mesmo corte, senão discordam nos 44 caracteres e quem ouve as duas lê duas coisas. Sem escapar:
+  // quem escapa é o `esc()` do atributo, e o `toastUndo()` escapa a mensagem dele por dentro.
+  function nomeEstudo(e){ return corta44(matLabel(e) + (e.conteudo ? ` · ${e.conteudo}` : "")); }
   function rowEstudo(e, paid){
     const tags = [e.dia!==null ? DAYS[e.dia] : "", e.min ? `${e.min} min` : "", e.humor || "", paid ? "" : "sem XP", e.legado ? "bloco antigo" : ""]
       .filter(Boolean).map(t=>`<span class="tag">${esc(t)}</span>`).join("");
@@ -3580,14 +3630,19 @@
     // uma mancha de quatro linhas onde o nome da matéria não se distinguia mais. Peso, não ordem nem cor:
     // os dois no mesmo nó de texto, para a quebra de linha ser a do texto corrido, e só a matéria em `b`.
     const titulo = `<b>${esc(matLabel(e))}</b>${e.conteudo ? ` · ${esc(e.conteudo)}` : ""}`;
+    const nome = nomeEstudo(e);
     return `<div class="rep estudo banco" data-id="${esc(e.id)}"><div class="rephead"><span class="titulo">${titulo}</span>${tags}</div>`
-      + `<div class="actions noprint"><button class="quiet" data-edit-estudo="${esc(e.id)}">Editar</button><button class="quiet" data-del-estudo="${esc(e.id)}">Apagar</button></div>`
+      + `<div class="actions noprint"><button class="quiet" data-edit-estudo="${esc(e.id)}" aria-label="Editar ${esc(nome)}">Editar</button><button class="quiet" data-del-estudo="${esc(e.id)}" aria-label="Apagar ${esc(nome)}">Apagar</button></div>`
       + (e.oque ? notaHTML(e.oque) : "")
       // O campo que a ajuda chama de "o que mais vale a pena" era opcional e sumia da lista quando vazio:
       // no sábado em que ele abre isto para revisar, não havia o que reler. Vazio convida, e o convite abre
       // a edição já no campo. O convite era só do banco enquanto o card da semana também listava blocos —
       // ali, logo depois de salvar, seria cobrança. Com uma lista só, e ela sendo a de revisão, vale sempre.
-      + (!e.oque ? `<p class="convite noprint"><button class="linkish" data-oque-estudo="${esc(e.id)}">Explicar este bloco com as suas palavras</button></p>` : "")
+      // O `aria-label` deste tem forma PRÓPRIA e não o rótulo mais o nome (decisão do Diogo de
+      // 27/10): o rótulo já é uma frase de 40 caracteres, e somá-lo ao nome daria um anúncio de até
+      // 85. Assim as três listas anunciam na mesma forma — verbo mais nome —, e o rótulo visível
+      // fica como está, porque o convite longo é de propósito.
+      + (!e.oque ? `<p class="convite noprint"><button class="linkish" data-oque-estudo="${esc(e.id)}" aria-label="Explicar ${esc(nome)}">Explicar este bloco com as suas palavras</button></p>` : "")
       + (e.onde ? `<p class="onde">Onde aparece: ${esc(e.onde)}</p>` : "")
       + `</div>`;
   }
@@ -3907,7 +3962,23 @@
     const i = state.estudo.findIndex(x=>x.id===id); if(i<0) return;
     const [e] = state.estudo.splice(i,1), preso = estudoFiltro===matLabel(e) ? estudoFiltro : null;
     estudoPreso = preso; commit();
-    toastUndo("Bloco apagado", ()=>{ if(estudoPreso===preso) estudoPreso = null; state.estudo.splice(Math.min(i,state.estudo.length),0,e); const xb = totalXP(); commit(`${matLabel(e)} de volta`); if(totalXP()===xb) toast(`${matLabel(e)} de volta`); },
+    // O toast NOMEIA o bloco, e com o mesmo valor do nome acessível da linha (`nomeEstudo`): para quem
+    // navega por leitor de tela ele é a ÚNICA confirmação que chega — a lista encurtando não é
+    // anunciada por ninguém —, e `Bloco apagado` confirmava que algo saiu, nunca que foi o que ele
+    // mirou (BUG-20261027-toast-de-apagar-nao-diz-o-que-foi-apagado).
+    // E a VOLTA nomeia o mesmo bloco, com o mesmo valor (D9, 27/10/2026): `Geografia de volta` dizia
+    // só a matéria, então em oito segundos o mesmo item ganhava DOIS nomes — e com dois blocos da
+    // mesma matéria as duas voltas eram a mesma frase, que é a colisão medida que isto conserta (a
+    // mesma de `Sem título` × 2 nas notícias, BUG-20261027-toast-do-desfazer-nao-diz-o-que-voltou).
+    // A notícia e a extra ficam genéricas, ratificadas: o Desfazer está a 0 Tab do anúncio que acabou
+    // de nomear o item, e ali não há colisão medida.
+    // O texto sai de UM lugar e vai aos dois usos de propósito: `xb` é lido DEPOIS do splice, então
+    // `totalXP()===xb` é sempre verdade e o `toast()` sempre substitui o do `commit()` — medido, a
+    // volta que devolve 20 XP não mostra `+20 XP`. Mantido como está (devolver ao estado anterior não
+    // é ganho a comemorar), mas com o literal num `const`: duas cópias dele é a mesma armadilha de
+    // divergência que este conserto está desfazendo, um nível abaixo.
+    const volta = `${nomeEstudo(e)} de volta`;
+    toastUndo(`${nomeEstudo(e)} apagado`, ()=>{ if(estudoPreso===preso) estudoPreso = null; state.estudo.splice(Math.min(i,state.estudo.length),0,e); const xb = totalXP(); commit(volta); if(totalXP()===xb) toast(volta); },
       {volta:"#novoEstudoBanco", desfeito:()=>document.querySelector(`#estudoList [data-edit-estudo="${CSS.escape(e.id)}"]`)||document.getElementById("novoEstudoBanco"),
        fim:()=>{ if(preso && estudoPreso===preso){ estudoPreso = null; renderAll(); } }});
   }
@@ -4122,13 +4193,17 @@
     chip.textContent = est; chip.className = ("chip estado " + (CHIP_ESTADO[est] || "")).trim();
     // O CARD DA PROPOSTA serve às duas redações, e é aqui que mora a segunda destrava: era
     // `ex && …`, o que reservava o card à extra. Três estados, por esta ordem:
-    //   · uma extra com enunciado — o texto da prova, como sempre, num parágrafo só;
-    //   · a redação da semana com proposta — o documento inteiro, na ordem do Inep (propostaHTML);
+    //   · uma extra sem coletânea — só o enunciado do tema, num parágrafo só;
+    //   · uma redação QUALQUER com proposta — o documento inteiro, na ordem do Inep (propostaHTML): a
+    //     liberada pelo orientador na semana, ou a coletânea do banco que a extra copiou ao nascer
+    //     (BUG-20261026-coletanea-do-banco-nao-chega-ao-aluno). Nas duas é o mesmo desenho, e por isso
+    //     `#fichaEnunciadoTxt` sai quando há documento: propostaHTML() já imprime o enunciado no fim,
+    //     e os dois juntos o imprimiriam duas vezes, com a condição de prova fora de ordem;
     //   · a redação da semana sem proposta — o que esperar, e nunca um quadro vazio.
     // Na semana comum sem proposta o card existe só pelo gesto de colar: nada ali promete uma proposta
     // que não foi combinada (US-017 AC-4). Na reta final não há redação nova, logo não há card.
     const enun = document.getElementById("fichaEnunciado");
-    const prop = vm.proposta, temExtra = !!(ex && (vm.enunciado||"").trim()), cola = !ex && !vm.final;
+    const prop = vm.proposta, temExtra = !!(ex && !prop && (vm.enunciado||"").trim()), cola = !ex && !vm.final;
     enun.hidden = !(temExtra || prop || cola);
     if(enun.hidden) enun.open = false;
     const txt = document.getElementById("fichaEnunciadoTxt");
@@ -4155,8 +4230,15 @@
     // Chegou, trocou ou saiu: o card se abre sozinho na mudança, como o #cRed e o #cParecer do painel.
     // Só na MUDANÇA, e não a cada render: renderFicha() roda a cada commit(), e reabrir o card que ele
     // fechou a cada tarefa marcada seria o app discutindo com o dedo dele.
+    // A extra entra nesta regra desde a coletânea do banco, e com memória PRÓPRIA (`coletaneaVista`):
+    // o comentário do markup dizia que o card dela nasce fechado porque "ele acabou de ler o tema no
+    // diálogo de temas", e isso vale para o ENUNCIADO — a coletânea ele não leu em lugar nenhum, e uma
+    // redação de ensaio geral escrita sem os textos motivadores treina outro exercício. A marca é o id,
+    // que não muda quando ele marca uma tarefa; duas memórias e não uma porque, compartilhada, ir e
+    // voltar entre uma semana com proposta e uma extra com coletânea reabriria as duas a cada troca.
     const marca = prop ? `${prop.semana}:${prop.em}:${prop.tema.titulo}` : "";
-    if(!ex && marca !== propostaVista){ propostaVista = marca; if(prop) enun.open = true; }
+    if(ex){ if(prop && vm.id !== coletaneaVista){ coletaneaVista = vm.id; enun.open = true; } }
+    else if(marca !== propostaVista){ propostaVista = marca; if(prop) enun.open = true; }
     // O foco é o da semana em que a redação conta, nos dois tipos (ADR-006). Na reta final não há
     // redação nova para focar.
     const foco = document.getElementById("fichaFoco");
@@ -4199,7 +4281,7 @@
   // da correção voltam depois de ele refazer a folha com um parecer na mão (US-011 EC-1). Refaz só
   // quando a marca muda: refazer o bloco a cada tecla seria pagar um innerHTML por caractere.
   function marcaDaFicha(vm){ return JSON.stringify([estadoFicha(vm), Number(vm.limpo && vm.limpo.em) || 0, Number(vm.redEm) || 0]); }
-  let fichaEstadoVisto = "", propostaVista = "";
+  let fichaEstadoVisto = "", propostaVista = "", coletaneaVista = "";
   function fichaSeguiu(){ if(marcaDaFicha(fichaDe()) !== fichaEstadoVisto){ renderFicha(); renderParecer(); renderCatalogo(); } }
   // ---------- o bloco da correção automática (US-016, US-017, US-020; ADR-003, ADR-009 §5)
   // O crédito tem um relógio só, e ele é do SERVIDOR: a tela nunca calcula quantas sobraram — ela diz
@@ -4317,9 +4399,12 @@
     : "Depois de 4/11 não começa redação nova. As começadas podem ser terminadas."; }
   // Os três filtros do catálogo, na ordem em que a fila os mostra. `corrigida` junta corrigida e lida:
   // o que ele procura ali é "as que já voltaram", e tê-las em dois chips partiria a resposta em duas.
+  // `temPendencia` é a conta de duas superfícies — o chip da fila e a linha de resumo da seção —, e
+  // está numa função só para elas não poderem divergir.
+  const temPendencia = v=>pendenciasDe(v).some(i=>!i.feita);
   const FILTROS_RED = [
     ["corrigida", v=>!!(v.parecer || v.parecerAuto)],
-    ["com pendências", v=>pendenciasDe(v).some(i=>!i.feita)],
+    ["com pendências", temPendencia],
     ["sem parecer", v=>temRedacao(v) && !(v.parecer || v.parecerAuto)]];
   // Toda extra e as oito semanas, da mais nova para a mais velha. A data de nascimento de uma semana é a
   // segunda-feira dela; de uma extra, o instante em que ele a começou. A semana 8 está na lista porque
@@ -4459,7 +4544,7 @@
       + `<div class="actions"><button type="button" class="primary" data-tema="${esc(t.id)}">Escrever sobre este tema</button></div></details>`).join("")).join("");
     lista.querySelectorAll("[data-tema]").forEach(b=>b.addEventListener("click",()=>{
       const t = TEMAS_EXTRAS.find(x=>x.id===b.dataset.tema); if(!t) return;
-      novaExtra(t.titulo, {tipo:"banco", id:t.id, rotulo:t.origem}, t.enunciado);
+      novaExtra(t.titulo, {tipo:"banco", id:t.id, rotulo:t.origem}, t.enunciado, t);
     }));
     document.getElementById("temaLivreTxt").value = ""; contaTemaLivre(); limpaTemaErro();
     if(!temasDlg.open) temasDlg.showModal();
@@ -4470,7 +4555,13 @@
   // ids iguais fariam Editar, Apagar e a conta das duas pagas apontarem para a redação errada.
   // O tema é guardado COMO ELE DIGITOU e desenhado escapado (BR-20): o banco pode ser regerado sem
   // esse id, e a ficha continua dizendo o tema certo — ela guarda o texto, nunca um índice do banco.
-  function novaExtra(tema, origem, enunciado){
+  // E a COLETÂNEA viaja pela mesma razão (BUG-20261026-coletanea-do-banco-nao-chega-ao-aluno): os
+  // textos de apoio e a condição de prova do tema são COPIADOS para a extra aqui, não lidos do banco
+  // por `origem.id` quando a ficha desenha. Ler por id devolveria o defeito que a regra acima existe
+  // para impedir — um banco regerado sem aquele id esvaziaria a coletânea de uma redação JÁ ESCRITA,
+  // e o aluno perderia os textos a partir dos quais escreveu. Medido: ≤2,5 KB por extra no código de
+  // backup (o maior apoio+condicao do asset é 2.537 bytes), contra o limiar de 60 KB.
+  function novaExtra(tema, origem, enunciado, coletanea){
     if(!podeCriarExtra()){ toast(porqueNaoExtra()); return null; }
     const at = Date.now();
     let id = String(at), k = 1;
@@ -4479,6 +4570,11 @@
       origem:{tipo:origem.tipo==="banco" ? "banco" : "livre", rotulo:str(origem.rotulo).slice(0,60)},
       enunciado:str(enunciado||"").slice(0,1500), redacao:"", marcas:{exercicios:[], combinados:{}}, combinados:[]};
     if(origem.id) x.origem.id = String(origem.id);
+    // Pela régua única: o que nasce aqui é, por construção, o que normExtras() guardaria na carga, então
+    // gravar e recarregar não muda o que está na tela. Tema livre não tem coletânea e não ganha campo.
+    const col = normColetanea(coletanea);
+    if(col.apoio.length) x.apoio = col.apoio;
+    if(col.condicao) x.condicao = col.condicao;
     state.extras.push(x);
     fichaAtual = {extra:id}; fichaVeioDe = "x" + id;
     commit();
@@ -4602,6 +4698,20 @@
   // servidor sai DEPOIS da janela do Desfazer — desfazer é desfazer, e avisar antes marcaria como
   // apagada uma redação que volta em oito segundos. Só há o que avisar quando algo dela subiu: um
   // pedido ao orientador ou uma correção automática. Sem entrega no servidor não há o que marcar.
+  // O nome de uma redação extra, para o toast que confirma que ela saiu. NÃO é o `fichaIdTexto(vm)` da
+  // linha do catálogo: aquele carrega `· do banco “…” · mudou em 14/10`, 60 caracteres de ruído num
+  // toast. É o tema, com o mesmo corte de 44 do resto da família, entre as aspas que o tema do acervo
+  // já usa no painel. **A reserva NÃO é posicional**, e esta é a correção que o Passo 3 do item fez:
+  // `novaExtra()` aceita `tema: ""`, mas a extra é apagada de dentro da FICHA DELA — não há lista na
+  // tela de onde tirar posição, e o catálogo é filtrável por chip, então uma posição dali não quer
+  // dizer nada. O identificador que o produto de fato tem é a semana, que é o que a própria linha do
+  // catálogo mostra (`Extra · semana 3 · tema livre`). E o caso da reserva NÃO é tema vazio: o
+  // `normExtras()` já troca tema em branco por `(sem tema)`, então o que chega aqui é o marcador —
+  // citá-lo (`“(sem tema)” apagada`) faria uma frase da casa parecer o título que ele escreveu.
+  // `(sem tema)` é comparado aqui, e não é constante compartilhada de propósito: o literal nasce em
+  // `normExtras()`, que é função VERBATIM nos dois apps (`scripts/check-weeks.mjs`), e extrair uma
+  // constante obrigaria o painel a mudar por causa de um toast que só o app do aluno tem.
+  function nomeExtra(x){ const t = (x.tema||"").trim(); return t && t !== "(sem tema)" ? `“${corta44(t)}”` : `a redação extra da semana ${x.semana}`; }
   function delExtra(id){
     if(soLeitura()) return;
     const i = state.extras.findIndex(x=>x.id===id); if(i < 0) return;
@@ -4609,7 +4719,11 @@
     if(fichaAtual.extra===id) fichaAtual = {semana:current};
     commit();
     const subiu = !!(x.pedido || x.corrigindo || x.parecerAuto);
-    toastUndo("Redação extra apagada", ()=>{
+    // O toast NOMEIA a extra, e aqui ele vale mais que nas duas listas: apagar FECHA a ficha e a tela
+    // passa a ser a redação da semana — o item não encurtou uma lista, ele saiu da tela com o contexto
+    // em que o gesto foi dado. O toast é o único lugar da página que ainda sabe o que aconteceu
+    // (BUG-20261027-toast-da-extra-apagada-nao-diz-qual-redacao-foi).
+    toastUndo(`${nomeExtra(x)} apagada`, ()=>{
       state.extras.splice(Math.min(i, state.extras.length), 0, x);
       fichaAtual = {extra:x.id}; fichaVeioDe = "x" + x.id;
       commit(); toast("Redação extra de volta");
@@ -4869,8 +4983,19 @@
     const a = alvoRedacao(ref), rotuloRew = (TASKS.find(t=>t.id==="rew") || {}).label || "";
     if(a.tipo==="extra"){
       const x = a.obj, m = x.marcas || {};
+      // A TERCEIRA DESTRAVA do mesmo tipo (as duas primeiras estão no comentário do ramo da semana,
+      // abaixo): `proposta:null, apoio:[], condicao:""` fixo era o que impedia a coletânea do banco de
+      // chegar à ficha da extra, com o dado já gravado nela e o desenho já escrito. O documento é MONTADO
+      // aqui a partir do que a extra guarda, na forma da proposta da semana — é o mesmo documento, e quem
+      // o desenha é a mesma propostaHTML() verbatim. Sem coletânea não há documento: a extra de tema livre
+      // (e a de um tema do banco sem apoio, que são 26 dos 31) continua mostrando só o enunciado.
+      // `semana` e `em` entram na forma porque propostaHTML() não os lê e a view model é uma só; a extra
+      // não tem quem liberou, então `de` é vazio.
+      const col = normColetanea(x), temCol = !!(col.apoio.length || col.condicao);
       return {tipo:"extra", semana:x.semana, id:x.id, tema:x.tema, origem:x.origem, enunciado:x.enunciado||"",
-        proposta:null, apoio:[], condicao:"", aguarda:false,
+        proposta: temCol ? {v:1, semana:x.semana, de:"", em:0,
+          tema:{titulo:x.tema, eixo:"", enunciado:x.enunciado||"", condicao:col.condicao, apoio:col.apoio}} : null,
+        apoio:col.apoio, condicao:col.condicao, aguarda:false,
         foco:focoDaSemana(x.semana), redacao:x.redacao||"", redEm:Number(x.redEm)||0, limpo:x.limpo||null,
         registro:x.registro||null, entrega:null, pedido:x.pedido||null, corrigindo:x.corrigindo||null,
         parecer:x.parecer||null, parecerAuto:x.parecerAuto||null, mensagem:x.mensagem||null,
@@ -5103,7 +5228,22 @@
     const antes = JSON.parse(JSON.stringify(a.limpo));
     a.limpo = null; limpoFoco = 0; commit();
     const linha1 = ()=>limpoIns()[0];
-    toastUndo("Folha apagada", ()=>{ const b = ref.extra ? extraPorId(ref.extra) : wk(ref.semana); if(b){ b.limpo = antes; commit(); } }, {volta:linha1});
+    toastUndo("Folha apagada", ()=>{
+      const b = ref.extra ? extraPorId(ref.extra) : wk(ref.semana); if(!b) return;
+      b.limpo = antes; commit();
+      // O `renderLimpo()` nunca pisa no campo que tem o FOCO — é a guarda que protege o que ele está
+      // digitando de um render vindo de outra aba. Aqui ela trabalha contra: o Recomeçar acabou de
+      // levar o foco à Linha 1 (logo abaixo), e era justamente a primeira linha da folha devolvida
+      // que ficava em branco, com o `#limpoStat` dizendo que a folha tem N — e reescrevê-la apagava
+      // o que tinha voltado (BUG-20261026-desfazer-da-folha-nao-repinta-a-linha-com-o-foco). No
+      // desfazer o que volta VENCE o que está no campo: ele pediu a folha de volta, e o que por
+      // acaso tenha sido digitado nos 8 s foi digitado numa linha que ele via vazia. Só na ficha de
+      // onde a folha saiu: desfeito depois de trocar de aba, o campo na tela é de outra redação.
+      const inp = document.activeElement, i = inp ? limpoIdx(inp) : -1;
+      if(i >= 0 && JSON.stringify(refDaFicha())===JSON.stringify(ref)){
+        inp.value = antes.linhas[i] || ""; limpoOk[i] = inp.value; limpoLinha(inp, alvoRedacao());
+      }
+    }, {volta:linha1});
     // Pelo mouse ou pelo toque o foco vai direto à Linha 1, para recomeçar a escrever; pelo teclado ele está no
     // Desfazer, e a Linha 1 é para onde volta quando a janela acaba.
     const um = linha1(); if(um && !document.getElementById("toast").contains(document.activeElement)) um.focus({preventScroll:true});
@@ -5288,13 +5428,18 @@
       vmS.mensagem && !notaS ? "mensagem recebida" : "",
       semParecer ? (conectado() ? `parecer chega quando ${nomeOrientador()} enviar` : "parecer: abra para colar") : "",
       pendS ? `${pendS} pendência${pendS===1?"":"s"}` : (estS==="não começada" ? "" : "nada pendente")].filter(Boolean).join(" · "));
-    // O catálogo: quantas redações existem, quantas voltaram corrigidas e quantas coisas sobram em
-    // todas elas juntas. Sem nada escrito a lista ainda não existe, e a linha diz só isso.
+    // O catálogo: quantas redações existem, quantas voltaram corrigidas e quantas têm algo em aberto —
+    // redações, pela mesma conta do chip `com pendências`, nunca a soma dos itens. Esta linha está na
+    // tela em TODA semana, inclusive na 8, e somar os itens era o contador que a regra do parecer
+    // recusa ("nenhum elemento mostra um total de pendências somado entre semanas") na forma mais
+    // curta possível: em novembro ela diria `15 pendências`. O número de itens continua onde ele não
+    // cobra — dentro da semana, no placar da lista, e na linha de cada redação do catálogo.
+    // Sem nada escrito a lista ainda não existe, e a linha diz só isso.
     const fsS = fichasDoCatalogo();
     const haS = !!state.extras.length || fsS.some(v=>temRedacao(v) && estadoFicha(v)!=="não começada");
     const corrS = fsS.filter(v=>!!(v.parecer || v.parecerAuto)).length;
-    const abertasS = fsS.reduce((a,v)=>a + pendenciasDe(v).filter(i=>!i.feita).length, 0);
-    set("redacoes", !haS ? "0 redações" : `${fsS.length} ${fsS.length===1?"redação":"redações"} · ${corrS} corrigida${corrS===1?"":"s"} · ${abertasS} pendência${abertasS===1?"":"s"}`);
+    const abertasS = fsS.filter(temPendencia).length;
+    set("redacoes", !haS ? "0 redações" : `${fsS.length} ${fsS.length===1?"redação":"redações"} · ${corrS} corrigida${corrS===1?"":"s"} · ${abertasS} com pendências`);
     // A linha fala do item que ele vai apresentar, e conta os guardados ao lado; lista vazia é o
     // "não preenchido" de sempre.
     const nap = apresentada(w), nguard = w.noticias.length - (nap ? 1 : 0);
@@ -5315,14 +5460,36 @@
   // Quais guardados estão abertos é da sessão (como o filtro do banco de estudo): um render no meio da
   // digitação, ou uma marcação em outra seção, não fecha o que ele abriu.
   const noticiaAberta = new Set();
-  function noticiaHTML(x){
+  // A ordem DESENHADA da fila de notícias: a apresentada primeiro, as outras na ordem do estado. É a
+  // que ele percorre com Tab, e por isso é a única de onde a reserva posicional do nome pode sair —
+  // `delNoticia()` só tem o índice do ARRAY, e usá-lo faria o toast dizer `a notícia 3` para o botão
+  // que anunciou `a notícia 2`. Mora aqui para o render e o apagar lerem a MESMA fila.
+  function ordemNoticias(w){ const ap = apresentada(w); return ap ? [ap, ...w.noticias.filter(x=>x!==ap)] : (w.noticias||[]).slice(); }
+  // O nome de uma notícia em TEXTO PURO, para o nome acessível das ações da linha e para o toast que
+  // confirma que ela foi apagada. NÃO pode ser o título da linha: `Sem título` serve para quem VÊ a
+  // linha, que sabe qual é pela posição na tela, e colide no anúncio assim que há duas guardadas em
+  // branco — `Apagar Sem título` duas vezes é o defeito de novo. A reserva é posicional, como as setas
+  // da coletânea do painel fazem com `o texto N`, e a posição é a da ordem DESENHADA.
+  // `citar` é a ÚNICA diferença entre os dois chamadores, e é por isso que ele é uma bandeira e não uma
+  // segunda função: o toast leva o tema entre aspas (decisão de 27/10, a forma que o tema do acervo já
+  // usa no painel) e o `aria-label` não — e o item e o corte têm de ser os mesmos nos dois, senão a ida
+  // e a volta nomeiam coisas diferentes. As aspas são do TEMA e nunca da reserva: `“a notícia 2”` leria
+  // como se essa fosse a frase que ele escreveu.
+  function nomeNoticia(x, i, citar){ const t = (x.tema||"").trim(); return t ? (citar ? `“${corta44(t)}”` : corta44(t)) : `a notícia ${(i|0) + 1}`; }
+  function noticiaHTML(x, i){
     const ap = x.apresenta, id = esc(x.id), tit = (x.tema||"").trim() ? esc(x.tema) : "Sem título";
+    const nome = esc(nomeNoticia(x, i));
     return `<details class="noticia" data-noticia="${id}"${ap || noticiaAberta.has(x.id) ? " open" : ""}>`
       + `<summary>${ap ? `<span class="rotulo">Vou apresentar</span>` : ""}<span class="titulo">${tit}</span></summary><div class="body">`
       + BRIEF_FIELDS.map(([k,l])=>`<label class="f mt">${l}${BRIEF_LONGOS.has(k)
           ? `<textarea id="nt-${id}-${k}" data-bf="${k}" data-grow="160" rows="1" maxlength="400">${esc(x[k])}</textarea>`
           : `<input id="nt-${id}-${k}" data-bf="${k}" maxlength="400" value="${esc(x[k])}">`}</label>`).join("")
-      + `<div class="actions noprint">${ap ? "" : `<button class="quiet" data-apresentar="${id}">Apresentar esta</button>`}<button class="quiet" data-del-noticia="${id}">Apagar</button></div></div></details>`;
+      // `Apresentar esta` vira `Apresentar <tema>`: o verbo se adapta para a frase ler como verbo mais
+      // nome, que é o que o acervo do painel já faz com `Coletânea de`/`Partir de`. O nome vem de
+      // `nomeNoticia()`, e a reserva dele É posicional — este comentário dizia o contrário («sai de
+      // graça, o produto já tem `Sem título`»), e era a afirmação que o próprio AN2 desmentiu antes do
+      // commit: `Sem título` colide no anúncio assim que há duas em branco.
+      + `<div class="actions noprint">${ap ? "" : `<button class="quiet" data-apresentar="${id}" aria-label="Apresentar ${nome}">Apresentar esta</button>`}<button class="quiet" data-del-noticia="${id}" aria-label="Apagar ${nome}">Apagar</button></div></div></details>`;
   }
   function renderBrief(){
     const meta = WEEKS[current-1], w = wk(current), n = current;
@@ -5332,7 +5499,7 @@
     if(meta.final){ f.innerHTML = `<p class="muted">Sem briefing na reta final. Descanse a voz.</p>`; return; }
     const ap = apresentada(w);
     if(!ap){ f.innerHTML = `<p class="muted vazio">Nenhuma notícia nesta semana ainda. Toque em <b>Nova notícia</b> para abrir a ficha da que você vai apresentar no domingo.</p>`; return; }
-    f.innerHTML = [ap, ...w.noticias.filter(x=>x!==ap)].map(noticiaHTML).join("");
+    f.innerHTML = ordemNoticias(w).map(noticiaHTML).join("");
     // Onde não há field-sizing, quem dá a altura é o grow(): aqui depois de desenhar, no toggle (campo
     // dentro de item fechado mede zero e o grow desiste) e a cada tecla, no ouvinte de input abaixo.
     f.querySelectorAll("textarea[data-grow]").forEach(grow);
@@ -5342,7 +5509,22 @@
     f.querySelectorAll("[data-bf]").forEach(inp=>inp.addEventListener("input",e=>{
       const x = item(inp); if(!x) return;
       x[inp.dataset.bf] = e.target.value; grow(e.target); save(); renderSummaries();
-      if(inp.dataset.bf==="tema") inp.closest(".noticia").querySelector("summary .titulo").textContent = x.tema.trim() ? x.tema : "Sem título";
+      if(inp.dataset.bf==="tema"){
+        const li = inp.closest(".noticia");
+        li.querySelector("summary .titulo").textContent = x.tema.trim() ? x.tema : "Sem título";
+        // E o NOME ACESSÍVEL das ações da linha, que o render escreveu e este handler não refaz: sem
+        // isto elas continuavam anunciando o tema de ANTES da digitação, enquanto o título ao lado já
+        // mostrava o novo (BUG-20261027-anuncio-da-noticia-fica-velho-quando-o-tema-e-digitado). Um
+        // nome distinto e ERRADO é pior que nenhum: ele passa em toda asserção de «vazio/repetido» e
+        // quem navega por leitor de tela confia nele.
+        // A posição é a da ORDEM DESENHADA, lida do próprio DOM — que é a fila que o render montou e
+        // que digitar não mexe (ela só muda ao promover outra, e isso passa por render inteiro). O
+        // nome sai de `nomeNoticia()`, a mesma função do render, para a ida e a volta não divergirem
+        // nos 44. Sem `esc()`: `setAttribute` não analisa HTML, ao contrário da string do render.
+        const pos = [...f.querySelectorAll("details.noticia")].indexOf(li), nome = nomeNoticia(x, pos);
+        li.querySelectorAll("[data-apresentar]").forEach(b=>b.setAttribute("aria-label", "Apresentar " + nome));
+        li.querySelectorAll("[data-del-noticia]").forEach(b=>b.setAttribute("aria-label", "Apagar " + nome));
+      }
       // O Hoje decide o passo do briefing pelo tema da apresentada: ele precisa ver a digitação, senão
       // continua pedindo a ficha que acabou de ser preenchida. Redesenhar o Hoje não toca no foco daqui.
       if(inp.dataset.bf==="tema" && x.apresenta) renderToday();
@@ -5390,15 +5572,27 @@
   // se ninguém escolheu outra no meio tempo — a escolha mais nova vale.
   function delNoticia(n, id){
     const w = wk(n), i = w.noticias.findIndex(x=>x.id===id); if(i<0) return;
+    // O nome sai da fila DESENHADA e é lido ANTES do splice: depois dele a apresentada já mudou e a
+    // posição de todo mundo anda. É a armadilha que só se vê com duas notícias em branco — com uma, o
+    // índice do array e o da tela coincidem e o defeito passa (a lição que o AN2 pagou com `Sem título`).
+    const nome = nomeNoticia(w.noticias[i], ordemNoticias(w).findIndex(y=>y.id===id), true);
     const [x] = w.noticias.splice(i,1), eraApresentada = x.apresenta;
     let promovida = null;
     if(eraApresentada && w.noticias.length){ w.noticias[0].apresenta = true; promovida = w.noticias[0].id; }
+    // Se a ficha estava ABERTA, ela volta aberta. O Desfazer devolve o dado e o LUGAR onde ele estava:
+    // era a única das três listas do aluno que largava o estado de vista — a ficha da redação extra
+    // reabre e o filtro do banco de estudo sobrevive ao ciclo, os dois medidos
+    // (BUG-20261027-noticia-volta-fechada-do-desfazer). A ficha de briefing é a mais cara de reabrir
+    // das três: sete campos, e o foco pousava na linha recolhida dela pedindo um Enter a mais.
+    // Lido ANTES do `delete`, pela mesma razão que o `nome` é lido antes do splice.
+    const estavaAberta = noticiaAberta.has(id);
     noticiaAberta.delete(id); commit();
-    toastUndo("Notícia apagada", ()=>{
+    toastUndo(`${nome} apagada`, ()=>{
       const v = wk(n), atual = apresentada(v), volta = eraApresentada && (atual ? atual.id : null)===promovida;
       if(volta) v.noticias.forEach(y=>{ y.apresenta = false; });
       x.apresenta = volta || !v.noticias.length;
       v.noticias.splice(Math.min(i, v.noticias.length), 0, x);
+      if(estavaAberta) noticiaAberta.add(x.id);
       commit(); toast("Notícia de volta");
     }, {volta:"#novaNoticia", desfeito:()=>document.querySelector(`#noticias [data-noticia="${CSS.escape(x.id)}"] summary`)||document.getElementById("novaNoticia")});
   }
@@ -5408,7 +5602,7 @@
     const list = document.getElementById("repList");
     if(!state.bank.length){ list.innerHTML = `<p class="muted vazio">Banco vazio. Comece pela Constituição de 1988, art. 6º — o repertório sugerido para a semana 1.</p>`; return; }
     const groups = {}; state.bank.forEach(r=>{ (groups[r.week]=groups[r.week]||[]).push(r); });
-    list.innerHTML = Object.keys(groups).sort((a,b)=>b-a).map(n=>`<h3>Semana ${n} · ${groups[n].length}</h3>`+groups[n].map(r=>`<div class="rep"><b>${esc(r.nome)}</b><span class="tag">${esc(r.temas)||"sem tema"}</span><p>${esc(r.oque)}</p><p class="frase">“${esc(r.frase)}”</p><div class="actions noprint"><button class="quiet" data-edit="${esc(r.id)}">Editar</button><button class="quiet" data-del="${esc(r.id)}">Apagar</button></div></div>`).join("")).join("");
+    list.innerHTML = Object.keys(groups).sort((a,b)=>b-a).map(n=>`<h3>Semana ${n} · ${groups[n].length}</h3>`+groups[n].map(r=>`<div class="rep"><b>${esc(r.nome)}</b><span class="tag">${esc(r.temas)||"sem tema"}</span><p>${esc(r.oque)}</p><p class="frase">“${esc(r.frase)}”</p><div class="actions noprint"><button class="quiet" data-edit="${esc(r.id)}" aria-label="Editar ${esc(corta44(r.nome))}">Editar</button><button class="quiet" data-del="${esc(r.id)}" aria-label="Apagar ${esc(corta44(r.nome))}">Apagar</button></div></div>`).join("")).join("");
     list.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>openRep(state.bank.find(r=>r.id===b.dataset.edit))));
     // Apagar não pergunta: apaga e oferece Desfazer por 8 s (o repertório volta ao mesmo lugar).
     list.querySelectorAll("[data-del]").forEach(b=>b.addEventListener("click",()=>{
@@ -6626,7 +6820,22 @@
   // restaurou quanto quando o usuário cancelou no confirm, e quem restaura uma cópia precisa da
   // diferença para não oferecer um Desfazer que não desfaz nada.
   let importOK = false;
-  function importBackup(text){
+  // `de` é a procedência do que está entrando: a DATA da cópia automática de onde o estado veio
+  // (`dd/mm/aaaa`, como `copiaData()` a escreve), ou nada, que é o caminho do código colado. As duas
+  // frases do confirm nasceram nesse caminho e falavam de «código» e de «mensagem» em TODO caminho
+  // (BUG-20261027-confirm-da-copia-automatica-chama-a-copia-de-codigo) — restaurando uma cópia ele
+  // não colou nada: clicou numa linha datada que o próprio app escreveu na pasta de dados dele, não
+  // existe mensagem para conferir, e o que a frase deve mandar conferir é a DATA, que é a chave desta
+  // lista. Por isso a data vai na linha e não só no pedido: o confirm é modal e cobre a lista, então
+  // «Confira a data» sem a data seria um conselho que ele não tem como seguir sem cancelar.
+  // O painel do pai já diz exatamente isto no confirm próprio dele, e foi essa assimetria que provou
+  // que isto é texto e não arquitetura: `restoreCopy()` reusar esta porta é o que garante que
+  // restaurar uma cópia passe pelas mesmas coerções e pelas mesmas proteções (pareceres, mensagens,
+  // propostas, extras e notícias deste aparelho), e trocar a porta seria desfazer isso.
+  // Sem `de` nada muda, e por construção: os dois sítios do código colado passam esta função como
+  // REFERÊNCIA de handler a askCode(), e runHandler(text) a chama com um argumento só.
+  function importBackup(text, opts){
+    const daCopia = !!(opts && opts.de);
     importOK = false;
     const r = decodeBackup(text); if(r.err) return r.err;
     const kind = backupKind(r.data);
@@ -6674,14 +6883,23 @@
       const aqui = totalXP(), vem = xpOf(incoming), quando = fmtWhen(num(r.data.exportedAt,0,Infinity,null));
       const blocos_ = n => `${n} bloco${n===1?"":"s"}`;
       const linhas = [`Aqui ${APP?"neste app":"neste navegador"}: ${aqui} XP, ${blocos_(state.estudo.length)}, ${state.bank.length} no banco.`,
-        `Neste código: ${vem} XP, ${blocos_(incoming.estudo.length)}, ${incoming.bank.length} no banco${quando?`, copiado em ${quando}`:""}.`];
-      if(vem<aqui) linhas.push(`\nEsse código está atrasado: você perde ${aqui-vem} XP e o que fez desde então. Confira se pegou a mensagem certa.`);
+        // `copiado em` só aparece no código: `migrate()` apaga `exportedAt` com o resto do envelope,
+        // então o JSON de uma cópia — que é o estado cru, salvo por cima — nunca o traz, e a data que
+        // a cópia tem para dar é a do rótulo.
+        `${daCopia?`Na cópia de ${opts.de}`:"Neste código"}: ${vem} XP, ${blocos_(incoming.estudo.length)}, ${incoming.bank.length} no banco${quando?`, copiado em ${quando}`:""}.`];
+      if(vem<aqui) linhas.push(daCopia
+        ? `\nEssa cópia está atrasada: você perde ${aqui-vem} XP e o que fez desde então. Confira a data.`
+        : `\nEsse código está atrasado: você perde ${aqui-vem} XP e o que fez desde então. Confira se pegou a mensagem certa.`);
       // O contrato entrava no `hasData` acima — ele é o que FAZ a pergunta aparecer — e não entrava em
       // nenhuma linha dela (RB2): um código sem contrato sobre um aparelho com contrato dizia
       // `0 XP, 0 blocos, 0 no banco` dos dois lados e apagava em silêncio a peça mais cara de
       // reconstruir, a que o painel Hoje lê e que o pai validou numa chamada de 20 min. Um aviso só, e
       // só quando ele se perde de fato: dizer tudo o que sai viraria inventário, e aviso longo não se lê.
-      if(state.contrato.encontro && !incoming.contrato.encontro) linhas.push(`\nVocê perde o contrato de rotina: esse código não traz contrato, e os dias, os horários e a validação ${orientador("de")} voltam a não preenchido.`);
+      // A TERCEIRA frase que o rótulo de procedência alcança, e a que escapou do primeiro conserto
+      // (ela só acende com contrato aqui e nenhum do outro lado, e as duas fixtures da suíte TÊM
+      // contrato — então a asserção que proíbe «código» na pergunta da cópia estava verde sobre um
+      // confirm de três linhas).
+      if(state.contrato.encontro && !incoming.contrato.encontro) linhas.push(`\nVocê perde o contrato de rotina: ${daCopia?"essa cópia":"esse código"} não traz contrato, e os dias, os horários e a validação ${orientador("de")} voltam a não preenchido.`);
       if(!confirm(`Restaurar substitui tudo o que está aqui.\n\n${linhas.join("\n")}\n\nRestaurar mesmo assim?`)){ toast("Nada foi alterado"); return null; }
     }
     state = incoming; current = guessWeek(); fichaAtual = {semana:current}; resetMemo(); setQuarentena(false); commit(); toast("Backup restaurado"); importOK = true; return null;
@@ -6747,17 +6965,25 @@
       const quando = copiaData(c && c.file);
       // Cópia ilegível continua na lista, e sem botão: sumir dela seria esconder que o dia existiu.
       if(!info) return `<p class="copia" data-file="${esc(c.file)}"><span>${esc(quando)} · ilegível</span></p>`;
-      return `<p class="copia" data-file="${esc(c.file)}"><span>${esc(quando)} · ${info.xp} XP · ${info.reps} repertório${info.reps===1?"":"s"}</span><button class="quiet" data-copia="${esc(c.file)}">Restaurar</button></p>`;
+      // A linha vira TEXTO uma vez e serve aos dois lados: o <span>, para quem vê, e o nome acessível
+      // do botão, para quem ouve. Sem o aria-label são catorze «Restaurar» idênticos (MAX_COPIES = 14),
+      // e restaurar troca o estado INTEIRO do aparelho — o confirm de dois lados chega depois de a
+      // linha errada já ter sido escolhida (BUG-20261027-restaurar-das-copias-automaticas-nao-diz-qual-copia).
+      // Vai a linha inteira e não só a data: é o que quem vê tem, e aqui não há corte de 44 a aplicar
+      // porque nada disto é texto do usuário — são datas e números, limitados por construção.
+      const linha = `${quando} · ${info.xp} XP · ${info.reps} repertório${info.reps===1?"":"s"}`;
+      return `<p class="copia" data-file="${esc(c.file)}"><span>${esc(linha)}</span><button class="quiet" data-copia="${esc(c.file)}" aria-label="Restaurar a cópia de ${esc(linha)}">Restaurar</button></p>`;
     }).join("");
   }
   // Restaurar uma cópia é restaurar um backup: mesmo confirm de dois lados, mesma entrada única
-  // (importBackup), mais os 8 segundos de Desfazer do padrão de apagar.
+  // (importBackup), mais os 8 segundos de Desfazer do padrão de apagar. O `de` é o que faz o confirm
+  // falar da cópia, da data dela e do que conferir, em vez de código e mensagem — ver importBackup().
   async function restoreCopy(file){
     let txt = null;
     try{ txt = await window.desktop.copies.read(file); }catch(e){}
     if(txt==null){ toast("Não consegui ler essa cópia."); return; }
     const before = JSON.stringify(state), q = quarentena;
-    const err = importBackup(txt);
+    const err = importBackup(txt, {de: copiaData(file)});
     if(err){ toast(err); return; }
     if(!importOK) return; // cancelou no confirm: o "Nada foi alterado" do importBackup já falou
     toastUndo("Cópia restaurada", ()=>{
