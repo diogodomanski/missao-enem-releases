@@ -1,0 +1,1 @@
+import{ki as I,vi as C}from"./main.js";var n=class e{_now=I(/* @__PURE__ */ new Date);preso=!1;agora=this._now.asReadonly();now(){return this._now()}refresh(){this.preso||this._now.set(/* @__PURE__ */ new Date)}set(t){this.preso=!0,this._now.set(t)}static ɵfac=function(r){return new(r||e)};static ɵprov=C({token:e,factory:e.ɵfac,providedIn:`root`})};export{n as t};

@@ -1,0 +1,1 @@
+function l(n,a){if(a.vista||!a.disponivel)return null;let e=n.session;if(!e){let i=String(n.pending?.email??``);return i?{frase:`Falta digitar o código que chegou em `,email:i}:null}return a.papel===`aluno`&&e.needsBirth?{frase:`Falta a data de nascimento.`,email:``}:a.papel===`orientador`&&e.needsAdult?{frase:`Falta confirmar a idade.`,email:``}:null}export{l as t};

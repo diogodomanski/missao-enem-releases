@@ -1,0 +1,1 @@
+import{Va as vy,da as b_,ya as h}from"./main.js";var n=class t{sanitizer=h(b_);transform(e){return this.sanitizer.bypassSecurityTrustHtml(e)}static ɵfac=function(p){return new(p||t)};static ɵpipe=vy({name:`guia`,type:t,pure:!0})};export{n as t};
